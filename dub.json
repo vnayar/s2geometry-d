@@ -1,0 +1,18 @@
+{
+  "name": "s2-geometry-library-d",
+  "authors": [
+	"Vijay Nayar"
+  ],
+  "description": "Google's S2 Geometric Library implemented in D.",
+  "copyright": "Copyright © 2017, Vijay Nayar",
+  "license": "apache",
+  "dependencies": {
+    "fluent-asserts": "~>0.9.0",
+  },
+  "configurations": [
+    {
+      "name": "unittest",
+      "importPaths": ["./src", "./test"]
+    }
+  ]
+}
