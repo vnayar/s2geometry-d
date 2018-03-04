@@ -1,4 +1,4 @@
-module s2.r2;
+module s2.r2point;
 
 import s2.util.math.vector;
 
