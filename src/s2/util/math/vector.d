@@ -182,7 +182,7 @@ public:
     } else static if (op == "/") {
       retval /= v;
     } else {
-      static assert(0, "Operator " ~ op ~ " not implemented");
+      static assert(0, "Operator " ~ op ~ " not implemented.");
     }
     return retval;
   }
