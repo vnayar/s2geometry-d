@@ -84,6 +84,10 @@ public:
     return _bounds[i];
   }
 
+  void opIndexAssign(in double v, size_t i) {
+    _bounds[i] = v;
+  }
+
   Vector2_d bounds() const {
     return _bounds;
   }

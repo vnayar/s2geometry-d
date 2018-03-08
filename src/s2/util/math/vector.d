@@ -44,6 +44,10 @@ public:
     _data[] = v;
   }
 
+  this(ElemT[SizeV] v ...) {
+    _data = v;
+  }
+
   this(RangeT)(RangeT data)
   if (range.isInputRange!RangeT) {
     _data[] = conv.to!(ElemT[])(range.take(range.array(data), SizeV));
@@ -380,21 +384,27 @@ alias Vector4_d = Vector!(double, 4);
 
 /// Construction
 unittest {
-  // Test a constructor with ranges.
-  auto v1 = Vector3_i([1, 2, 3]);
+  // Test a constructor with fixed number of parameters.
+  auto v1 = Vector3_i(1, 2, 3);
   assert(v1._data[0] == 1);
   assert(v1._data[1] == 2);
   assert(v1._data[2] == 3);
 
+  // Test a constructor with ranges.
+  auto v2 = Vector3_i([1, 2, 3]);
+  assert(v2._data[0] == 1);
+  assert(v2._data[1] == 2);
+  assert(v2._data[2] == 3);
+
   // Make sure copy constructor works.
-  auto v2 = Vector3_i(v1);
-  assert(v1._data[0] == v2._data[0]);
-  assert(v1._data[1] == v2._data[1]);
-  assert(v1._data[2] == v2._data[2]);
+  auto v3 = Vector3_i(v1);
+  assert(v3._data[0] == v3._data[0]);
+  assert(v3._data[1] == v3._data[1]);
+  assert(v3._data[2] == v3._data[2]);
 
   // Make sure the new object has unique references.
-  v2._data[0] = 4;
-  assert(v1._data[0] != v2._data[0]);
+  v3._data[0] = 4;
+  assert(v2._data[0] != v3._data[0]);
 }
 
 /// Member access

@@ -79,12 +79,12 @@ public:
 
   @property
   R2Point lo() const {
-    return R2Point([x().lo(), y().lo()]);
+    return R2Point(x().lo(), y().lo());
   }
 
   @property
   R2Point hi() const {
-    return R2Point([x().hi(), y().hi()]);
+    return R2Point(x().hi(), y().hi());
   }
 
   // Methods that allow the R2Rect to be accessed as a vector.
@@ -126,18 +126,18 @@ public:
   // vertex constructed by selecting endpoint "i" of the x-interval (0=lo,
   // 1=hi) and vertex "j" of the y-interval.
   R2Point getVertex(int i, int j) const {
-    return R2Point([_bounds[0][i], _bounds[1][j]]);
+    return R2Point(_bounds[0][i], _bounds[1][j]);
   }
 
   // Return the center of the rectangle in (x,y)-space.
   R2Point getCenter() const {
-    return R2Point([x().getCenter(), y().getCenter()]);
+    return R2Point(x().getCenter(), y().getCenter());
   }
 
   // Return the width and height of this rectangle in (x,y)-space.  Empty
   // rectangles have a negative width and height.
   R2Point getSize() const {
-    return R2Point([x().getLength(), y().getLength()]);
+    return R2Point(x().getLength(), y().getLength());
   }
 
   // Return true if the rectangle contains the given point.  Note that
@@ -194,7 +194,7 @@ public:
   // Return the closest point in the rectangle to the given point "p".
   // The rectangle must be non-empty.
   R2Point Project(in R2Point p) const {
-    return R2Point([x().project(p.x()), y().project(p.y())]);
+    return R2Point(x().project(p.x()), y().project(p.y()));
   }
 
 
@@ -211,7 +211,7 @@ public:
   }
 
   R2Rect expanded(double margin) const {
-    return expanded(R2Point([margin, margin]));
+    return expanded(R2Point(margin, margin));
   }
 
   // Return the smallest rectangle containing the union of this rectangle and

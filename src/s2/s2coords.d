@@ -117,9 +117,9 @@ in {
 // s- or t-value.  If the argument is outside the range spanned by valid
 // leaf cell indices, return the index of the closest valid leaf cell (i.e.,
 // return values are clamped to the range of valid leaf cell indices).
-size_t STtoIJ(double s) {
+int STtoIJ(double s) {
   return algorithm.max(
-      0, algorithm.min(LIMIT_IJ - 1, math.lround(LIMIT_IJ * s - 0.5)));
+      0, algorithm.min(LIMIT_IJ - 1, cast(int) math.lround(LIMIT_IJ * s - 0.5)));
 }
 
 // Convert an si- or ti-value to the corresponding s- or t-value.
@@ -442,8 +442,8 @@ version (S2_QUADRATIC_PROJECTION) {
  * degrees (i.e. the bits of i and j are inverted, or equivalently,
  * the axis directions are reversed).
  */
-private immutable int SWAP_MASK = 0x01;
-private immutable int INVERT_MASK = 0x02;
+package immutable int SWAP_MASK = 0x01;
+package immutable int INVERT_MASK = 0x02;
 
 /**
  * Given a cell orientation and the (i,j)-index of a subcell (0=(0,0),
@@ -452,7 +452,7 @@ private immutable int INVERT_MASK = 0x02;
  *
  * IJ_TO_POS[orientation][ij] -> pos
  */
-private immutable int[4][4] IJ_TO_POS = [
+package immutable int[4][4] IJ_TO_POS = [
   // (0,0) (0,1) (1,0) (1,1)
   [     0,    1,    3,    2  ],  // canonical order
   [     0,    3,    1,    2  ],  // axes swapped
@@ -467,7 +467,7 @@ private immutable int[4][4] IJ_TO_POS = [
  *
  * POS_TO_IJ[orientation][pos] -> ij
  */
-private immutable int[4][4] POS_TO_IJ = [
+package immutable int[4][4] POS_TO_IJ = [
   // 0  1  2  3
   [  0, 1, 3, 2 ],    // canonical order:    (0,0), (0,1), (1,1), (1,0)
   [  0, 2, 3, 1 ],    // axes swapped:       (0,0), (1,0), (1,1), (0,1)
@@ -483,7 +483,7 @@ private immutable int[4][4] POS_TO_IJ = [
  *
  * POS_TO_ORIENTATION[pos] -> orientation_modifier
  */
-private immutable int[4] POS_TO_ORIENTATION = [
+package immutable int[4] POS_TO_ORIENTATION = [
   SWAP_MASK,
   0,
   0,
@@ -491,7 +491,7 @@ private immutable int[4] POS_TO_ORIENTATION = [
 ];
 
 /** The U,V,W axes for each face. */
-private immutable double[3][3][6] FACE_UVW_AXES = [
+package immutable double[3][3][6] FACE_UVW_AXES = [
   [
     [ 0,  1,  0 ],
     [ 0,  0,  1 ],
@@ -525,7 +525,7 @@ private immutable double[3][3][6] FACE_UVW_AXES = [
 ];
 
 /** The precomputed neighbors of each face (see GetUVWFace). */
-private immutable int[2][3][6] FACE_UVW_FACES = [
+package immutable int[2][3][6] FACE_UVW_FACES = [
   [ [ 4, 1 ], [ 5, 2 ], [ 3, 0 ] ],
   [ [ 0, 3 ], [ 5, 2 ], [ 4, 1 ] ],
   [ [ 0, 3 ], [ 1, 4 ], [ 5, 2 ] ],
