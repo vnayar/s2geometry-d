@@ -8,5 +8,21 @@
   "license": "apache",
   "dependencies": {
     "fluent-asserts": "~>0.9.0",
-  }
+  },
+
+  "configurations": [
+    {
+      "name": "library",
+      "targetType": "library"
+    },
+    {
+      "name": "unittest",
+      "sourcePaths": [
+        "test"
+      ],
+      "importPaths": [
+        "test"
+      ]
+    }
+  ]
 }
