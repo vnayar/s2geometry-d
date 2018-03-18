@@ -1,4 +1,4 @@
-module test.s2.util.math.vector;
+module s2.util.math.vector_test;
 
 import fluent.asserts;
 import s2.util.math.vector;
@@ -214,10 +214,3 @@ unittest {
   // E.g. y is largest, so x should be zero.
   Assert.equal(Vector3_d(-2, 3, 2).ortho().x, 0);
 }
-
-
-
-
-
-
-

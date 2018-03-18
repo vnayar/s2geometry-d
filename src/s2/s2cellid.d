@@ -90,6 +90,9 @@ public:
     _id = fromFaceIJ(face, i, j).id();
   }
 
+  this(in S2LatLng ll) {
+    this(ll.toPoint());
+  }
 
   static S2CellId none() {
     return S2CellId();
@@ -281,7 +284,7 @@ public:
   // All methods require isValid() to be true unless otherwise specified
   // (although not all methods enforce this).
   bool isValid() const {
-    return (face() < NUM_FACES && (lsb() & 0x1555555555555555));
+    return (face() < NUM_FACES && (lsb() & 0x1555555555555555uL));
   }
 
   // Which cube face this cell belongs to, in the range 0..5.
@@ -414,7 +417,7 @@ public:
 
   S2CellId parent(int level) const
   in {
-    assert(isValid());
+    assert(isValid(), format.format("Cannot get parent of invalid cell %s.\n  id=%x, face=%d, lsb=%d", toString(), id(), face(), lsb()));
     assert(level >= 0);
     assert(level <= this.level());
   } body {
@@ -523,7 +526,7 @@ public:
 
   // Returns the number of steps that this cell is from Begin(level()). The
   // return value is always non-negative.
-  ulong distance_from_begin() const {
+  long distanceFromBegin() const {
     const int step_shift = 2 * (MAX_LEVEL - level()) + 1;
     return _id >> step_shift;
   }
@@ -735,7 +738,7 @@ public:
   // S2CellId::FromFace(3).child(0).child(2).
   string toString() const {
     if (!isValid()) {
-      return "Invalid: " ~ format.format("%016f", id());
+      return "Invalid: " ~ format.format("%016d", id());
     }
     string s = conv.to!string(face()) ~ "/";
     for (int current_level = 1; current_level <= level(); ++current_level) {
@@ -796,12 +799,12 @@ public:
   //
   // Requires: level < this->level(), so that we can determine which vertex is
   // closest (in particular, level == MAX_LEVEL is not allowed).
-  void appendVertexNeighbors(RangeT)(int level, RangeT output) const
-  if (isOutputRange!RangeT && is(ElementType!RangeT == S2CellId))
+  void appendVertexNeighbors(RangeT)(int level, ref RangeT output) const
+  if (range.isOutputRange!(RangeT, S2CellId))
   in {
     // "level" must be strictly less than this cell's level so that we can
     // determine which vertex this cell is closest to.
-    assert(level < level());
+    assert(level < this.level());
   } body {
     int i, j;
     int face = toFaceIJOrientation(i, j);
@@ -828,13 +831,13 @@ public:
       jsame = (j - size) >= 0;
     }
 
-    output.put(parent(level));
-    output.put(fromFaceIJSame(face, i + ioffset, j, isame).parent(level));
-    output.put(fromFaceIJSame(face, i, j + joffset, jsame).parent(level));
+    output ~= parent(level);
+    output ~= fromFaceIJSame(face, i + ioffset, j, isame).parent(level);
+    output ~= fromFaceIJSame(face, i, j + joffset, jsame).parent(level);
     // If i- and j- edge neighbors are *both* on a different face, then this
     // vertex only has three neighbors (it is one of the 8 cube vertices).
     if (isame || jsame) {
-      output.put(fromFaceIJSame(face, i + ioffset, j + joffset, isame && jsame).parent(level));
+      output ~= fromFaceIJSame(face, i + ioffset, j + joffset, isame && jsame).parent(level);
     }
   }
 
@@ -845,8 +848,8 @@ public:
   // same neighbor may be appended more than once.
   //
   // REQUIRES: nbr_level >= this->level().
-  void appendAllNeighbors(RangeT)(int nbr_level, RangeT output) const
-  if (isOutputRange!RangeT && is(ElementType!RangeT == S2CellId))
+  void appendAllNeighbors(RangeT)(int nbr_level, ref RangeT output) const
+  if (range.isOutputRange!(RangeT, S2CellId))
   in {
     assert(nbr_level >= level());
   } body {
@@ -874,14 +877,14 @@ public:
       } else {
         same_face = true;
         // Top and bottom neighbors.
-        output.put(fromFaceIJSame(face, i + k, j - nbr_size, j - size >= 0).parent(nbr_level));
-        output.put(fromFaceIJSame(face, i + k, j + size, j + size < MAX_SIZE).parent(nbr_level));
+        output ~= fromFaceIJSame(face, i + k, j - nbr_size, j - size >= 0).parent(nbr_level);
+        output ~= fromFaceIJSame(face, i + k, j + size, j + size < MAX_SIZE).parent(nbr_level);
       }
       // Left, right, and diagonal neighbors.
-      output.put(fromFaceIJSame(face, i - nbr_size, j + k, same_face && i - size >= 0)
-          .parent(nbr_level));
-      output.put(fromFaceIJSame(face, i + size, j + k, same_face && i + size < MAX_SIZE)
-          .parent(nbr_level));
+      output ~= fromFaceIJSame(face, i - nbr_size, j + k, same_face && i - size >= 0)
+          .parent(nbr_level);
+      output ~= fromFaceIJSame(face, i + size, j + k, same_face && i + size < MAX_SIZE)
+          .parent(nbr_level);
       if (k >= size) {
         break;
       }
