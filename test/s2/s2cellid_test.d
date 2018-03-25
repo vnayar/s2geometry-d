@@ -23,19 +23,19 @@ private S2CellId getCellId(double lat_degrees, double lng_degrees) {
   return id;
 }
 
-/// DefaultConstructor
+@("DefaultConstructor")
 unittest {
   S2CellId id;
   Assert.equal(id.id(), 0);
   Assert.equal(id.isValid(), false);
 }
 
-/// S2CellIdHash
+@("S2CellIdHash")
 unittest {
   Assert.equal(getCellId(0, 90).toHash(), getCellId(0, 90).toHash());
 }
 
-/// FaceDefinitions
+@("FaceDefinitions")
 unittest {
   Assert.equal(getCellId(0, 0).face(), 0);
   Assert.equal(getCellId(0, 90).face(), 1);
@@ -45,14 +45,14 @@ unittest {
   Assert.equal(getCellId(-90, 0).face(), 5);
 }
 
-/// FromFace
+@("FromFace")
 unittest {
   for (int face = 0; face < 6; ++face) {
     Assert.equal(S2CellId.fromFace(face), S2CellId.fromFacePosLevel(face, 0, 0));
   }
 }
 
-/// ParentChildRelationships
+@("ParentChildRelationships")
 unittest {
   S2CellId id = S2CellId.fromFacePosLevel(3, 0x12345678, S2CellId.MAX_LEVEL - 4);
   Assert.equal(id.isValid(), true);
@@ -78,13 +78,13 @@ unittest {
   Assert.equal(2 * id.id(), id.rangeMin().id() + id.rangeMax().id());
 }
 
-/// SentinelRangeMinMax
+@("SentinelRangeMinMax")
 unittest {
   Assert.equal(S2CellId.sentinel(), S2CellId.sentinel().rangeMin());
   Assert.equal(S2CellId.sentinel(), S2CellId.sentinel().rangeMax());
 }
 
-/// CenterSiTi
+@("CenterSiTi")
 unittest {
   S2CellId id = S2CellId.fromFacePosLevel(3, 0x12345678, S2CellId.MAX_LEVEL);
   // Check that the (si, ti) coordinates of the center end in a
@@ -122,7 +122,7 @@ unittest {
   Assert.equal(1 << 30, ti & ((1U << 31) - 1));
 }
 
-/// Wrapping
+@("Wrapping")
 unittest {
   // Check wrapping from beginning of Hilbert curve to end and vice versa.
   Assert.equal(S2CellId.end(0).prev(), S2CellId.begin(0).prevWrap());
@@ -145,7 +145,7 @@ unittest {
       S2CellId.end(S2CellId.MAX_LEVEL).advance(-1).advanceWrap(1));
 }
 
-/// Advance
+@("Advance")
 unittest {
   S2CellId id = S2CellId.fromFacePosLevel(3, 0x12345678, S2CellId.MAX_LEVEL - 4);
 
@@ -181,7 +181,7 @@ unittest {
           .advanceWrap(2L << (2 * S2CellId.MAX_LEVEL)));
 }
 
-/// DistanceFromBegin
+@("DistanceFromBegin")
 unittest {
   Assert.equal(6L, S2CellId.end(0).distanceFromBegin());
   Assert.equal(
@@ -195,7 +195,7 @@ unittest {
   Assert.equal(id, S2CellId.begin(id.level()).advance(id.distanceFromBegin()));
 }
 
-/// MaximumTile
+@("MaximumTile")
 unittest {
   // This method is tested more thoroughly in s2cell_union_test.cc.
   for (int iter = 0; iter < 1000; ++iter) {
@@ -231,7 +231,7 @@ unittest {
   }
 }
 
-/// GetCommonAncestorLevel
+@("GetCommonAncestorLevel")
 unittest {
   // Two identical cell ids.
   Assert.equal(0, S2CellId.fromFace(0).getCommonAncestorLevel(S2CellId.fromFace(0)));
@@ -257,7 +257,7 @@ unittest {
       .getCommonAncestorLevel(S2CellId.fromFace(0).childBegin(2).next().childBegin(5)));
 }
 
-/// Inverses
+@("Inverses")
 unittest {
   // Check the conversion of random leaf cells to S2LatLngs and back.
   foreach (int i; 0 .. 200_000) {
@@ -269,7 +269,7 @@ unittest {
   }
 }
 
-/// Tokens
+@("Tokens")
 unittest {
   // Test random cell ids at all levels.
   foreach (int i; 0 .. 10_000) {
@@ -362,7 +362,7 @@ private void expandCell(in S2CellId parent, S2CellId[] cells, S2CellId[S2CellId]
   }
 }
 
-/// Containment
+@("Containment")
 unittest {
   // Test contains() and intersects().
   S2CellId[S2CellId] parent_map;
@@ -391,7 +391,7 @@ unittest {
 
 immutable int MAX_WALK_LEVEL = 8;
 
-/// Continuity
+@("Continuity")
 unittest {
   // Make sure that sequentially increasing cell ids form a continuous
   // path over the surface of the sphere, i.e. there are no
@@ -415,7 +415,7 @@ unittest {
   }
 }
 
-/// Coverage
+@("Coverage")
 unittest {
   // Make sure that random points on the sphere can be represented to the
   // expected level of accuracy, which in the worst case is sqrt(2/3) times
@@ -456,7 +456,7 @@ in {
   Assert.equal(expected, all);
 }
 
-/// Neighbors
+@("Neighbors")
 unittest {
   // Check the edge neighbors of face 1.
   immutable int[] out_faces = [ 5, 3, 2, 0 ];
@@ -592,14 +592,14 @@ TEST(S2CellId, ExpandedByDistanceUV) {
 }
 +/
 
-/// toString
+@("toString")
 unittest {
   Assert.equal("3/", S2CellId.fromFace(3).toString());
   Assert.equal("4/000000000000000000000000000000", S2CellId.fromFace(4).rangeMin().toString());
   Assert.equal("Invalid: 0000000000000000", S2CellId.none().toString());
 }
 
-/// fromDebugString
+@("fromDebugString")
 unittest {
   Assert.equal(S2CellId.fromFace(3), S2CellId.fromDebugString("3/"));
   Assert.equal(S2CellId.fromFace(0).child(2).child(1),

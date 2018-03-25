@@ -2,7 +2,6 @@ module s2.util.math.vector_test;
 
 import fluent.asserts;
 import s2.util.math.vector;
-import std.stdio;
 import traits = std.traits;
 import math = std.math;
 
