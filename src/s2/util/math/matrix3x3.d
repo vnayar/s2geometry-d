@@ -62,17 +62,17 @@ public:
   }
 
   /// Casting constructor
-  static ThisT opCast(ElemT2)(in Matrix3x3!ElemT2 mb) {
-    return Matrix3x3(
-        conv.to!ElemT(mb[0, 0]),
-        conv.to!ElemT(mb[0, 1]),
-        conv.to!ElemT(mb[0, 2]),
-        conv.to!ElemT(mb[1, 0]),
-        conv.to!ElemT(mb[1, 1]),
-        conv.to!ElemT(mb[1, 2]),
-        conv.to!ElemT(mb[2, 0]),
-        conv.to!ElemT(mb[2, 1]),
-        conv.to!ElemT(mb[2, 2]));
+  MatrixT opCast(MatrixT : Matrix3x3!ElemT2, ElemT2)() const {
+    return MatrixT(
+        conv.to!ElemT2(_m[0][0]),
+        conv.to!ElemT2(_m[0][1]),
+        conv.to!ElemT2(_m[0][2]),
+        conv.to!ElemT2(_m[1][0]),
+        conv.to!ElemT2(_m[1][1]),
+        conv.to!ElemT2(_m[1][2]),
+        conv.to!ElemT2(_m[2][0]),
+        conv.to!ElemT2(_m[2][1]),
+        conv.to!ElemT2(_m[2][2]));
   }
 
   /// Change the value of all the coefficients of the matrix.
@@ -95,8 +95,9 @@ public:
     return this;
   }
 
-  /// Support Matrix operators +=, -=, *=, /=, etc.
-  ThisT opOpAssign(string op)(in ThisT mb) {
+  /// Support Matrix operators +=, -=.
+  ThisT opOpAssign(string op)(in ThisT mb)
+  if (op == "+" || op == "-") {
     static foreach (x; 0..3) {
       static foreach (y; 0..3) {
         mixin("_m[x][y] " ~ op ~ "= mb._m[x][y];");
@@ -105,6 +106,14 @@ public:
     return this;
   }
 
+  // Matrix multiplication
+  ThisT opOpAssign(string op)(in ThisT mb)
+  if (op == "*") {
+    this = this * mb;
+    return this;
+  }
+
+  // Element-wise assignment operators.
   ThisT opOpAssign(string op)(in ElemT k) {
     static foreach (x; 0..3) {
       static foreach (y; 0..3) {
@@ -115,47 +124,54 @@ public:
   }
 
   // Support Matrix operators +, -
-  ThisT opBinary(string op)(in Matrix3x3!ElemT mb) const
+  ThisT opBinary(string op)(in ThisT mb) const
   if (op == "+" || op == "-") {
     ThisT v = ThisT(this);
     return mixin("v " ~ op ~ "= mb");
   }
 
-  // Change the sign of all the coefficients in the matrix
-  ThisT opUnary(string op)()
-  if (op == "-") {
-    return ThisT(
-        -vb.m_[0][0], -vb.m_[0][1], -vb.m_[0][2],
-        -vb.m_[1][0], -vb.m_[1][1], -vb.m_[1][2],
-        -vb.m_[2][0], -vb.m_[2][1], -vb.m_[2][2]);
+  // Matrix multiplication.
+  ThisT opBinary(string op)(in ThisT mb) const
+  if (op == "*") {
+    ThisT v = ThisT(
+        _m[0][0] * mb._m[0][0] + _m[0][1] * mb._m[1][0] + _m[0][2] * mb._m[2][0],
+        _m[0][0] * mb._m[0][1] + _m[0][1] * mb._m[1][1] + _m[0][2] * mb._m[2][1],
+        _m[0][0] * mb._m[0][2] + _m[0][1] * mb._m[1][2] + _m[0][2] * mb._m[2][2],
+
+        _m[1][0] * mb._m[0][0] + _m[1][1] * mb._m[1][0] + _m[1][2] * mb._m[2][0],
+        _m[1][0] * mb._m[0][1] + _m[1][1] * mb._m[1][1] + _m[1][2] * mb._m[2][1],
+        _m[1][0] * mb._m[0][2] + _m[1][1] * mb._m[1][2] + _m[1][2] * mb._m[2][2],
+
+        _m[2][0] * mb._m[0][0] + _m[2][1] * mb._m[1][0] + _m[2][2] * mb._m[2][0],
+        _m[2][0] * mb._m[0][1] + _m[2][1] * mb._m[1][1] + _m[2][2] * mb._m[2][1],
+        _m[2][0] * mb._m[0][2] + _m[2][1] * mb._m[1][2] + _m[2][2] * mb._m[2][2]);
+
+    return v;
   }
 
-  // Matrix multiplication by a scalar
+  // Change the sign of all the coefficients in the matrix
+  ThisT opUnary(string op)() const
+  if (op == "-") {
+    return ThisT(
+        -_m[0][0], -_m[0][1], -_m[0][2],
+        -_m[1][0], -_m[1][1], -_m[1][2],
+        -_m[2][0], -_m[2][1], -_m[2][2]);
+  }
+
+  // Matrix scalar binary operators.
   ThisT opBinary(string op)(in ElemT k) const {
     ThisT v = ThisT(this);
     return mixin("v " ~ op ~ "= k");
   }
 
   ThisT opBinaryRight(string op)(in ElemT k) const {
-    ThisT v = ThisT(this);
-    return mixin("v " ~ op ~ "= k");
-  }
-
-  // Matrix multiplication
-  ThisT opBinary(string op)(in ThisT mb) const
-  if (op == "*") {
-    return ThisT(
-      _m[0][0] * mb._m[0][0] + _m[0][1] * mb._m[1][0] + _m[0][2] * mb._m[2][0],
-      _m[0][0] * mb._m[0][1] + _m[0][1] * mb._m[1][1] + _m[0][2] * mb._m[2][1],
-      _m[0][0] * mb._m[0][2] + _m[0][1] * mb._m[1][2] + _m[0][2] * mb._m[2][2],
-
-      _m[1][0] * mb._m[0][0] + _m[1][1] * mb._m[1][0] + _m[1][2] * mb._m[2][0],
-      _m[1][0] * mb._m[0][1] + _m[1][1] * mb._m[1][1] + _m[1][2] * mb._m[2][1],
-      _m[1][0] * mb._m[0][2] + _m[1][1] * mb._m[1][2] + _m[1][2] * mb._m[2][2],
-
-      _m[2][0] * mb._m[0][0] + _m[2][1] * mb._m[1][0] + _m[2][2] * mb._m[2][0],
-      _m[2][0] * mb._m[0][1] + _m[2][1] * mb._m[1][1] + _m[2][2] * mb._m[2][1],
-      _m[2][0] * mb._m[0][2] + _m[2][1] * mb._m[1][2] + _m[2][2] * mb._m[2][2]);
+    ThisT v = ThisT();
+    static foreach (x; 0..3) {
+      static foreach (y; 0..3) {
+        mixin("v._m[x][y] = k " ~ op ~ " _m[x][y];");
+      }
+    }
+    return v;
   }
 
   // Multiplication of a matrix by a vector
@@ -184,6 +200,7 @@ public:
 
   // Return a pointer to the data array for interface with other libraries
   // like opencv
+  @property
   ref ElemT[3][3] data() {
     return _m;
   }
@@ -230,7 +247,7 @@ public:
 
   // Return the transposed of the matrix of the cofactors
   // (Useful for inversion for example)
-  ThisT comatrixTransposed() const {
+  ThisT cofactorMatrixTransposed() const {
     return ThisT(
       _m[1][1] * _m[2][2] - _m[2][1] * _m[1][2],
       _m[2][1] * _m[0][2] - _m[0][1] * _m[2][2],
@@ -249,7 +266,7 @@ public:
   ThisT inverse() const {
     ElemT det = det();
     assert(det != cast(ElemT) 0, "Can't inverse. Determinant = 0.");
-    return (cast(ElemT) 1 / det) * comatrixTransposed();
+    return (cast(ElemT) 1 / det) * cofactorMatrixTransposed();
   }
 
   // Return the vector 3D at row i
@@ -491,7 +508,7 @@ public:
     }
   }
 
-  bool opEquals(in Matrix3x3!ElemT v) {
+  bool opEquals(in Matrix3x3!ElemT v) const {
     return _m[0][0] == v._m[0][0]
         && _m[0][1] == v._m[0][1]
         && _m[0][2] == v._m[0][2]
