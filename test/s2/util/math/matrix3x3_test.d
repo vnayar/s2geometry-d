@@ -201,3 +201,87 @@ unittest {
            5,   3, -5,
           -4,   2,  4));
 }
+
+@("inverse")
+unittest {
+  Matrix3x3_f mf1 = Matrix3x3_f(
+      3.0, 0.0, 2.0,
+      2.0, 0.0, -2.0,
+      0.0, 1.0, 1.0);
+  Assert.equal(mf1.inverse(), Matrix3x3_f(
+      0.2, 0.2, 0.0,
+      -0.2, 0.3, 1.0,
+      0.2, -0.3, 0));
+}
+
+@("row")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i(1, 2, 3, 0, 4, 5, 1, 0, 6);
+  Assert.equal(mi1.row(0), Vector3_i(1, 2, 3));
+  Assert.equal(mi1.row(1), Vector3_i(0, 4, 5));
+  Assert.equal(mi1.row(2), Vector3_i(1, 0, 6));
+}
+
+@("col")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i(1, 2, 3, 0, 4, 5, 1, 0, 6);
+  Assert.equal(mi1.col(0), Vector3_i(1, 0, 1));
+  Assert.equal(mi1.col(1), Vector3_i(2, 4, 0));
+  Assert.equal(mi1.col(2), Vector3_i(3, 5, 6));
+}
+
+@("fromRows")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i.fromRows(
+      Vector3_i(1, 2, 3),
+      Vector3_i(0, 4, 5),
+      Vector3_i(1, 0, 6));
+  Assert.equal(mi1, Matrix3x3_i(1, 2, 3, 0, 4, 5, 1, 0, 6));
+}
+
+@("fromCols")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i.fromCols(
+      Vector3_i(1, 0, 1),
+      Vector3_i(2, 4, 0),
+      Vector3_i(3, 5, 6));
+  Assert.equal(mi1, Matrix3x3_i(1, 2, 3, 0, 4, 5, 1, 0, 6));
+}
+
+@("setRow")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i(1, 2, 3, 0, 4, 5, 1, 0, 6);
+  mi1.setRow(2, Vector3_i(5, 4, 3));
+  Assert.equal(mi1, Matrix3x3_i(1, 2, 3, 0, 4, 5, 5, 4, 3));
+}
+
+@("setCol")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i(1, 2, 3, 0, 4, 5, 1, 0, 6);
+  mi1.setCol(2, Vector3_i(5, 4, 3));
+  Assert.equal(mi1, Matrix3x3_i(1, 2, 5, 0, 4, 4, 1, 0, 3));
+}
+
+@("identity")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i.identity();
+  Assert.equal(mi1, Matrix3x3_i(1, 0, 0, 0, 1, 0, 0, 0, 1));
+}
+
+@("zero")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i.zero();
+  Assert.equal(mi1, Matrix3x3_i(0, 0, 0, 0, 0, 0, 0, 0, 0));
+}
+
+@("diagonal")
+unittest {
+  Matrix3x3_i mi1 = Matrix3x3_i.diagonal(Vector3_i(3, 4, 2));
+  Assert.equal(mi1, Matrix3x3_i(3, 0, 0, 0, 4, 0, 0, 0, 2));
+}
+
+@("sym3")
+unittest {
+  Vector3_i v = Vector3_i(-1, 2, 3);
+  Assert.equal(Matrix3x3_i.sym3(v), Matrix3x3_i(1, -2, -3, -2, 4, 6, -3, 6, 9));
+}

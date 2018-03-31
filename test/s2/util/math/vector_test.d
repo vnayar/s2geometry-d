@@ -109,7 +109,22 @@ unittest {
   v1 = Vector2_i(-5, 3);
   v1 /= Vector2_i(-2, 2);
   v1.should.equal(Vector2_i(2, 1));
+}
 
+@("opBinary(ElemT)")
+unittest {
+  Assert.equal(Vector2_i(4, 6) + 2, Vector2_i(6, 8));
+  Assert.equal(Vector2_i(4, 6) - 2, Vector2_i(2, 4));
+  Assert.equal(Vector2_i(4, 6) * 2, Vector2_i(8, 12));
+  Assert.equal(Vector2_i(4, 6) / 2, Vector2_i(2, 3));
+}
+
+@("opBinaryRight(ElemT)")
+unittest {
+  Assert.equal(12 + Vector2_i(4, 6), Vector2_i(16, 18));
+  Assert.equal(12 - Vector2_i(4, 6), Vector2_i(8, 6));
+  Assert.equal(12 * Vector2_i(4, 6), Vector2_i(48, 72));
+  Assert.equal(12 / Vector2_i(4, 6), Vector2_i(3, 2));
 }
 
 /// Other helper functions

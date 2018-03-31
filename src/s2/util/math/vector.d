@@ -186,6 +186,26 @@ public:
     return retval;
   }
 
+  // Support the +, -, *, and / operators.
+  ThisT opBinary(string op)(in ElemT k) const
+  if (op == "+" || op == "-" || op == "*" || op == "/") {
+    ThisT retval = ThisT();
+    static foreach(i; 0..SizeV) {
+      mixin("retval._data[i] = _data[i] " ~ op ~ " k;");
+    }
+    return retval;
+  }
+
+  // Support the +, -, *, and / operators.
+  ThisT opBinaryRight(string op)(in ElemT k) const
+  if (op == "+" || op == "-" || op == "*" || op == "/") {
+    ThisT retval = ThisT();
+    static foreach(i; 0..SizeV) {
+      mixin("retval._data[i] = k " ~ op ~ " _data[i];");
+    }
+    return retval;
+  }
+
   // Support negation.
   ThisT opUnary(string op)() const {
     ThisT retval = ThisT(this);
