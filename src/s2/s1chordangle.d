@@ -28,7 +28,7 @@ import math = std.math;
  */
 struct S1ChordAngle {
 private:
-  static double MAX_LENGTH2 = 4.0;
+  static immutable double MAX_LENGTH2 = 4.0;
 
   // S1ChordAngles are represented by the squared chord length, which can
   // range from 0 to 4.  Infinity() uses an infinite squared length.
@@ -39,7 +39,7 @@ private:
     _length2 = length2;
   }
 
-  double _length2;
+  double _length2 = 0;
 
 public:
   // Construct the S1ChordAngle corresponding to the distance between the two
@@ -54,6 +54,10 @@ public:
     // The distance may slightly exceed MAX_LENGTH2 due to roundoff errors.
     // The maximum error in the result is 2 * DBL_EPSILON * length2_.
     _length2 = algorithm.min(MAX_LENGTH2, (x - y).norm2());
+  }
+
+  this(in S1ChordAngle chordAngle) {
+    _length2 = chordAngle.length2();
   }
 
   // Conversion from an S1Angle.  Angles outside the range [0, Pi] are handled
@@ -137,7 +141,7 @@ public:
   // i.e. such that FastUpperBoundFrom(x).ToAngle() >= x.  Unlike the S1Angle
   // constructor above, this method is very fast, and the bound is accurate to
   // within 1% for distances up to about 3100km on the Earth's surface.
-  S1ChordAngle fastUpperBoundFrom(in S1Angle angle) {
+  static S1ChordAngle fastUpperBoundFrom(in S1Angle angle) {
     // This method uses the distance along the surface of the sphere as an upper
     // bound on the distance through the sphere's interior.
     return S1ChordAngle.fromLength2(angle.radians() * angle.radians());
@@ -146,7 +150,7 @@ public:
   // Construct an S1ChordAngle from the squared chord length.  Note that the
   // argument is automatically clamped to a maximum of 4.0 to handle possible
   // roundoff errors.  The argument must be non-negative.
-  S1ChordAngle fromLength2(double length2) {
+  static S1ChordAngle fromLength2(double length2) {
     return S1ChordAngle(algorithm.min(4.0, length2));
   }
 
@@ -231,11 +235,11 @@ public:
   // non-infinite.
   //
   // REQUIRES: !a.is_special() && !b.is_special()
-  S1ChordAngle opBinary(string op)(S1ChordAngle b)
+  S1ChordAngle opBinary(string op)(S1ChordAngle b) const
   if (op == "+")
   in {
-    assert(!is_special());
-    assert(!b.is_special());
+    assert(!isSpecial());
+    assert(!b.isSpecial());
   } body {
     // Note that this method is much more efficient than converting the chord
     // angles to S1Angles and adding those.  It requires only one square root
@@ -246,7 +250,7 @@ public:
     double a2 = length2();
     double b2 = b.length2();
     if (b2 == 0) {
-      return a;
+      return S1ChordAngle(this);
     }
 
     // Clamp the angle sum to at most 180 degrees.
@@ -264,16 +268,16 @@ public:
     return S1ChordAngle(algorithm.min(MAX_LENGTH2, x + y + 2 * math.sqrt(x * y)));
   }
 
-  S1ChordAngle opBinary(string op)(S1ChordAngle b)
+  S1ChordAngle opBinary(string op)(S1ChordAngle b) const
   if (op == "-")
   in {
-    assert(!is_special());
-    assert(!b.is_special());
+    assert(!isSpecial());
+    assert(!b.isSpecial());
   } body {
     // See comments in opBinary!"+"().
-    double a2 = a.length2(), b2 = b.length2();
+    double a2 = length2(), b2 = b.length2();
     if (b2 == 0) {
-      return a;
+      return S1ChordAngle(this);
     }
     if (a2 <= b2) {
       return S1ChordAngle.zero();

@@ -163,12 +163,18 @@ public:
   }
 
   // Return a right-handed coordinate frame (three orthonormal vectors).
-  //static void GetRandomFrame(S2Point* x, S2Point* y, S2Point* z);
+  static void getRandomFrame(out S2Point x, out S2Point y, out S2Point z) {
+    z = randomPoint();
+    getRandomFrameAt(z, x, y);
+  }
   //static Matrix3x3_d GetRandomFrame();
 
   // Given a unit-length z-axis, compute x- and y-axes such that (x,y,z) is a
   // right-handed coordinate frame (three orthonormal vectors).
-  //static void GetRandomFrameAt(const S2Point& z, S2Point* x, S2Point *y);
+  static void getRandomFrameAt(in S2Point z, out S2Point x, out S2Point y) {
+    x = z.crossProd(randomPoint()).normalize();
+    y = z.crossProd(x).normalize();
+  }
   //static Matrix3x3_d GetRandomFrameAt(const S2Point& z);
 
   // Return a cap with a random axis such that the log of its area is
