@@ -50,7 +50,6 @@ bool isUnitLength(in S2Point p) {
   return math.fabs(p.norm2() - 1) <= 5 * double.epsilon;  // About 1.11e-15
 }
 
-
 // Return true if two points are within the given distance of each other
 // (this is mainly useful for testing).
 bool approxEquals(in S2Point a, in S2Point b, S1Angle max_error = S1Angle.fromRadians(1e-15)) {
