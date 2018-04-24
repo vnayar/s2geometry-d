@@ -389,6 +389,7 @@ alias Vector2_b = Vector!(ubyte, 2);
 alias Vector2_i = Vector!(int, 2);
 alias Vector2_f = Vector!(float, 2);
 alias Vector2_d = Vector!(double, 2);
+alias Vector2_r = Vector!(real, 2);
 
 template Vector3(ElemT) {
   alias Vector3 = Vector!(ElemT, 3);
@@ -397,6 +398,7 @@ alias Vector3_b = Vector!(ubyte, 3);
 alias Vector3_i = Vector!(int, 3);
 alias Vector3_f = Vector!(float, 3);
 alias Vector3_d = Vector!(double, 3);
+alias Vector3_r = Vector!(real, 3);
 
 template Vector4(ElemT) {
   alias Vector4 = Vector!(ElemT, 4);
@@ -405,3 +407,4 @@ alias Vector4_b = Vector!(ubyte, 4);
 alias Vector4_i = Vector!(int, 4);
 alias Vector4_f = Vector!(float, 4);
 alias Vector4_d = Vector!(double, 4);
+alias Vector4_r = Vector!(real, 4);
