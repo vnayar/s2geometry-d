@@ -5,7 +5,7 @@ import s2.util.math.vector;
 import traits = std.traits;
 import math = std.math;
 
-/// Construction
+@("Construction")
 unittest {
   // Test a constructor with fixed number of parameters.
   auto v1 = Vector3_i(1, 2, 3);
@@ -30,7 +30,7 @@ unittest {
   v2.data[0].should.not.equal(v3.data[0]);
 }
 
-/// Member access
+@("Member access")
 unittest {
   auto v1 = Vector2_f([2.3f, 1.5f]);
 
@@ -63,7 +63,7 @@ unittest {
   v1[1].should.equal(1.5f);
 }
 
-/// Mutation
+@("opIndexAssign()")
 unittest {
   auto v1 = Vector2_i(2, 3);
   v1.x = 12;
@@ -72,7 +72,7 @@ unittest {
   v1.data.should.equal([12, 13]);
 }
 
-/// Comparison operators
+@("opCmp()")
 unittest {
   auto v1 = Vector2_b(3u, 1u);
   auto v2 = Vector2_b(3u, 6u);
@@ -86,7 +86,7 @@ unittest {
   v2.should.be.greaterThan(v1);
 }
 
-/// Arithmetic operators
+@("opBinary(ThisT), opOpAssign(ThisT)")
 unittest {
   Vector2_i(3, 4).should.equal(-Vector2_i(-3, -4));
   (Vector2_i(3, 4) + Vector2_i(-2, 4)).should.equal(Vector2_i(1, 8));
@@ -127,7 +127,7 @@ unittest {
   Assert.equal(12 / Vector2_i(4, 6), Vector2_i(3, 2));
 }
 
-/// Other helper functions
+@("from(), nan()")
 unittest {
   auto v = Vector2_i.from(Vector2_f(3.3f, 4.7f));
   v[0].should.equal(3);
@@ -141,20 +141,20 @@ unittest {
   math.isNaN(v2.y).should.equal(true);
 }
 
-/// Min and Max
+@("min() and max()")
 unittest {
   Vector2_i.max(Vector2_i(4, 7), Vector2_i(7, 1)).should.equal(Vector2_i(7, 7));
   Vector2_i.min(Vector2_i(4, 7), Vector2_i(7, 1)).should.equal(Vector2_i(4, 1));
 }
 
-/// dotProduct(), norm2() and norm()
+@("dotProduct(), norm2() and norm()")
 unittest {
-  Assert.equal(Vector3_i(2, -3, 5).dotProd(Vector3_i(-1, 2, -3)), -23);
-  Assert.equal(Vector3_i(2, -3, 5).norm2(), 38);
-  Assert.equal(Vector2_i(3, 4).norm(), 5.0);
+  Assert.equal(Vector3_d(2, -3, 5).dotProd(Vector3_d(-1, 2, -3)), -23);
+  Assert.equal(Vector3_d(2, -3, 5).norm2(), 38);
+  Assert.equal(Vector2_d(3, 4).norm(), 5.0);
 }
 
-/// Floating point operations: normalize(), sqrt(), floor(), ceil(), round()
+@("normalize(), sqrt(), floor(), ceil(), round()")
 unittest {
   float delta = 0.0001;
   auto vn = Vector3_f(6.7, -2.3, 8.9).normalize();
@@ -200,7 +200,7 @@ unittest {
       Vector3_f(-4.7, 3.4, -8.2).aequal(Vector3_f(-4.693, 3.402, -8.207), 0.01), true);
 }
 
-// Special 2-dimentional functions: crossProd(), angle(), ortho()
+@("Special 2-dimentional functions: crossProd(), angle(), ortho()")
 unittest {
   double delta = 0.0001;
 
@@ -216,7 +216,7 @@ unittest {
   Assert.equal(Vector2_d(-3.0, 4.0).ortho(), Vector2_d(-4.0, -3.0));
 }
 
-// Special 3-dimentional functions: crossProd(), angle(), ortho()
+@("Special 3-dimentional functions: crossProd(), angle(), ortho()")
 unittest {
   Assert.equal(
       Vector3_d(3.0, -4.0, 2.0).crossProd(Vector3_d(-2.0, -3.0, 4.0)),

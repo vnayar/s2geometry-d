@@ -105,7 +105,7 @@ public:
 
   // Convert from another vector type
   static ThisT from(Elem2T)(in Vector!(Elem2T, SizeV) b) {
-    return ThisT(algorithm.map!(elem => ElemT(elem))(b._data[]));
+    return ThisT(algorithm.map!(elem => cast(ElemT) elem)(b._data[]));
   }
 
   static if (is(typeof(ElemT.nan) : ElemT)) {
