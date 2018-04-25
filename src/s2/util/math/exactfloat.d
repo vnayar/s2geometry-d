@@ -140,11 +140,7 @@ public:
     _bn = b._bn;
   }
 
-  this(double v) {
-    this = v;
-  }
-
-  this(int v) {
+  this(T)(T v) {
     this = v;
   }
 
@@ -530,9 +526,9 @@ public:
     int result_sign = _sign * b._sign;
     if (!isNormal() || !b.isNormal()) {
       // Handle zero, infinity, and NaN according to IEEE 754-2008.
-      if (isNan()) return a;
+      if (isNan()) return this;
       if (b.isNan()) return b;
-      if (a.isInf()) {
+      if (isInf()) {
         // Infinity times zero yields NaN.
         if (b.isZero()) return ExactFloat.nan();
         return ExactFloat.infinity(result_sign);
@@ -550,6 +546,17 @@ public:
     r._bn = _bn * b._bn;
     r.canonicalize();
     return r;
+  }
+
+  // Support operations with any convertable types.
+  ExactFloat opBinary(string op, T)(in T b) const {
+    return opBinary!op(ExactFloat(b));
+  }
+
+  // Support operations with any convertable types.
+  ExactFloat opBinaryRight(string op, T)(in T a) const {
+    ExactFloat axf = ExactFloat(a);
+    return axf.opBinary!op(this);
   }
 
   // Division is not implemented because the result cannot be represented
@@ -579,6 +586,11 @@ public:
     return _sign == b._sign && _bn == b._bn;
   }
 
+  // Support operations with any convertable types.
+  ExactFloat opEquals(T)(in T b) const {
+    return opEquals(ExactFloat(b));
+  }
+
   // Comparison operators (<, <=, >, >=).
   int opCmp(in ExactFloat b) const {
     // NaN is unordered compared to everything, including itself.
@@ -589,6 +601,11 @@ public:
     if (_sign != b._sign) return _sign > b._sign ? 1 : -1;
     // Now we just compare absolute values.
     return (_sign > 0) ? _bn > b._bn : b._bn > _bn;
+  }
+
+  // Support operations with any convertable types.
+  int opCmp(T)(in T b) const {
+    return opCmp(ExactFloat(b));
   }
 
 private:

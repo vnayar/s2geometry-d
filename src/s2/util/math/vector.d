@@ -8,13 +8,13 @@ module s2.util.math.vector;
 import algorithm = std.algorithm;
 import conv = std.conv;
 import format = std.format;
-import math = std.math;
+import std.math;
 import range = std.range;
 import traits = std.traits;
 
 // CRTP base class for all Vector templates.
 struct Vector(ElemT, size_t SizeV)
-if (traits.isNumeric!ElemT && SizeV >= 1) {
+if (SizeV >= 1) {
 protected:
 
   alias ThisT = Vector!(ElemT, SizeV);
@@ -105,7 +105,7 @@ public:
 
   // Convert from another vector type
   static ThisT from(Elem2T)(in Vector!(Elem2T, SizeV) b) {
-    return ThisT(algorithm.map!(elem => cast(ElemT) elem)(b._data[]));
+    return ThisT(algorithm.map!(elem => ElemT(elem))(b._data[]));
   }
 
   static if (is(typeof(ElemT.nan) : ElemT)) {
@@ -239,13 +239,13 @@ public:
     return cast(ElemT) dotProd(cast(ThisT) this);
   }
 
-  // Euclidean norm. For integer T, correct only if Norm2 does not overflow.
-  FloatT norm() const {
-    return math.sqrt(cast(FloatT) norm2());
-  }
-
   // Normalized vector if the norm is nonzero. Not for integer types.
   static if (traits.isFloatingPoint!ElemT) {
+    // Euclidean norm. For integer T, correct only if Norm2 does not overflow.
+    ElemT norm() const {
+      return norm2().sqrt();
+    }
+
     ThisT normalize() {
       ElemT n = norm();
       if (n != cast(ElemT) 0.0) {
@@ -257,43 +257,43 @@ public:
 
     // Compose a vector from the sqrt of each component.
     ThisT sqrt() const {
-      return ThisT(algorithm.map!(math.sqrt)(_data[]));
+      return ThisT(algorithm.map!(a => a.sqrt())(_data[]));
     }
 
     // Take the floor of each component.
     ThisT floor() const {
-      return ThisT(algorithm.map!(math.floor)(_data[]));
+      return ThisT(algorithm.map!(a => a.floor())(_data[]));
     }
 
     // Take the ceil of each component.
     ThisT ceil() const {
-      return ThisT(algorithm.map!(math.ceil)(_data[]));
+      return ThisT(algorithm.map!(a => a.ceil())(_data[]));
     }
 
     // Round of each component. Formerly FRound().
     ThisT round() const {
-      return ThisT(algorithm.map!(math.rint)(_data[]));
+      return ThisT(algorithm.map!(a => a.rint())(_data[]));
     }
 
     // Round of each component and return an integer vector. Formerly IRound().
     Vector!(int, SizeV) toIntVector() const {
-      return Vector!(int, SizeV)(algorithm.map!(val => cast(int) math.lrint(val))(_data[]));
+      return Vector!(int, SizeV)(algorithm.map!(a => cast(int) a.lrint())(_data[]));
     }
 
     // True if any of the components is not a number.
     bool isNaN() const {
-      return algorithm.any!(math.isNaN)(_data[]);
+      return algorithm.any!(a => a.isNaN())(_data[]);
     }
   }
 
   // Compute the absolute value of each component.
   ThisT abs() const {
-    return ThisT(algorithm.map!(math.abs)(_data[]));
+    return ThisT(algorithm.map!(a => a.abs())(_data[]));
   }
 
   // Approximately equal.
   bool aequal(in ThisT vb, FloatT margin) const {
-    return algorithm.all!(vals => math.abs(vals[0] - vals[1]) < margin)(
+    return algorithm.all!(vals => (vals[0] - vals[1]).abs() < margin)(
         range.zip(_data[], vb._data[]));
   }
 
@@ -317,7 +317,7 @@ public:
 
     // return the angle between "this" and v in radians
     FloatT angle(in ThisT v) const {
-      return math.atan2(cast(FloatT) crossProd(v), cast(FloatT) dotProd(v));
+      return atan2(cast(FloatT) crossProd(v), cast(FloatT) dotProd(v));
     }
 
     // return a vector orthogonal to the current one
@@ -328,7 +328,7 @@ public:
   }
 
   // Function implementations speficif to 3-dimentional vectors.
-  static if (SizeV == 3 && traits.isSigned!ElemT) {
+  static if (SizeV == 3) {
     // Cross product.  Be aware that if VType is an integer type, the high bits
     // of the result are silently discarded.
     ThisT crossProd(in ThisT vb) const {
@@ -349,12 +349,13 @@ public:
         temp[k] = cast(ElemT) 1;
         return crossProd(temp).normalize();
       }
+
+      // return the angle between two vectors in radians
+      FloatT angle(in ThisT va) const {
+        return cast(FloatT) crossProd(va).norm().atan2(dotProd(va));
+      }
     }
 
-    // return the angle between two vectors in radians
-    FloatT angle(in ThisT va) const {
-      return math.atan2(crossProd(va).norm(), cast(FloatT) dotProd(va));
-    }
 
     // return the index of the largest component (fabs)
     int largestAbsComponent() const {
