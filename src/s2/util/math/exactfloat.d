@@ -100,6 +100,8 @@ import traits = std.traits;
 import std.range;
 import std.bigint;
 
+import std.stdio;
+
 struct ExactFloat {
 public:
   // The following limits are imposed by OpenSSL.
@@ -164,8 +166,10 @@ public:
       // code).  "f" is a fraction in the range [0.5, 1), so if we shift it left
       // by the number of mantissa bits in a double (53, including the leading
       // "1") then the result is always an integer.
+      writeln("Test Point A");
       int exp;
       T f = math.frexp(math.fabs(v), exp);
+      writeln("v=", v, ", f=", f, ", exp=", exp);
       _bn = cast(ulong) math.ldexp(f, DOUBLE_MANTISSA_BITS);
       _bnExp = exp - DOUBLE_MANTISSA_BITS;
       canonicalize();
@@ -246,7 +250,14 @@ public:
   // bits in its mantissa).  Returns 0 for non-normal numbers such as NaN.
   @property
   int prec() const {
-    return cast(int) _bn.uintLength() * 32;
+    // TODO: BUG Fix this to get the exact number of used bits.
+    int totalBits = cast(int) (_bn.uintLength() - 1) * 32;
+    uint lastDigit = _bn.getDigit!uint(_bn.uintLength() - 1);
+    while (lastDigit != 0) {
+      lastDigit >>= 1;
+      totalBits++;
+    }
+    return totalBits;
   }
 
   // Return the exponent of this ExactFloat given that the mantissa is in the
@@ -376,11 +387,11 @@ public:
   // Note that if two values have different precisions, they may have the same
   // ToString() value even though their values are slightly different.  If you
   // need to distinguish such values, use ToUniqueString() intead.
-  string toString() const {
-    int max_digits = algorithm.max(MIN_SIGNIFICANT_DIGITS,
-        numSignificantDigitsForPrec(prec()));
-    return toStringWithMaxDigits(max_digits);
-  }
+  //string toString() const {
+  //  int max_digits = algorithm.max(MIN_SIGNIFICANT_DIGITS,
+  //      numSignificantDigitsForPrec(prec()));
+  //  return toStringWithMaxDigits(max_digits);
+  //}
 
   // Return a string formatted according to printf("%Ng") where N is the given
   // maximum number of significant digits.
@@ -444,10 +455,10 @@ public:
   // values, then their string representations are always different.  This
   // method is useful for debugging.  The string has the form "value<prec>",
   // where "prec" is the actual precision of the ExactFloat (e.g., "0.215<50>").
-  string toUniqueString() const {
-    string precStr = format.format("<%d>", prec());
-    return toString() ~ precStr;
-  }
+  //string toUniqueString() const {
+  //  string precStr = format.format("<%d>", prec());
+  //  return toString() ~ precStr;
+  //}
 
   // Return an upper bound on the number of significant digits required to
   // distinguish any two floating-point numbers with the given precision when
@@ -587,9 +598,34 @@ public:
   }
 
   // Support operations with any convertable types.
-  ExactFloat opEquals(T)(in T b) const {
+  bool opEquals(T)(in T b) const {
     return opEquals(ExactFloat(b));
   }
+
+  int scaleAndCompare(in ExactFloat b) const
+  in {
+    assert(isNormal() && b.isNormal() && _bnExp >= b._bnExp);
+  } body {
+    ExactFloat tmp = this;
+    tmp._bnExp <<= _bnExp - b._bnExp;
+    if (tmp._bn > b._bn) return 1;
+    else if (tmp._bn < b._bn) return -1;
+    else return 0;
+  }
+
+  bool unsignedLess(in ExactFloat b) const {
+    // Handle the zero/infinity cases (NaN has already been done).
+    if (isInf() || b.isZero()) return false;
+    if (isZero() || b.isInf()) return true;
+    // If the high-order bit positions differ, we are done.
+    int cmp = exp() - b.exp();
+    if (cmp != 0) return cmp < 0;
+    // Otherwise shift one of the two values so that they both have the same
+    // bn_exp_ and then compare the mantissas.
+    return (_bnExp >= b._bnExp ?
+        scaleAndCompare(b) < 0 : b.scaleAndCompare(this) > 0);
+  }
+
 
   // Comparison operators (<, <=, >, >=).
   int opCmp(in ExactFloat b) const {
@@ -600,7 +636,10 @@ public:
     // Otherwise, anything negative is less than anything positive.
     if (_sign != b._sign) return _sign > b._sign ? 1 : -1;
     // Now we just compare absolute values.
-    return (_sign > 0) ? _bn > b._bn : b._bn > _bn;
+    bool isLess = (_sign > 0) ? unsignedLess(b) : b.unsignedLess(this);
+    if (isLess) return -1;
+    else if (this == b) return 0;
+    return 1;
   }
 
   // Support operations with any convertable types.
@@ -640,6 +679,7 @@ private:
   // "double".  This method handles non-normal values (NaN, etc).
   double toDoubleHelper() const
   in {
+    writeln("prec()=", prec());
     assert(prec() <= DOUBLE_MANTISSA_BITS);
   } body {
     if (!isNormal()) {
@@ -885,16 +925,19 @@ private:
   // the given sign; otherwise the mantissa is normalized so that its low bit
   // is 1.  Non-normal numbers are left unchanged.
   void canonicalize() {
+    writeln("Enter canonicalize");
+    writeln(this);
     if (!isNormal()) return;
 
     // Underflow/overflow occurs if exp() is not in [kMinExp, kMaxExp].
     // We also convert a zero mantissa to signed zero.
     int my_exp = exp();
+    writeln("my_exp=", my_exp);
     if (my_exp < MIN_EXP || _bn == 0) {
       setZero(_sign);
     } else if (my_exp > MAX_EXP) {
       setInf(_sign);
-    } else if (_bn % 1 == 1) {
+    } else if (_bn % 2 == 1) {
       // Remove any low-order zero bits from the mantissa.
       assert(_bn != 0);
       int shift = countLowZeroBits(_bn);

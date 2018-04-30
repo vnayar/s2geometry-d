@@ -23,6 +23,9 @@ import s2.util.math.vector;
 import s2pointutil = s2.s2pointutil;
 import algorithm = std.algorithm;
 import math = std.math;
+import traits = std.traits;
+
+import std.stdio;
 
 // A predefined S1ChordAngle representing (approximately) 45 degrees.
 private immutable S1ChordAngle DEGREES_45 = S1ChordAngle.fromLength2(2 - math.SQRT2);
@@ -30,11 +33,11 @@ private immutable S1ChordAngle DEGREES_45 = S1ChordAngle.fromLength2(2 - math.SQ
 // All error bounds in this file are expressed in terms of the maximum
 // rounding error for a floating-point type.  The rounding error is half of
 // the epsilon value.
-immutable double DBL_ERR = double.epsilon / 2.0;
-immutable double REAL_ERR = real.epsilon / 2.0;
+immutable double DBL_ERR = roundingEpsilon!double();
+immutable real REAL_ERR = roundingEpsilon!real();
 
 T roundingEpsilon(T)()
-if (traits.isFloatingType!T) {
+if (traits.isFloatingPoint!T) {
   return T.epsilon / 2.0;
 }
 
@@ -1548,6 +1551,7 @@ in {
          math.fabs(det) >= 100 * MAX_DET_ERROR ||
          det * expensiveSign(a, b, c) > 0);
 
+  writeln("det = ", det, ", MAX_DET_EROR = ", MAX_DET_ERROR);
   if (det > MAX_DET_ERROR) {
     return 1;
   }
@@ -1577,6 +1581,7 @@ alias Vector3_xf = Vector3!ExactFloat;
  * normalized.
  */
 int expensiveSign(in S2Point a, in S2Point b, in S2Point c, bool perturb = true) {
+  writeln("enter expensiveSign");
   // Return zero if and only if two points are the same.  This ensures (1).
   if (a == b || b == c || c == a) {
     return 0;
@@ -1589,6 +1594,7 @@ int expensiveSign(in S2Point a, in S2Point b, in S2Point c, bool perturb = true)
   // compute the correct determinant sign in virtually all cases except when
   // the three points are truly collinear (e.g., three points on the equator).
   int det_sign = stableSign(a, b, c);
+  writeln("det_sign = ", det_sign);
   if (det_sign != 0) {
     return det_sign;
   }
@@ -1611,6 +1617,7 @@ private int exactSign(in S2Point a, in S2Point b, in S2Point c, bool perturb)
 in {
   assert(a != b && b != c && c != a);
 } body {
+  writeln("Enter exactSign.");
   // Sort the three points in lexicographic order, keeping track of the sign
   // of the permutation.  (Each exchange inverts the sign of the determinant.)
   int perm_sign = 1;
@@ -1650,6 +1657,7 @@ in {
   if (det_sign == 0 && perturb) {
     // Otherwise, we need to resort to symbolic perturbations to resolve the
     // sign of the determinant.
+    writefln("Calling symbolicallyPerturbedSign with\na=%s\nb=%s\nc=%s.", xa, xb, xc);
     det_sign = symbolicallyPerturbedSign(xa, xb, xc, xb_cross_xc);
     assert(0 != det_sign);
   }
@@ -1775,3 +1783,4 @@ private int compareSin2Distances(in S2Point x, in S2Point a, in S2Point b) {
   if (sign != 0) return sign;
   return triageCompareSin2Distances(Vector3_r.from(x), Vector3_r.from(a), Vector3_r.from(b));
 }
+

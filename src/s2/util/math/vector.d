@@ -169,6 +169,11 @@ public:
     return cast(ThisT) this;
   }
 
+  ThisT opOpAssign(string op, ScalarT)(ScalarT v) {
+    mixin("_data[] " ~ op ~ "= v;");
+    return this;
+  }
+
   // Support the +, -, *, and / operators.
   ThisT opBinary(string op)(ThisT v) const {
     ThisT retval = ThisT(this);

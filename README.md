@@ -40,6 +40,13 @@ The unittests may be run using the following command:
 dub test
 ```
 
+To run a single test, use its name along with the parameters "-s" and "-d", to run in
+single-threaded mode and to enable debug output respectively.
+
+```sh
+dub test -- -s -d s2.s2predicates_test
+```
+
 ### Building
 
 From the appropriate directory depending on how you got the source:
