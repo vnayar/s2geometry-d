@@ -100,8 +100,6 @@ import traits = std.traits;
 import std.range;
 import std.bigint;
 
-import std.stdio;
-
 struct ExactFloat {
 public:
   // The following limits are imposed by OpenSSL.
@@ -166,10 +164,8 @@ public:
       // code).  "f" is a fraction in the range [0.5, 1), so if we shift it left
       // by the number of mantissa bits in a double (53, including the leading
       // "1") then the result is always an integer.
-      writeln("Test Point A");
       int exp;
       T f = math.frexp(math.fabs(v), exp);
-      writeln("v=", v, ", f=", f, ", exp=", exp);
       _bn = cast(ulong) math.ldexp(f, DOUBLE_MANTISSA_BITS);
       _bnExp = exp - DOUBLE_MANTISSA_BITS;
       canonicalize();
@@ -679,7 +675,6 @@ private:
   // "double".  This method handles non-normal values (NaN, etc).
   double toDoubleHelper() const
   in {
-    writeln("prec()=", prec());
     assert(prec() <= DOUBLE_MANTISSA_BITS);
   } body {
     if (!isNormal()) {
@@ -925,14 +920,11 @@ private:
   // the given sign; otherwise the mantissa is normalized so that its low bit
   // is 1.  Non-normal numbers are left unchanged.
   void canonicalize() {
-    writeln("Enter canonicalize");
-    writeln(this);
     if (!isNormal()) return;
 
     // Underflow/overflow occurs if exp() is not in [kMinExp, kMaxExp].
     // We also convert a zero mantissa to signed zero.
     int my_exp = exp();
-    writeln("my_exp=", my_exp);
     if (my_exp < MIN_EXP || _bn == 0) {
       setZero(_sign);
     } else if (my_exp > MAX_EXP) {

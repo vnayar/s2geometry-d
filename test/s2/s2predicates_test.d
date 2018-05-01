@@ -18,6 +18,8 @@ import array = std.array;
 import math = std.math;
 import range = std.range;
 
+import std.stdio;
+
 // Number of iterations for precision consistency tests.
 immutable int consistency_iters = 5000;
 
@@ -149,11 +151,11 @@ protected:
   // Test exhaustively whether the points in "sorted" are sorted circularly
   // CCW around "origin".
   static void testCCW(in S2Point[] sorted, in S2Point origin) {
-    const size_t n = sorted.length;
-    size_t total_num_ccw = 0;
-    size_t last_num_ccw = countCCW(sorted, origin, n - 1);
+    const int n = cast(int) sorted.length;
+    int total_num_ccw = 0;
+    int last_num_ccw = countCCW(sorted, origin, n - 1);
     for (int start = 0; start < n; ++start) {
-      size_t num_ccw = countCCW(sorted, origin, start);
+      int num_ccw = countCCW(sorted, origin, start);
       // Each iteration we increase the start index by 1, therefore the number
       // of CCW triangles should decrease by at most 1.
       Assert.notLessThan(num_ccw, last_num_ccw - 1);
@@ -165,14 +167,14 @@ protected:
     Assert.equal(n * (n-1) / 2, total_num_ccw);
   }
 
-  static void addNormalized(S2Point a, S2Point[] points) {
+  static void addNormalized(S2Point a, ref S2Point[] points) {
     points ~= a.normalize();
   }
 
   // Add two points A1 and A2 that are slightly offset from A along the
   // tangent toward B, and such that A, A1, and A2 are exactly collinear
   // (i.e. even with infinite-precision arithmetic).
-  static void addTangentPoints(in S2Point a, in S2Point b, S2Point[] points) {
+  static void addTangentPoints(in S2Point a, in S2Point b, ref S2Point[] points) {
     Vector3_d dir = robustCrossProd(a, b).crossProd(a).normalize();
     if (dir == S2Point(0, 0, 0)) return;
     for (;;) {
@@ -188,7 +190,7 @@ protected:
 
   // Add zero or more (but usually one) point that is likely to trigger
   // Sign() degeneracies among the given points.
-  static void addDegeneracy(S2Point[] points) {
+  static void addDegeneracy(ref S2Point[] points) {
     Random rnd = S2Testing.rnd;
     S2Point a = points[rnd.uniform(cast(int) points.length)];
     S2Point b = points[rnd.uniform(cast(int) points.length)];
@@ -279,11 +281,11 @@ protected:
   }
 }
 
-/*
-TEST_F(SignTest, StressTest) {
+@("SignTest.StressTest")
+unittest {
   // The run time of this test is *cubic* in the parameter below.
   static const int kNumPointsPerCircle = 20;
-
+  SignTest signTest = new SignTest();
   // This test is randomized, so it is beneficial to run it several times.
   for (int iter = 0; iter < 3; ++iter) {
     // The most difficult great circles are the ones in the X-Y, Y-Z, and X-Z
@@ -293,18 +295,20 @@ TEST_F(SignTest, StressTest) {
     // tests the handling of things like underflow.)  The second reason is
     // that most of the cases of SymbolicallyPerturbedSign() can only be
     // reached when one or more input point coordinates are zero.
-    TestGreatCircle(S2Point(1, 0, 0), S2Point(0, 1, 0), kNumPointsPerCircle);
-    TestGreatCircle(S2Point(1, 0, 0), S2Point(0, 0, 1), kNumPointsPerCircle);
-    TestGreatCircle(S2Point(0, -1, 0), S2Point(0, 0, 1), kNumPointsPerCircle);
+    signTest.testGreatCircle(S2Point(1, 0, 0), S2Point(0, 1, 0), kNumPointsPerCircle);
+    signTest.testGreatCircle(S2Point(1, 0, 0), S2Point(0, 0, 1), kNumPointsPerCircle);
+    signTest.testGreatCircle(S2Point(0, -1, 0), S2Point(0, 0, 1), kNumPointsPerCircle);
 
     // This tests a great circle where at least some points have X, Y, and Z
     // coordinates with exactly the same mantissa.  One useful property of
     // such points is that when they are scaled (e.g. multiplying by 1+eps),
     // all such points are exactly collinear with the origin.
-    TestGreatCircle(S2Point(1 << 25, 1, -8), S2Point(-4, -(1 << 20), 1),
+    signTest.testGreatCircle(S2Point(1 << 25, 1, -8), S2Point(-4, -(1 << 20), 1),
                     kNumPointsPerCircle);
   }
 }
+
+/*
 
 class StableSignTest : public testing::Test {
  protected:
