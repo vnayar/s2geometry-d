@@ -20,6 +20,7 @@ import s2.s2pointutil;
 import s2.s2point;
 import s2.util.math.exactfloat;
 import s2.util.math.vector;
+import std.exception;
 import s2pointutil = s2.s2pointutil;
 import algorithm = std.algorithm;
 import math = std.math;
@@ -91,7 +92,7 @@ int sign(in S2Point a, in S2Point b, in S2Point c) {
 // in fact an earlier version of this code did exactly that), but antipodal
 // points are rare in practice so it seems better to simply fall back to
 // exact arithmetic in that case.
-private int stableSign(in S2Point a, in S2Point b, in S2Point c) {
+package int stableSign(in S2Point a, in S2Point b, in S2Point c) {
   Vector3_d ab = b - a;
   Vector3_d bc = c - b;
   Vector3_d ca = a - c;
@@ -236,7 +237,7 @@ in {
   if (det_sign != 0) return det_sign;
   // The following test is listed in the paper, but it is redundant because
   // the previous tests guarantee that C == (0, 0, 0).
-  assert(0 == (c[1] * a[2] - c[2] * a[1]).sign());  // db[0]
+  enforce(0 == (c[1] * a[2] - c[2] * a[1]).sign());  // db[0]
 
   det_sign = (a[0] * b[1] - a[1] * b[0]).sign();     // dc[2]
   if (det_sign != 0) return det_sign;
@@ -330,7 +331,7 @@ int compareDistances(in S2Point x, in S2Point a, in S2Point b) {
 }
 
 int triageCompareCosDistance(T)(in Vector!(T, 3) x, in Vector!(T, 3) y, T r2) {
-  T T_ERR = T.epsilon;
+  T T_ERR = roundingEpsilon!T();
   T cos_xy_error;
   T cos_xy = getCosDistance(x, y, cos_xy_error);
   T cos_r = 1 - 0.5 * r2;
@@ -344,7 +345,7 @@ int triageCompareSin2Distance(T)(in Vector!(T, 3) x, in Vector!(T, 3) y, T r2)
 in {
   assert(r2 < 2.0); // Only valid for distance limits < 90 degrees.
 } body {
-  T T_ERR = T.epsilon;
+  T T_ERR = roundingEpsilon!T();
   T sin2_xy_error;
   T sin2_xy = getSin2Distance(x, y, sin2_xy_error);
   T sin2_r = r2 * (1 - 0.25 * r2);
@@ -354,7 +355,7 @@ in {
   return (diff > error) ? 1 : (diff < -error) ? -1 : 0;
 }
 
-private int exactCompareDistance(in Vector3_xf x, in Vector3_xf y, in ExactFloat r2) {
+package int exactCompareDistance(in Vector3_xf x, in Vector3_xf y, in ExactFloat r2) {
   // This code produces the same result as though all points were reprojected
   // to lie exactly on the surface of the unit sphere.  It is based on
   // comparing the cosine of the angle XY (when both points are projected to
@@ -446,7 +447,7 @@ private int triageCompareLineSin2Distance(T)(
     in Vector!(T, 3) x, in Vector!(T, 3) a0,
     in Vector!(T, 3) a1, T r2,
     in Vector!(T, 3) n, T n1, T n2) {
-  T T_ERR = T.epsilon;
+  T T_ERR = roundingEpsilon!T();
 
   // The minimum distance is to a point on the edge interior.  Since the true
   // distance to the edge is always less than 90 degrees, we can return
@@ -484,7 +485,7 @@ private int triageCompareLineCos2Distance(T)(
     in Vector!(T, 3) x, in Vector!(T, 3) a0,
     in Vector!(T, 3) a1, T r2,
     in Vector!(T, 3) n, T n1, T n2) {
-  T T_ERR = T.epsilon;
+  T T_ERR = roundingEpsilon!T();
 
   // The minimum distance is to a point on the edge interior.  Since the true
   // distance to the edge is always less than 90 degrees, we can return
@@ -527,10 +528,9 @@ private int triageCompareLineDistance(T)(
   }
 }
 
-private int triageCompareEdgeDistance(T)(
+package int triageCompareEdgeDistance(T)(
     in Vector!(T, 3) x, in Vector!(T, 3) a0, in Vector!(T, 3) a1, T r2) {
-  T T_ERR = T.epsilon;
-
+  T T_ERR = roundingEpsilon!T();
   // First we need to decide whether the closest point is an edge endpoint or
   // somewhere in the interior.  To determine this we compute a plane
   // perpendicular to (a0, a1) that passes through X.  Letting M be the normal
@@ -588,7 +588,7 @@ private int exactCompareLineDistance(
   return cmp.sign();
 }
 
-private int exactCompareEdgeDistance(
+package int exactCompareEdgeDistance(
     in S2Point x, in S2Point a0,
     in S2Point a1, S1ChordAngle r) {
   // Even if previous calculations were uncertain, we might not need to do
@@ -611,18 +611,20 @@ private int exactCompareEdgeDistance(
   }
 }
 
-// Returns -1, 0, or +1 according to whether the distance from the point X to
-// the edge A is less than, equal to, or greater than "r" respectively.
-// Distances are measured with respect the positions of all points as though
-// they were projected to lie exactly on the surface of the unit sphere.
-//
-// REQUIRES: A0 and A1 do not project to antipodal points (e.g., A0 == -A1).
-//           This requires that (A0 != C * A1) for any constant C < 0.
-//
-// NOTE(ericv): All of the predicates defined here could be extended to handle
-// edges consisting of antipodal points by implementing additional symbolic
-// perturbation logic (similar to Sign) in order to rigorously define the
-// direction of such edges.
+/**
+ * Returns -1, 0, or +1 according to whether the distance from the point X to
+ * the edge A is less than, equal to, or greater than "r" respectively.
+ * Distances are measured with respect the positions of all points as though
+ * they were projected to lie exactly on the surface of the unit sphere.
+ *
+ * REQUIRES: A0 and A1 do not project to antipodal points (e.g., A0 == -A1).
+ *           This requires that (A0 != C * A1) for any constant C < 0.
+ *
+ * NOTE(ericv): All of the predicates defined here could be extended to handle
+ * edges consisting of antipodal points by implementing additional symbolic
+ * perturbation logic (similar to Sign) in order to rigorously define the
+ * direction of such edges.
+ */
 int compareEdgeDistance(in S2Point x, in S2Point a0, in S2Point a1, in S1ChordAngle r)
 in {
   // Check that the edge does not consist of antipodal points.  (This catches
@@ -647,22 +649,24 @@ in {
   return exactCompareEdgeDistance(x, a0, a1, r);
 }
 
-// Returns -1, 0, or +1 according to whether the normal of edge A has
-// negative, zero, or positive dot product with the normal of edge B.  This
-// essentially measures whether the edges A and B are closer to proceeding in
-// the same direction or in opposite directions around the sphere.
-//
-// This method returns an exact result, i.e. the result is zero if and only if
-// the two edges are exactly perpendicular or at least one edge is degenerate.
-// (i.e., both edge endpoints project to the same point on the sphere).
-//
-// CAVEAT: This method does not use symbolic perturbations.  Therefore it can
-// return zero even when A0 != A1 and B0 != B1, e.g. if (A0 == C * A1) exactly
-// for some constant C > 0 (which is possible even when both points are
-// considered "normalized").
-//
-// REQUIRES: Neither edge can consist of antipodal points (e.g., A0 == -A1)
-//           (see comments in CompareEdgeDistance).
+/**
+ * Returns -1, 0, or +1 according to whether the normal of edge A has
+ * negative, zero, or positive dot product with the normal of edge B.  This
+ * essentially measures whether the edges A and B are closer to proceeding in
+ * the same direction or in opposite directions around the sphere.
+ *
+ * This method returns an exact result, i.e. the result is zero if and only if
+ * the two edges are exactly perpendicular or at least one edge is degenerate.
+ * (i.e., both edge endpoints project to the same point on the sphere).
+ *
+ * CAVEAT: This method does not use symbolic perturbations.  Therefore it can
+ * return zero even when A0 != A1 and B0 != B1, e.g. if (A0 == C * A1) exactly
+ * for some constant C > 0 (which is possible even when both points are
+ * considered "normalized").
+ *
+ * REQUIRES: Neither edge can consist of antipodal points (e.g., A0 == -A1)
+ *           (see comments in CompareEdgeDistance).
+ */
 int compareEdgeDirections(in S2Point a0, in S2Point a1, in S2Point b0, in S2Point b1)
 in {
   // Check that no edge consists of antipodal points.  (This catches the most
@@ -689,12 +693,14 @@ in {
       Vector3_xf.from(a0), Vector3_xf.from(a1), Vector3_xf.from(b0), Vector3_xf.from(b1));
 }
 
-// If triangle ABC has positive sign, returns its circumcenter.  If ABC has
-// negative sign, returns the negated circumcenter.
+/**
+ * If triangle ABC has positive sign, returns its circumcenter.  If ABC has
+ * negative sign, returns the negated circumcenter.
+ */
 private Vector3!T getCircumcenter(T)(
     in Vector!(T, 3) a, in Vector!(T, 3) b,
     in Vector!(T, 3) c, out T error) {
-  T T_ERR = T.epsilon;
+  T T_ERR = roundingEpsilon!T();
 
   // We compute the circumcenter using the intersection of the perpendicular
   // bisectors of AB and BC.  The formula is essentially
@@ -721,11 +727,11 @@ private Vector3!T getCircumcenter(T)(
   return mab.crossProd(mbc);
 }
 
-private int triageEdgeCircumcenterSign(T)(
+package int triageEdgeCircumcenterSign(T)(
     in Vector!(T, 3) x0, in Vector!(T, 3) x1,
     in Vector!(T, 3) a, in Vector!(T, 3) b,
     in Vector!(T, 3) c, int abc_sign) {
-  T T_ERR = T.epsilon;
+  T T_ERR = roundingEpsilon!T();
 
   // Compute the circumcenter Z of triangle ABC, and then test which side of
   // edge X it lies on.
@@ -743,14 +749,14 @@ private int triageEdgeCircumcenterSign(T)(
   return (result > result_error) ? 1 : (result < -result_error) ? -1 : 0;
 }
 
-private int exactEdgeCircumcenterSign(
+package int exactEdgeCircumcenterSign(
     in Vector3_xf x0, in Vector3_xf x1,
     in Vector3_xf a, in Vector3_xf b,
     in Vector3_xf c, int abc_sign) {
   // Return zero if the edge X is degenerate.  (Also see the comments in
   // SymbolicEdgeCircumcenterSign.)
   if (arePointsLinearlyDependent(x0, x1)) {
-    assert(x0.dotProd(x1) > 0);  // Antipodal edges not allowed.
+    enforce(x0.dotProd(x1) > 0);  // Antipodal edges not allowed.
     return 0;
   }
   // The simplest predicate for testing whether the sign is positive is
@@ -851,22 +857,26 @@ private int exactEdgeCircumcenterSign(
   return abc_sign * result;
 }
 
-// Like Sign, except this method does not use symbolic perturbations when
-// the input points are exactly coplanar with the origin (i.e., linearly
-// dependent).  Clients should never use this method, but it is useful here in
-// order to implement the combined pedestal/axis-aligned perturbation scheme
-// used by some methods (such as EdgeCircumcenterSign).
+/**
+ * Like Sign, except this method does not use symbolic perturbations when
+ * the input points are exactly coplanar with the origin (i.e., linearly
+ * dependent).  Clients should never use this method, but it is useful here in
+ * order to implement the combined pedestal/axis-aligned perturbation scheme
+ * used by some methods (such as EdgeCircumcenterSign).
+ */
 int unperturbedSign(in S2Point a, in S2Point b, in S2Point c) {
   int sign = triageSign(a, b, c, a.crossProd(b));
   if (sign == 0) sign = expensiveSign(a, b, c, false /*perturb*/);
   return sign;
 }
 
-// Given arguments such that ExactEdgeCircumcenterSign(x0, x1, a, b, c) == 0,
-// returns the value of Sign(X0, X1, Z) (where Z is the circumcenter of
-// triangle ABC) after symbolic perturbations are taken into account.  The
-// result is zero only if X0 == X1, A == B, B == C, or C == A.  (It is nonzero
-// if these pairs are exactly proportional to each other but not equal.)
+/**
+ * Given arguments such that ExactEdgeCircumcenterSign(x0, x1, a, b, c) == 0,
+ * returns the value of Sign(X0, X1, Z) (where Z is the circumcenter of
+ * triangle ABC) after symbolic perturbations are taken into account.  The
+ * result is zero only if X0 == X1, A == B, B == C, or C == A.  (It is nonzero
+ * if these pairs are exactly proportional to each other but not equal.)
+ */
 int symbolicEdgeCircumcenterSign(
     in S2Point x0, in S2Point x1,
     in S2Point a_arg, in S2Point b_arg, in S2Point c_arg) {
@@ -936,44 +946,13 @@ int symbolicEdgeCircumcenterSign(
   return unperturbedSign(x0, x1, *c);
 }
 
-int edgeCircumcenterSign(
-    in S2Point x0, in S2Point x1,
-    in S2Point a, in S2Point b,
-    in S2Point c)
-in {
-  // Check that the edge does not consist of antipodal points.  (This catches
-  // the most common case -- the full test is in ExactEdgeCircumcenterSign.)
-  assert(x0 != -x1);
-} body {
-  int abc_sign = sign(a, b, c);
-  int sign = triageEdgeCircumcenterSign(x0, x1, a, b, c, abc_sign);
-  if (sign != 0) return sign;
-
-  // Optimization for the cases that are going to return zero anyway, in order
-  // to avoid falling back to exact arithmetic.
-  if (x0 == x1 || a == b || b == c || c == a) return 0;
-
-  sign = triageEdgeCircumcenterSign(
-      Vector3_r.from(x0), Vector3_r.from(x1), Vector3_r.from(a), Vector3_r.from(b),
-      Vector3_r.from(c), abc_sign);
-  if (sign != 0) return sign;
-  sign = exactEdgeCircumcenterSign(
-      Vector3_xf.from(x0), Vector3_xf.from(x1), Vector3_xf.from(a), Vector3_xf.from(b),
-      Vector3_xf.from(c), abc_sign);
-  if (sign != 0) return sign;
-
-  // Unlike the other methods, SymbolicEdgeCircumcenterSign does not depend
-  // on the sign of triangle ABC.
-  return symbolicEdgeCircumcenterSign(x0, x1, a, b, c);
-}
-
 enum Excluded { FIRST, SECOND, NEITHER, UNCERTAIN }
 
-private Excluded triageVoronoiSiteExclusion(T)(
+package Excluded triageVoronoiSiteExclusion(T)(
     in Vector!(T, 3) a, in Vector!(T, 3) b,
     in Vector!(T, 3) x0, in Vector!(T, 3) x1,
     T r2) {
-  const T T_ERR = T.epsilon;
+  const T T_ERR = roundingEpsilon!T();
 
   // Define the "coverage disc" of a site S to be the disc centered at S with
   // radius r (i.e., squared chord angle length r2).  Similarly, define the
@@ -1155,7 +1134,7 @@ private Excluded triageVoronoiSiteExclusion(T)(
   }
   // Now we can finish checking the results of predicate (3).
   if (result <= result_error) return Excluded.UNCERTAIN;
-  assert(abs_lhs3 > lhs3_error);
+  enforce(abs_lhs3 > lhs3_error);
   return (lhs3 > 0) ? Excluded.FIRST : Excluded.SECOND;
 }
 
@@ -1222,7 +1201,7 @@ in {
     int ca = (lhs2_sgn < 0) ? -1 : exactCompareDistance(a, x0, r90);
     int cb = (lhs2_sgn > 0) ? -1 : exactCompareDistance(b, x1, r90);
     if (ca <= 0 && cb <= 0) return Excluded.NEITHER;
-    assert(ca != 1 || cb != 1);
+    enforce(ca != 1 || cb != 1);
     return ca == 1 ? Excluded.FIRST : Excluded.SECOND;
   }
   if (lhs2_sgn == 0) {
@@ -1230,7 +1209,7 @@ in {
     // equidistant from every point on edge X.  This case requires symbolic
     // perturbations, but it should already have been handled in
     // GetVoronoiSiteExclusion() (see the call to CompareDistances).
-    assert(rhs2_sgn > 0);
+    enforce(rhs2_sgn > 0);
     return Excluded.NEITHER;
   }
   // Next we square both sides of (2), yielding
@@ -1274,36 +1253,38 @@ in {
   return (lhs2_sgn > 0) ? Excluded.FIRST : Excluded.SECOND;
 }
 
-// This is a specialized method that is used to compute the intersection of an
-// edge X with the Voronoi diagram of a set of points, where each Voronoi
-// region is intersected with a disc of fixed radius "r".
-//
-// Given two sites A and B and an edge (X0, X1) such that d(A,X0) < d(B,X0)
-// and both sites are within the given distance "r" of edge X, this method
-// intersects the Voronoi region of each site with a disc of radius r and
-// determines whether either region has an empty intersection with edge X.  It
-// returns FIRST if site A has an empty intersection, SECOND if site B has an
-// empty intersection, NEITHER if neither site has an empty intersection, or
-// UNCERTAIN if A == B exactly.  Note that it is not possible for both
-// intersections to be empty because of the requirement that both sites are
-// within distance r of edge X.  (For example, the only reason that Voronoi
-// region A can have an empty intersection with X is that site B is closer to
-// all points on X that are within radius r of site A.)
-//
-// The result is determined with respect to the positions of all points as
-// though they were projected to lie exactly on the surface of the unit
-// sphere.  Furthermore this method uses symbolic perturbations to compute a
-// consistent non-zero result even when A and B lie on opposite sides of X
-// such that the Voronoi edge between them exactly coincides with edge X, or
-// when A and B are distinct but project to the same point on the sphere
-// (i.e., they are linearly dependent).
-//
-// REQUIRES: r < S1ChordAngle::Right() (90 degrees)
-// REQUIRES: s2pred::CompareDistances(x0, a, b) < 0
-// REQUIRES: s2pred::CompareEdgeDistance(a, x0, x1, r) <= 0
-// REQUIRES: s2pred::CompareEdgeDistance(b, x0, x1, r) <= 0
-// REQUIRES: X0 and X1 do not project to antipodal points (e.g., X0 == -X1)
-//           (see comments in CompareEdgeDistance).
+/**
+ * This is a specialized method that is used to compute the intersection of an
+ * edge X with the Voronoi diagram of a set of points, where each Voronoi
+ * region is intersected with a disc of fixed radius "r".
+ *
+ * Given two sites A and B and an edge (X0, X1) such that d(A,X0) < d(B,X0)
+ * and both sites are within the given distance "r" of edge X, this method
+ * intersects the Voronoi region of each site with a disc of radius r and
+ * determines whether either region has an empty intersection with edge X.  It
+ * returns FIRST if site A has an empty intersection, SECOND if site B has an
+ * empty intersection, NEITHER if neither site has an empty intersection, or
+ * UNCERTAIN if A == B exactly.  Note that it is not possible for both
+ * intersections to be empty because of the requirement that both sites are
+ * within distance r of edge X.  (For example, the only reason that Voronoi
+ * region A can have an empty intersection with X is that site B is closer to
+ * all points on X that are within radius r of site A.)
+ *
+ * The result is determined with respect to the positions of all points as
+ * though they were projected to lie exactly on the surface of the unit
+ * sphere.  Furthermore this method uses symbolic perturbations to compute a
+ * consistent non-zero result even when A and B lie on opposite sides of X
+ * such that the Voronoi edge between them exactly coincides with edge X, or
+ * when A and B are distinct but project to the same point on the sphere
+ * (i.e., they are linearly dependent).
+ *
+ * REQUIRES: r < S1ChordAngle::Right() (90 degrees)
+ * REQUIRES: s2pred::CompareDistances(x0, a, b) < 0
+ * REQUIRES: s2pred::CompareEdgeDistance(a, x0, x1, r) <= 0
+ * REQUIRES: s2pred::CompareEdgeDistance(b, x0, x1, r) <= 0
+ * REQUIRES: X0 and X1 do not project to antipodal points (e.g., X0 == -X1)
+ *           (see comments in CompareEdgeDistance).
+ */
 Excluded getVoronoiSiteExclusion(
     in S2Point a, in S2Point b,
     in S2Point x0, in S2Point x1,
@@ -1340,11 +1321,10 @@ in {
       Vector3_xf.from(x1), ExactFloat(r.length2()));
 }
 
-
-private int triageCompareEdgeDirections(T)(
+package int triageCompareEdgeDirections(T)(
     in Vector!(T, 3) a0, in Vector!(T, 3) a1,
     in Vector!(T, 3) b0, in Vector!(T, 3) b1) {
-  T T_ERR = T.epsilon;
+  T T_ERR = roundingEpsilon!T();
   Vector3!T na = (a0 - a1).crossProd(a0 + a1);
   Vector3!T nb = (b0 - b1).crossProd(b0 + b1);
   T na_len = na.norm(), nb_len = nb.norm();
@@ -1363,7 +1343,7 @@ private bool arePointsAntipodal(in Vector3_xf x, in Vector3_xf y) {
   return arePointsLinearlyDependent(x, y) && x.dotProd(y).sign() < 0;
 }
 
-private int exactCompareEdgeDirections(
+package int exactCompareEdgeDirections(
     in Vector3_xf a0, in Vector3_xf a1,
     in Vector3_xf b0, in Vector3_xf b1)
 in {
@@ -1373,20 +1353,21 @@ in {
   return a0.crossProd(a1).dotProd(b0.crossProd(b1)).sign();
 }
 
-
-// Returns Sign(X0, X1, Z) where Z is the circumcenter of triangle ABC.
-// The return value is -1 if Z is to the left of edge X, and +1 if Z is to the
-// right of edge X.  The return value is zero if A == B, B == C, or C == A
-// (exactly), and also if X0 and X1 project to identical points on the sphere
-// (e.g., X0 == X1).
-//
-// The result is determined with respect to the positions of all points as
-// though they were projected to lie exactly on the surface of the unit
-// sphere.  Furthermore this method uses symbolic perturbations to compute a
-// consistent non-zero result even when Z lies exactly on edge X.
-//
-// REQUIRES: X0 and X1 do not project to antipodal points (e.g., X0 == -X1)
-//           (see comments in CompareEdgeDistance).
+/**
+ * Returns Sign(X0, X1, Z) where Z is the circumcenter of triangle ABC.
+ * The return value is -1 if Z is to the left of edge X, and +1 if Z is to the
+ * right of edge X.  The return value is zero if A == B, B == C, or C == A
+ * (exactly), and also if X0 and X1 project to identical points on the sphere
+ * (e.g., X0 == X1).
+ *
+ * The result is determined with respect to the positions of all points as
+ * though they were projected to lie exactly on the surface of the unit
+ * sphere.  Furthermore this method uses symbolic perturbations to compute a
+ * consistent non-zero result even when Z lies exactly on edge X.
+ *
+ * REQUIRES: X0 and X1 do not project to antipodal points (e.g., X0 == -X1)
+ *           (see comments in CompareEdgeDistance).
+ */
 int edgeCircumcenterSign(
     in S2Point x0, in S2Point x1, in S2Point a, in S2Point b, in S2Point c)
 in {
@@ -1424,85 +1405,17 @@ in {
   return symbolicEdgeCircumcenterSign(x0, x1, a, b, c);
 }
 
-// This is a specialized method that is used to compute the intersection of an
-// edge X with the Voronoi diagram of a set of points, where each Voronoi
-// region is intersected with a disc of fixed radius "r".
-//
-// Given two sites A and B and an edge (X0, X1) such that d(A,X0) < d(B,X0)
-// and both sites are within the given distance "r" of edge X, this method
-// intersects the Voronoi region of each site with a disc of radius r and
-// determines whether either region has an empty intersection with edge X.  It
-// returns FIRST if site A has an empty intersection, SECOND if site B has an
-// empty intersection, NEITHER if neither site has an empty intersection, or
-// UNCERTAIN if A == B exactly.  Note that it is not possible for both
-// intersections to be empty because of the requirement that both sites are
-// within distance r of edge X.  (For example, the only reason that Voronoi
-// region A can have an empty intersection with X is that site B is closer to
-// all points on X that are within radius r of site A.)
-//
-// The result is determined with respect to the positions of all points as
-// though they were projected to lie exactly on the surface of the unit
-// sphere.  Furthermore this method uses symbolic perturbations to compute a
-// consistent non-zero result even when A and B lie on opposite sides of X
-// such that the Voronoi edge between them exactly coincides with edge X, or
-// when A and B are distinct but project to the same point on the sphere
-// (i.e., they are linearly dependent).
-//
-// REQUIRES: r < S1ChordAngle::Right() (90 degrees)
-// REQUIRES: s2pred::CompareDistances(x0, a, b) < 0
-// REQUIRES: s2pred::CompareEdgeDistance(a, x0, x1, r) <= 0
-// REQUIRES: s2pred::CompareEdgeDistance(b, x0, x1, r) <= 0
-// REQUIRES: X0 and X1 do not project to antipodal points (e.g., X0 == -X1)
-//           (see comments in CompareEdgeDistance).
-Excluded getVoronoiSiteExclusion(
-    in S2Point a, in S2Point b,
-    in S2Point x0, in S2Point x1,
-    S1ChordAngle r)
-in {
-  assert(r < S1ChordAngle.right());
-  assert(compareDistances(x0, a, b) < 0);  // (implies a != b)
-  assert(compareEdgeDistance(a, x0, x1, r) <= 0);
-  assert(compareEdgeDistance(b, x0, x1, r) <= 0);
-  // Check that the edge does not consist of antipodal points.  (This catches
-  // the most common case -- the full test is in ExactVoronoiSiteExclusion.)
-  assert(x0 != -x1);
-} body {
-  // If one site is closer than the other to both endpoints of X, then it is
-  // closer to every point on X.  Note that this also handles the case where A
-  // and B are equidistant from every point on X (i.e., X is the perpendicular
-  // bisector of AB), because CompareDistances uses symbolic perturbations to
-  // ensure that either A or B is considered closer (in a consistent way).
-  // This also ensures that the choice of A or B does not depend on the
-  // direction of X.
-  if (compareDistances(x1, a, b) < 0) {
-    return Excluded.SECOND;  // Site A is closer to every point on X.
-  }
-
-  Excluded result = triageVoronoiSiteExclusion(a, b, x0, x1, r.length2());
-  if (result != Excluded.UNCERTAIN) {
-    return result;
-  }
-
-  result = triageVoronoiSiteExclusion(
-      Vector3_r.from(a), Vector3_r.from(b), Vector3_r.from(x0), Vector3_r.from(x1), r.length2());
-  if (result != Excluded.UNCERTAIN) {
-    return result;
-  }
-
-  return exactVoronoiSiteExclusion(
-      Vector3_xf.from(a), Vector3_xf.from(b),
-      Vector3_xf.from(x0), Vector3_xf.from(x1), ExactFloat(r.length2()));
-}
-
 /////////////////////////// Low-Level Methods ////////////////////////////
 //
 // Most clients will not need the following methods.  They can be slightly
 // more efficient but are harder to use, since they require the client to do
 // all the actual crossing tests.
 
-// A more efficient version of Sign that allows the precomputed
-// cross-product of A and B to be specified.  (Unlike the 3 argument
-// version this method is also inlined.)
+/**
+ * A more efficient version of Sign that allows the precomputed
+ * cross-product of A and B to be specified.  (Unlike the 3 argument
+ * version this method is also inlined.)
+ */
 int sign(in S2Point a, in S2Point b, in S2Point c, in Vector3_d a_cross_b) {
   int sign = triageSign(a, b, c, a_cross_b);
   if (sign == 0) {
@@ -1511,13 +1424,15 @@ int sign(in S2Point a, in S2Point b, in S2Point c, in Vector3_d a_cross_b) {
   return sign;
 }
 
-// This version of Sign returns +1 if the points are definitely CCW, -1 if
-// they are definitely CW, and 0 if two points are identical or the result
-// is uncertain.  Uncertain cases can be resolved, if desired, by calling
-// ExpensiveSign.
-//
-// The purpose of this method is to allow additional cheap tests to be done,
-// where possible, in order to avoid calling ExpensiveSign unnecessarily.
+/**
+ * This version of Sign returns +1 if the points are definitely CCW, -1 if
+ * they are definitely CW, and 0 if two points are identical or the result
+ * is uncertain.  Uncertain cases can be resolved, if desired, by calling
+ * ExpensiveSign.
+ *
+ * The purpose of this method is to allow additional cheap tests to be done,
+ * where possible, in order to avoid calling ExpensiveSign unnecessarily.
+ */
 int triageSign(in S2Point a, in S2Point b, in S2Point c, in Vector3_d a_cross_b)
 in {
   assert(s2pointutil.isUnitLength(a));
@@ -1608,7 +1523,7 @@ int expensiveSign(in S2Point a, in S2Point b, in S2Point c, bool perturb = true)
 // Private methods for internal implementation.
 ////
 
-private int exactSign(in S2Point a, in S2Point b, in S2Point c, bool perturb)
+package int exactSign(in S2Point a, in S2Point b, in S2Point c, bool perturb)
 in {
   assert(a != b && b != c && c != a);
 } body {
@@ -1631,7 +1546,7 @@ in {
     algorithm.swap(pa, pb);
     perm_sign = -perm_sign;
   }
-  assert(*pa < *pb && *pb < *pc);
+  enforce(*pa < *pb && *pb < *pc);
 
   // Construct multiple-precision versions of the sorted points and compute
   // their exact 3x3 determinant.
@@ -1643,8 +1558,8 @@ in {
 
   // The precision of ExactFloat is high enough that the result should always
   // be exact (no rounding was performed).
-  assert(!det.isNan());
-  assert(det.prec() < det.maxPrec());
+  enforce(!det.isNan());
+  enforce(det.prec() < det.maxPrec());
 
   // If the exact determinant is non-zero, we're done.
   int det_sign = det.sign();
@@ -1652,12 +1567,12 @@ in {
     // Otherwise, we need to resort to symbolic perturbations to resolve the
     // sign of the determinant.
     det_sign = symbolicallyPerturbedSign(xa, xb, xc, xb_cross_xc);
-    assert(0 != det_sign);
+    enforce(0 != det_sign);
   }
   return perm_sign * det_sign;
 }
 
-private int triageCompareCosDistances(T)(
+package int triageCompareCosDistances(T)(
     in Vector!(T, 3) x, in Vector!(T, 3) a, in Vector!(T, 3) b) {
   T cos_ax_error, cos_bx_error;
   T cos_ax = getCosDistance(a, x, cos_ax_error);
@@ -1667,7 +1582,7 @@ private int triageCompareCosDistances(T)(
   return (diff > error) ? -1 : (diff < -error) ? 1 : 0;
 }
 
-private int triageCompareSin2Distances(T)(
+package int triageCompareSin2Distances(T)(
     in Vector!(T, 3) x, in Vector!(T, 3) a, in Vector!(T, 3) b) {
   T sin2_ax_error, sin2_bx_error;
   T sin2_ax = getSin2Distance(a, x, sin2_ax_error);
@@ -1677,7 +1592,7 @@ private int triageCompareSin2Distances(T)(
   return (diff > error) ? 1 : (diff < -error) ? -1 : 0;
 }
 
-private int exactCompareDistances(in Vector3_xf x, in Vector3_xf a, in Vector3_xf b) {
+package int exactCompareDistances(in Vector3_xf x, in Vector3_xf a, in Vector3_xf b) {
   // This code produces the same result as though all points were reprojected
   // to lie exactly on the surface of the unit sphere.  It is based on testing
   // whether x.DotProd(a.Normalize()) < x.DotProd(b.Normalize()), reformulated
@@ -1697,7 +1612,7 @@ private int exactCompareDistances(in Vector3_xf x, in Vector3_xf a, in Vector3_x
 // Given three points such that AX == BX (exactly), returns -1, 0, or +1
 // according whether AX < BX, AX == BX, or AX > BX after symbolic
 // perturbations are taken into account.
-private int symbolicCompareDistances(in S2Point x, in S2Point a, in S2Point b) {
+package int symbolicCompareDistances(in S2Point x, in S2Point a, in S2Point b) {
   // Our symbolic perturbation strategy is based on the following model.
   // Similar to "simulation of simplicity", we assign a perturbation to every
   // point such that if A < B, then the symbolic perturbation for A is much,
@@ -1741,7 +1656,7 @@ private real getCosDistance(in Vector3_r x, in Vector3_r y, out real error) {
 // to the maximum error in the result.
 //
 // REQUIRES: "x" and "y" satisfy S2::IsNormalized().
-double getSin2Distance(in S2Point x, in S2Point y, out double error) {
+private double getSin2Distance(in S2Point x, in S2Point y, out double error) {
   // The (x-y).CrossProd(x+y) trick eliminates almost all of error due to "x"
   // and "y" being not quite unit length.  This method is extremely accurate
   // for small distances; the *relative* error in the result is O(DBL_ERR) for
@@ -1755,7 +1670,7 @@ double getSin2Distance(in S2Point x, in S2Point y, out double error) {
 }
 
 // A high precision "long double" version of the function above.
-real getSin2Distance(in Vector3_r x, in Vector3_r y, out real error) {
+private real getSin2Distance(in Vector3_r x, in Vector3_r y, out real error) {
   // In "long double" precision it is worthwhile to compensate for length
   // errors in "x" and "y", since they are only unit length to within the
   // precision of "double".  Otherwise the "d2" error coefficient below would

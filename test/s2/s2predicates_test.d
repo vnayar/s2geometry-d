@@ -12,16 +12,18 @@ import s2.s2pointutil;
 import s2.s2testing;
 import s2.util.math.exactfloat;
 import s2.util.math.vector;
-
+import std.exception;
 import algorithm = std.algorithm;
 import array = std.array;
+import format = std.format;
 import math = std.math;
 import range = std.range;
+import traits = std.traits;
 
 import std.stdio;
 
 // Number of iterations for precision consistency tests.
-immutable int consistency_iters = 5000;
+immutable int CONSISTENCY_ITERS = 5000;
 
 @("rounding_epsilon")
 unittest {
@@ -271,7 +273,7 @@ protected:
                 array.array(
                     algorithm.filter!(point => point != S2Point(0, 0, 0))(points)))));
 
-    assert(points.length >= n / 2);
+    // enforce(points.length >= n / 2);
 
     sortAndTest(points, a);
     sortAndTest(points, b);
@@ -308,36 +310,35 @@ unittest {
   }
 }
 
-/*
-
-class StableSignTest : public testing::Test {
- protected:
+class StableSignTest {
+protected:
   // Estimate the probability that S2::StableSign() will not be able to compute
   // the determinant sign of a triangle A, B, C consisting of three points
   // that are as collinear as possible and spaced the given distance apart.
-  double GetFailureRate(double km) {
+  double getFailureRate(double km) {
     const int kIters = 1000;
     int failure_count = 0;
-    double m = tan(S2Testing::KmToAngle(km).radians());
+    double m = math.tan(S2Testing.kmToAngle(km).radians());
     for (int iter = 0; iter < kIters; ++iter) {
       S2Point a, x, y;
-      S2Testing::GetRandomFrame(&a, &x, &y);
-      S2Point b = (a - m * x).Normalize();
-      S2Point c = (a + m * x).Normalize();
-      int sign = s2pred::StableSign(a, b, c);
+      S2Testing.getRandomFrame(a, x, y);
+      S2Point b = (a - m * x).normalize();
+      S2Point c = (a + m * x).normalize();
+      int sign = s2pred.stableSign(a, b, c);
       if (sign != 0) {
-        EXPECT_EQ(s2pred::ExactSign(a, b, c, true), sign);
+        Assert.equal(s2pred.exactSign(a, b, c, true), sign);
       } else {
         ++failure_count;
       }
     }
-    double rate = static_cast<double>(failure_count) / kIters;
-    LOG(INFO) << "StableSign failure rate for " << km << " km = " << rate;
+    double rate = cast(double) failure_count / kIters;
+    writeln("StableSign failure rate for ", km, " km = ", rate);
     return rate;
   }
-};
+}
 
-TEST_F(StableSignTest, FailureRate) {
+@("StableSignTest.FailureRate")
+unittest {
   // Verify that StableSign() is able to handle most cases where the three
   // points are as collinear as possible.  (For reference, TriageSign() fails
   // virtually 100% of the time on this test.)
@@ -346,9 +347,9 @@ TEST_F(StableSignTest, FailureRate) {
   // and the decrease is approximately linear.  For example, the failure rate
   // is 0.4% for collinear points spaced 1km apart, but only 0.0004% for
   // collinear points spaced 1 meter apart.
-
-  EXPECT_LT(GetFailureRate(1.0), 0.01);  //  1km spacing: <  1% (actual 0.4%)
-  EXPECT_LT(GetFailureRate(10.0), 0.1);  // 10km spacing: < 10% (actual 4%)
+  StableSignTest stableSignTest = new StableSignTest();
+  Assert.lessThan(stableSignTest.getFailureRate(1.0), 0.01);  //  1km spacing: <  1% (actual 0.4%)
+  Assert.lessThan(stableSignTest.getFailureRate(10.0), 0.1);  // 10km spacing: < 10% (actual 4%)
 }
 
 // Given 3 points A, B, C that are exactly coplanar with the origin and where
@@ -357,22 +358,22 @@ TEST_F(StableSignTest, FailureRate) {
 //
 // This method is intended specifically for checking the cases where
 // symbolic perturbations are needed to break ties.
-static void CheckSymbolicSign(int expected, const S2Point& a,
-                              const S2Point& b, const S2Point& c) {
-  CHECK_LT(a, b);
-  CHECK_LT(b, c);
-  CHECK_EQ(0, a.DotProd(b.CrossProd(c)));
+static void checkSymbolicSign(int expected, in S2Point a, in S2Point b, in S2Point c) {
+  Assert.lessThan(a, b);
+  Assert.lessThan(b, c);
+  Assert.equal(a.dotProd(b.crossProd(c)), 0.0);
 
   // Use ASSERT rather than EXPECT to suppress spurious error messages.
-  ASSERT_EQ(expected, ExpensiveSign(a, b, c));
-  ASSERT_EQ(expected, ExpensiveSign(b, c, a));
-  ASSERT_EQ(expected, ExpensiveSign(c, a, b));
-  ASSERT_EQ(-expected, ExpensiveSign(c, b, a));
-  ASSERT_EQ(-expected, ExpensiveSign(b, a, c));
-  ASSERT_EQ(-expected, ExpensiveSign(a, c, b));
+  Assert.equal(expected, s2pred.expensiveSign(a, b, c));
+  Assert.equal(expected, s2pred.expensiveSign(b, c, a));
+  Assert.equal(expected, s2pred.expensiveSign(c, a, b));
+  Assert.equal(-expected, s2pred.expensiveSign(c, b, a));
+  Assert.equal(-expected, s2pred.expensiveSign(b, a, c));
+  Assert.equal(-expected, s2pred.expensiveSign(a, c, b));
 }
 
-TEST(Sign, SymbolicPerturbationCodeCoverage) {
+@("Sign.SymbolicPerturbationCodeCoverage")
+unittest {
   // The purpose of this test is simply to get code coverage of
   // SymbolicallyPerturbedSign().  Let M_1, M_2, ... be the sequence of
   // submatrices whose determinant sign is tested by that function.  Then the
@@ -387,251 +388,240 @@ TEST(Sign, SymbolicPerturbationCodeCoverage) {
   // SymbolicallyPerturbedSign() will cause this test to fail.
 
   // det(M_1) = b0*c1 - b1*c0
-  CheckSymbolicSign(1,
-                    S2Point(-3, -1, 0), S2Point(-2, 1, 0), S2Point(1, -2, 0));
+  checkSymbolicSign(1, S2Point(-3, -1, 0), S2Point(-2, 1, 0), S2Point(1, -2, 0));
 
   // det(M_2) = b2*c0 - b0*c2
-  CheckSymbolicSign(1,
-                    S2Point(-6, 3, 3), S2Point(-4, 2, -1), S2Point(-2, 1, 4));
+  checkSymbolicSign(1, S2Point(-6, 3, 3), S2Point(-4, 2, -1), S2Point(-2, 1, 4));
 
   // det(M_3) = b1*c2 - b2*c1
-  CheckSymbolicSign(1, S2Point(0, -1, -1), S2Point(0, 1, -2), S2Point(0, 2, 1));
+  checkSymbolicSign(1, S2Point(0, -1, -1), S2Point(0, 1, -2), S2Point(0, 2, 1));
   // From this point onward, B or C must be zero, or B is proportional to C.
 
   // det(M_4) = c0*a1 - c1*a0
-  CheckSymbolicSign(1, S2Point(-1, 2, 7), S2Point(2, 1, -4), S2Point(4, 2, -8));
+  checkSymbolicSign(1, S2Point(-1, 2, 7), S2Point(2, 1, -4), S2Point(4, 2, -8));
 
   // det(M_5) = c0
-  CheckSymbolicSign(1,
-                    S2Point(-4, -2, 7), S2Point(2, 1, -4), S2Point(4, 2, -8));
+  checkSymbolicSign(1, S2Point(-4, -2, 7), S2Point(2, 1, -4), S2Point(4, 2, -8));
 
   // det(M_6) = -c1
-  CheckSymbolicSign(1, S2Point(0, -5, 7), S2Point(0, -4, 8), S2Point(0, -2, 4));
+  checkSymbolicSign(1, S2Point(0, -5, 7), S2Point(0, -4, 8), S2Point(0, -2, 4));
 
   // det(M_7) = c2*a0 - c0*a2
-  CheckSymbolicSign(1,
-                    S2Point(-5, -2, 7), S2Point(0, 0, -2), S2Point(0, 0, -1));
+  checkSymbolicSign(1, S2Point(-5, -2, 7), S2Point(0, 0, -2), S2Point(0, 0, -1));
 
   // det(M_8) = c2
-  CheckSymbolicSign(1, S2Point(0, -2, 7), S2Point(0, 0, 1), S2Point(0, 0, 2));
+  checkSymbolicSign(1, S2Point(0, -2, 7), S2Point(0, 0, 1), S2Point(0, 0, 2));
   // From this point onward, C must be zero.
 
   // det(M_9) = a0*b1 - a1*b0
-  CheckSymbolicSign(1, S2Point(-3, 1, 7), S2Point(-1, -4, 1), S2Point(0, 0, 0));
+  checkSymbolicSign(1, S2Point(-3, 1, 7), S2Point(-1, -4, 1), S2Point(0, 0, 0));
 
   // det(M_10) = -b0
-  CheckSymbolicSign(1,
-                    S2Point(-6, -4, 7), S2Point(-3, -2, 1), S2Point(0, 0, 0));
+  checkSymbolicSign(1, S2Point(-6, -4, 7), S2Point(-3, -2, 1), S2Point(0, 0, 0));
 
   // det(M_11) = b1
-  CheckSymbolicSign(-1, S2Point(0, -4, 7), S2Point(0, -2, 1), S2Point(0, 0, 0));
+  checkSymbolicSign(-1, S2Point(0, -4, 7), S2Point(0, -2, 1), S2Point(0, 0, 0));
 
   // det(M_12) = a0
-  CheckSymbolicSign(-1,
-                    S2Point(-1, -4, 5), S2Point(0, 0, -3), S2Point(0, 0, 0));
+  checkSymbolicSign(-1, S2Point(-1, -4, 5), S2Point(0, 0, -3), S2Point(0, 0, 0));
 
   // det(M_13) = 1
-  CheckSymbolicSign(1, S2Point(0, -4, 5), S2Point(0, 0, -5), S2Point(0, 0, 0));
+  checkSymbolicSign(1, S2Point(0, -4, 5), S2Point(0, 0, -5), S2Point(0, 0, 0));
 }
 
-enum Precision { DOUBLE, LONG_DOUBLE, EXACT, SYMBOLIC, NUM_PRECISIONS };
-
-static const char* kPrecisionNames[] = {
-  "double", "long double", "exact", "symbolic"
-};
+enum Precision { DOUBLE, REAL, EXACT, SYMBOLIC }
 
 // A helper class that keeps track of how often each precision was used and
 // generates a string for logging purposes.
-class PrecisionStats {
- public:
-  PrecisionStats();
-  void Tally(Precision precision) { ++counts_[precision]; }
-  string ToString();
+struct PrecisionStats {
+public:
+  void tally(Precision precision) {
+    ++_counts[precision];
+  }
+
+  string toString() {
+    string result;
+    int total = 0;
+    foreach (i, precision; traits.EnumMembers!Precision) {
+      result ~= format.format("%s=%6d, ", precision, _counts[i]);
+      total += _counts[i];
+    }
+    result ~= format.format("total=%6d", total);
+    return result;
+  }
 
  private:
-  int counts_[NUM_PRECISIONS];
+  int[traits.EnumMembers!(Precision).length] _counts;
 };
-
-PrecisionStats::PrecisionStats() {
-  for (int& count : counts_) count = 0;
-}
-
-string PrecisionStats::ToString() {
-  string result;
-  int total = 0;
-  for (int i = 0; i < NUM_PRECISIONS; ++i) {
-    StringAppendF(&result, "%s=%6d, ", kPrecisionNames[i], counts_[i]);
-    total += counts_[i];
-  }
-  StringAppendF(&result, "total=%6d", total);
-  return result;
-}
 
 // Chooses a random S2Point that is often near the intersection of one of the
 // coodinates planes or coordinate axes with the unit sphere.  (It is possible
 // to represent very small perturbations near such points.)
-static S2Point ChoosePoint() {
-  S2Point x = S2Testing::RandomPoint();
+static S2Point choosePoint() {
+  S2Point x = S2Testing.randomPoint();
   for (int i = 0; i < 3; ++i) {
-    if (S2Testing::rnd.OneIn(3)) {
-      x[i] *= pow(1e-50, S2Testing::rnd.RandDouble());
+    if (S2Testing.rnd.oneIn(3)) {
+      x.data[i] *= math.pow(1e-50, S2Testing.rnd.randDouble());
     }
   }
-  return x.Normalize();
+  return x.normalize();
 }
 
 // The following helper classes allow us to test the various distance
 // calculation methods using a common test framework.
 class Sin2Distances {
- public:
-  template <class T>
-  static int Triage(const Vector3<T>& x,
-                    const Vector3<T>& a, const Vector3<T>& b) {
-    return TriageCompareSin2Distances(x, a, b);
+public:
+  static int triage(T)(in Vector!(T, 3) x, in Vector!(T, 3) a, in Vector!(T, 3) b) {
+    return s2pred.triageCompareSin2Distances(x, a, b);
   }
-};
+}
 
 class CosDistances {
- public:
-  template <class T>
-  static int Triage(const Vector3<T>& x,
-                    const Vector3<T>& a, const Vector3<T>& b) {
-    return TriageCompareCosDistances(x, a, b);
+public:
+  static int triage(T)(in Vector!(T, 3) x, in Vector!(T, 3) a, in Vector!(T, 3) b) {
+    return s2pred.triageCompareCosDistances(x, a, b);
   }
-};
+}
 
 // Compares distances greater than 90 degrees using sin^2(distance).
 class MinusSin2Distances {
- public:
-  template <class T>
-  static int Triage(const Vector3<T>& x,
-                    const Vector3<T>& a, const Vector3<T>& b) {
-    return -TriageCompareSin2Distances(-x, a, b);
+public:
+  static int triage(T)(in Vector!(T, 3) x, in Vector!(T, 3) a, in Vector!(T, 3) b) {
+    return -s2pred.triageCompareSin2Distances(-x, a, b);
   }
-};
+}
 
 // Verifies that CompareDistances(x, a, b) == expected_sign, and furthermore
 // checks that the minimum required precision is "expected_prec" when the
-// distance calculation method defined by CompareDistancesWrapper is used.
-template <class CompareDistancesWrapper>
-void TestCompareDistances(S2Point x, S2Point a, S2Point b,
-                          int expected_sign, Precision expected_prec) {
+// distance calculation method defined by CompareDistancesWrapperT is used.
+void testCompareDistances(CompareDistancesWrapperT)(
+    S2Point x, S2Point a, S2Point b, int expected_sign, Precision expected_prec) {
   // Don't normalize the arguments unless necessary (to allow testing points
   // that differ only in magnitude).
-  if (!S2::IsUnitLength(x)) x = x.Normalize();
-  if (!S2::IsUnitLength(a)) a = a.Normalize();
-  if (!S2::IsUnitLength(b)) b = b.Normalize();
+  if (!isUnitLength(x)) x = x.normalize();
+  if (!isUnitLength(a)) a = a.normalize();
+  if (!isUnitLength(b)) b = b.normalize();
 
-  int dbl_sign = CompareDistancesWrapper::Triage(x, a, b);
-  int ld_sign = CompareDistancesWrapper::Triage(ToLD(x), ToLD(a), ToLD(b));
-  int exact_sign = ExactCompareDistances(ToExact(x), ToExact(a), ToExact(b));
-  int actual_sign = (exact_sign != 0 ? exact_sign :
-                     SymbolicCompareDistances(x, a, b));
+  int dbl_sign = CompareDistancesWrapperT.triage(x, a, b);
+  int r_sign = CompareDistancesWrapperT.triage(
+      Vector3_r.from(x), Vector3_r.from(a), Vector3_r.from(b));
+  int exact_sign = s2pred.exactCompareDistances(
+      s2pred.Vector3_xf.from(x), s2pred.Vector3_xf.from(a), s2pred.Vector3_xf.from(b));
+  int actual_sign =
+      exact_sign != 0 ? exact_sign : s2pred.symbolicCompareDistances(x, a, b);
 
   // Check that the signs are correct (if non-zero), and also that if dbl_sign
-  // is non-zero then so is ld_sign, etc.
-  EXPECT_EQ(expected_sign, actual_sign);
-  if (exact_sign != 0) EXPECT_EQ(exact_sign, actual_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
+  // is non-zero then so is r_sign, etc.
+  Assert.equal(expected_sign, actual_sign);
+  if (exact_sign != 0) Assert.equal(exact_sign, actual_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
 
-  Precision actual_prec = (dbl_sign ? DOUBLE :
-                           ld_sign ? LONG_DOUBLE :
-                           exact_sign ? EXACT : SYMBOLIC);
-  EXPECT_EQ(expected_prec, actual_prec);
+  Precision actual_prec = dbl_sign ? Precision.DOUBLE
+      : r_sign ? Precision.REAL
+      : exact_sign ? Precision.EXACT
+      : Precision.SYMBOLIC;
+  Assert.equal(expected_prec, actual_prec);
 
   // Make sure that the top-level function returns the expected result.
-  EXPECT_EQ(expected_sign, CompareDistances(x, a, b));
+  Assert.equal(expected_sign, s2pred.compareDistances(x, a, b));
 
   // Check that reversing the arguments negates the result.
-  EXPECT_EQ(-expected_sign, CompareDistances(x, b, a));
+  Assert.equal(-expected_sign, s2pred.compareDistances(x, b, a));
 }
 
-TEST(CompareDistances, Coverage) {
+@("CompareDistances.Coverage")
+unittest {
   // This test attempts to exercise all the code paths in all precisions.
 
   // Test TriageCompareSin2Distances.
-  TestCompareDistances<Sin2Distances>(
+  testCompareDistances!Sin2Distances(
       S2Point(1, 1, 1), S2Point(1, 1 - 1e-15, 1), S2Point(1, 1, 1 + 2e-15),
-      -1, DOUBLE);
-  TestCompareDistances<Sin2Distances>(
+      -1, Precision.DOUBLE);
+  testCompareDistances!Sin2Distances(
       S2Point(1, 1, 0), S2Point(1, 1 - 1e-15, 1e-21), S2Point(1, 1 - 1e-15, 0),
-      1, DOUBLE);
-  TestCompareDistances<Sin2Distances>(
+      1, Precision.DOUBLE);
+  testCompareDistances!Sin2Distances(
       S2Point(2, 0, 0), S2Point(2, -1, 0), S2Point(2, 1, 1e-8),
-      -1, LONG_DOUBLE);
-  TestCompareDistances<Sin2Distances>(
+      -1, Precision.REAL);
+  testCompareDistances!Sin2Distances(
       S2Point(2, 0, 0), S2Point(2, -1, 0), S2Point(2, 1, 1e-100),
-      -1, EXACT);
-  TestCompareDistances<Sin2Distances>(
+      -1, Precision.EXACT);
+  testCompareDistances!Sin2Distances(
       S2Point(1, 0, 0), S2Point(1, -1, 0), S2Point(1, 1, 0),
-      1, SYMBOLIC);
-  TestCompareDistances<Sin2Distances>(
+      1, Precision.SYMBOLIC);
+  testCompareDistances!Sin2Distances(
       S2Point(1, 0, 0), S2Point(1, 0, 0), S2Point(1, 0, 0),
-      0, SYMBOLIC);
+      0, Precision.SYMBOLIC);
 
   // Test TriageCompareCosDistances.
-  TestCompareDistances<CosDistances>(
+  testCompareDistances!CosDistances(
       S2Point(1, 1, 1), S2Point(1, -1, 0), S2Point(-1, 1, 3e-15),
-      1, DOUBLE);
-  TestCompareDistances<CosDistances>(
+      1, Precision.DOUBLE);
+  testCompareDistances!CosDistances(
       S2Point(1, 0, 0), S2Point(1, 1e-30, 0), S2Point(-1, 1e-40, 0),
-      -1, DOUBLE);
-  TestCompareDistances<CosDistances>(
+      -1, Precision.DOUBLE);
+  testCompareDistances!CosDistances(
       S2Point(1, 1, 1), S2Point(1, -1, 0), S2Point(-1, 1, 3e-18),
-      1, LONG_DOUBLE);
-  TestCompareDistances<CosDistances>(
+      1, Precision.REAL);
+  testCompareDistances!CosDistances(
       S2Point(1, 1, 1), S2Point(1, -1, 0), S2Point(-1, 1, 1e-100),
-      1, EXACT);
-  TestCompareDistances<CosDistances>(
+      1, Precision.EXACT);
+  testCompareDistances!CosDistances(
       S2Point(1, 1, 1), S2Point(1, -1, 0), S2Point(-1, 1, 0),
-      -1, SYMBOLIC);
-  TestCompareDistances<CosDistances>(
+      -1, Precision.SYMBOLIC);
+  testCompareDistances!CosDistances(
       S2Point(1, 1, 1), S2Point(1, -1, 0), S2Point(1, -1, 0),
-      0, SYMBOLIC);
+      0, Precision.SYMBOLIC);
 
   // Test TriageCompareSin2Distances using distances greater than 90 degrees.
-  TestCompareDistances<MinusSin2Distances>(
+  testCompareDistances!MinusSin2Distances(
       S2Point(1, 1, 0), S2Point(-1, -1 + 1e-15, 0), S2Point(-1, -1, 0),
-      -1, DOUBLE);
-  TestCompareDistances<MinusSin2Distances>(
+      -1, Precision.DOUBLE);
+  testCompareDistances!MinusSin2Distances(
       S2Point(-1, -1, 0), S2Point(1, 1 - 1e-15, 0),
-      S2Point(1, 1 - 1e-15, 1e-21), 1, DOUBLE);
-  TestCompareDistances<MinusSin2Distances>(
+      S2Point(1, 1 - 1e-15, 1e-21), 1, Precision.DOUBLE);
+  testCompareDistances!MinusSin2Distances(
       S2Point(-1, -1, 0), S2Point(2, 1, 0), S2Point(2, 1, 1e-8),
-      1, LONG_DOUBLE);
-  TestCompareDistances<MinusSin2Distances>(
+      1, Precision.REAL);
+  testCompareDistances!MinusSin2Distances(
       S2Point(-1, -1, 0), S2Point(2, 1, 0), S2Point(2, 1, 1e-30),
-      1, EXACT);
-  TestCompareDistances<MinusSin2Distances>(
+      1, Precision.EXACT);
+  testCompareDistances!MinusSin2Distances(
       S2Point(-1, -1, 0), S2Point(2, 1, 0), S2Point(1, 2, 0),
-      -1, SYMBOLIC);
+      -1, Precision.SYMBOLIC);
 }
 
 // Checks that the result at one level of precision is consistent with the
 // result at the next higher level of precision.  Returns the minimum
 // precision that yielded a non-zero result.
-template <class CompareDistancesWrapper>
-Precision TestCompareDistancesConsistency(const S2Point& x, const S2Point& a,
-                                          const S2Point& b) {
-  int dbl_sign = CompareDistancesWrapper::Triage(x, a, b);
-  int ld_sign = CompareDistancesWrapper::Triage(ToLD(x), ToLD(a), ToLD(b));
-  int exact_sign = ExactCompareDistances(ToExact(x), ToExact(a), ToExact(b));
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
+Precision testCompareDistancesConsistency(CompareDistancesWrapperT)(
+    in S2Point x, in S2Point a, in S2Point b) {
+  int dbl_sign = CompareDistancesWrapperT.triage(x, a, b);
+  int r_sign = CompareDistancesWrapperT.triage(
+      Vector3_r.from(x), Vector3_r.from(a), Vector3_r.from(b));
+  int exact_sign = s2pred.exactCompareDistances(
+      s2pred.Vector3_xf.from(x), s2pred.Vector3_xf.from(a), s2pred.Vector3_xf.from(b));
+  if (dbl_sign != 0) {
+    Assert.equal(r_sign, dbl_sign);
+  }
+  if (r_sign != 0) {
+    Assert.equal(exact_sign, r_sign);
+  }
   if (exact_sign != 0) {
-    EXPECT_EQ(exact_sign, CompareDistances(x, a, b));
-    return (ld_sign == 0) ? EXACT : (dbl_sign == 0) ? LONG_DOUBLE : DOUBLE;
+    Assert.equal(exact_sign, s2pred.compareDistances(x, a, b));
+    return (r_sign == 0) ? Precision.EXACT : (dbl_sign == 0) ? Precision.REAL : Precision.DOUBLE;
   } else {
     // Unlike the other methods, SymbolicCompareDistances has the
     // precondition that the exact sign must be zero.
-    int symbolic_sign = SymbolicCompareDistances(x, a, b);
-    EXPECT_EQ(symbolic_sign, CompareDistances(x, a, b));
-    return SYMBOLIC;
+    int symbolic_sign = s2pred.symbolicCompareDistances(x, a, b);
+    Assert.equal(symbolic_sign, s2pred.compareDistances(x, a, b));
+    return Precision.SYMBOLIC;
   }
 }
 
-TEST(CompareDistances, Consistency) {
+@("CompareDistances.Consistency")
+unittest {
   // This test chooses random point pairs that are nearly equidistant from a
   // target point, and then checks that the answer given by a method at one
   // level of precision is consistent with the answer given at the next higher
@@ -645,575 +635,590 @@ TEST(CompareDistances, Consistency) {
   // in order to gather statistics about how often each precision is needed.
   // (These statistics are only useful for coverage purposes, not benchmarks,
   // since the input points are chosen to be pathological worst cases.)
-  TestCompareDistancesConsistency<CosDistances>(
+  testCompareDistancesConsistency!CosDistances(
       S2Point(1, 0, 0), S2Point(0, -1, 0), S2Point(0, 1, 0));
-  auto& rnd = S2Testing::rnd;
+  auto rnd = S2Testing.rnd;
   PrecisionStats sin2_stats, cos_stats, minus_sin2_stats;
-  for (int iter = 0; iter < FLAGS_consistency_iters; ++iter) {
-    rnd.Reset(iter + 1);  // Easier to reproduce a specific case.
-    S2Point x = ChoosePoint();
-    S2Point dir = ChoosePoint();
-    S1Angle r = S1Angle::Radians(M_PI_2 * pow(1e-30, rnd.RandDouble()));
-    if (rnd.OneIn(2)) r = S1Angle::Radians(M_PI_2) - r;
-    if (rnd.OneIn(2)) r = S1Angle::Radians(M_PI_2) + r;
-    S2Point a = S2::InterpolateAtDistance(r, x, dir);
-    S2Point b = S2::InterpolateAtDistance(r, x, -dir);
-    Precision prec = TestCompareDistancesConsistency<CosDistances>(x, a, b);
-    if (r.degrees() >= 45 && r.degrees() <= 135) cos_stats.Tally(prec);
+  for (int iter = 0; iter < CONSISTENCY_ITERS; ++iter) {
+    rnd.reset(iter + 1);  // Easier to reproduce a specific case.
+    S2Point x = choosePoint();
+    S2Point dir = choosePoint();
+    S1Angle r = S1Angle.fromRadians(math.PI_2 * math.pow(1e-30, rnd.randDouble()));
+    if (rnd.oneIn(2)) r = S1Angle.fromRadians(math.PI_2) - r;
+    if (rnd.oneIn(2)) r = S1Angle.fromRadians(math.PI_2) + r;
+    S2Point a = interpolateAtDistance(r, x, dir);
+    S2Point b = interpolateAtDistance(r, x, -dir);
+    Precision prec = testCompareDistancesConsistency!CosDistances(x, a, b);
+    if (r.degrees() >= 45 && r.degrees() <= 135) cos_stats.tally(prec);
     // The Sin2 method is only valid if both distances are less than 90
     // degrees, and similarly for the MinusSin2 method.  (In the actual
     // implementation these methods are only used if both distances are less
     // than 45 degrees or greater than 135 degrees respectively.)
-    if (r.radians() < M_PI_2 - 1e-14) {
-      prec = TestCompareDistancesConsistency<Sin2Distances>(x, a, b);
+    if (r.radians() < math.PI_2 - 1e-14) {
+      prec = testCompareDistancesConsistency!Sin2Distances(x, a, b);
       if (r.degrees() < 45) {
         // Don't skew the statistics by recording degenerate inputs.
         if (a == b) {
-          EXPECT_EQ(SYMBOLIC, prec);
+          Assert.equal(Precision.SYMBOLIC, prec);
         } else {
-          sin2_stats.Tally(prec);
+          sin2_stats.tally(prec);
         }
       }
-    } else if (r.radians() > M_PI_2 + 1e-14) {
-      prec = TestCompareDistancesConsistency<MinusSin2Distances>(x, a, b);
-      if (r.degrees() > 135) minus_sin2_stats.Tally(prec);
+    } else if (r.radians() > math.PI_2 + 1e-14) {
+      prec = testCompareDistancesConsistency!MinusSin2Distances(x, a, b);
+      if (r.degrees() > 135) minus_sin2_stats.tally(prec);
     }
   }
-  LOG(ERROR) << "\nsin2:  " << sin2_stats.ToString()
-             << "\ncos:   " << cos_stats.ToString()
-             << "\n-sin2: " << minus_sin2_stats.ToString();
+  writeln("\nsin2:  ", sin2_stats.toString(), "\ncos:   ", cos_stats.toString(),
+      "\n-sin2: ", minus_sin2_stats.toString());
 }
 
 // Helper classes for testing the various distance calculation methods.
 class Sin2Distance {
- public:
-  template <class T>
-  static int Triage(const Vector3<T>& x, const Vector3<T>& y, S1ChordAngle r) {
-    return TriageCompareSin2Distance(x, y, implicit_cast<T>(r.length2()));
+public:
+  static int triage(T)(in Vector!(T, 3) x, in Vector!(T, 3) y, S1ChordAngle r) {
+    return s2pred.triageCompareSin2Distance(x, y, cast(T) r.length2());
   }
-};
+}
 
 class CosDistance {
- public:
-  template <class T>
-  static int Triage(const Vector3<T>& x, const Vector3<T>& y, S1ChordAngle r) {
-    return TriageCompareCosDistance(x, y, implicit_cast<T>(r.length2()));
+public:
+  static int triage(T)(in Vector!(T, 3) x, in Vector!(T, 3) y, S1ChordAngle r) {
+    return s2pred.triageCompareCosDistance(x, y, cast(T) r.length2());
   }
-};
+}
 
 // Verifies that CompareDistance(x, y, r) == expected_sign, and furthermore
 // checks that the minimum required precision is "expected_prec" when the
 // distance calculation method defined by CompareDistanceWrapper is used.
-template <class CompareDistanceWrapper>
-void TestCompareDistance(S2Point x, S2Point y, S1ChordAngle r,
-                         int expected_sign, Precision expected_prec) {
+void testCompareDistance(CompareDistanceWrapperT)(
+    S2Point x, S2Point y, S1ChordAngle r, int expected_sign, Precision expected_prec) {
   // Don't normalize the arguments unless necessary (to allow testing points
   // that differ only in magnitude).
-  if (!S2::IsUnitLength(x)) x = x.Normalize();
-  if (!S2::IsUnitLength(y)) y = y.Normalize();
+  if (!isUnitLength(x)) x = x.normalize();
+  if (!isUnitLength(y)) y = y.normalize();
 
-  int dbl_sign = CompareDistanceWrapper::Triage(x, y, r);
-  int ld_sign = CompareDistanceWrapper::Triage(ToLD(x), ToLD(y), r);
-  int exact_sign = ExactCompareDistance(ToExact(x), ToExact(y), r.length2());
+  int dbl_sign = CompareDistanceWrapperT.triage(x, y, r);
+  int r_sign = CompareDistanceWrapperT.triage(Vector3_r.from(x), Vector3_r.from(y), r);
+  int exact_sign = s2pred.exactCompareDistance(
+      s2pred.Vector3_xf.from(x), s2pred.Vector3_xf.from(y), ExactFloat(r.length2()));
 
   // Check that the signs are correct (if non-zero), and also that if dbl_sign
   // is non-zero then so is ld_sign, etc.
-  EXPECT_EQ(expected_sign, exact_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
+  Assert.equal(expected_sign, exact_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
 
-  Precision actual_prec = (dbl_sign ? DOUBLE : ld_sign ? LONG_DOUBLE : EXACT);
-  EXPECT_EQ(expected_prec, actual_prec);
+  Precision actual_prec = dbl_sign ? Precision.DOUBLE : r_sign ? Precision.REAL : Precision.EXACT;
+  Assert.equal(expected_prec, actual_prec);
 
   // Make sure that the top-level function returns the expected result.
-  EXPECT_EQ(expected_sign, CompareDistance(x, y, r));
+  Assert.equal(expected_sign, s2pred.compareDistance(x, y, r));
 
   // Mathematically, if d(X, Y) < r then d(-X, Y) > (Pi - r).  Unfortunately
   // there can be rounding errors when computing the supplementary distance,
   // so to ensure the two distances are exactly supplementary we need to do
   // the following.
-  S1ChordAngle r_supp = S1ChordAngle::Straight() - r;
-  r = S1ChordAngle::Straight() - r_supp;
-  EXPECT_EQ(-CompareDistance(x, y, r), CompareDistance(-x, y, r_supp));
+  S1ChordAngle r_supp = S1ChordAngle.straight() - r;
+  r = S1ChordAngle.straight() - r_supp;
+  Assert.equal(-s2pred.compareDistance(x, y, r), s2pred.compareDistance(-x, y, r_supp));
 }
 
-TEST(CompareDistance, Coverage) {
+@("CompareDistance.Coverage")
+unittest {
   // Test TriageCompareSin2Distance.
-  TestCompareDistance<Sin2Distance>(
+  testCompareDistance!Sin2Distance(
       S2Point(1, 1, 1), S2Point(1, 1 - 1e-15, 1),
-      S1ChordAngle::Radians(1e-15), -1, DOUBLE);
-  TestCompareDistance<Sin2Distance>(
+      S1ChordAngle.fromRadians(1e-15), -1, Precision.DOUBLE);
+  testCompareDistance!Sin2Distance(
       S2Point(1, 0, 0), S2Point(1, 1, 0),
-      S1ChordAngle::Radians(M_PI_4), -1, LONG_DOUBLE);
-  TestCompareDistance<Sin2Distance>(
-      S2Point(1, 1e-40, 0), S2Point(1 + DBL_EPSILON, 1e-40, 0),
-      S1ChordAngle::Radians(0.9 * DBL_EPSILON * 1e-40), 1, EXACT);
-  TestCompareDistance<Sin2Distance>(
-      S2Point(1, 1e-40, 0), S2Point(1 + DBL_EPSILON, 1e-40, 0),
-      S1ChordAngle::Radians(1.1 * DBL_EPSILON * 1e-40), -1, EXACT);
-  TestCompareDistance<Sin2Distance>(
-      S2Point(1, 0, 0), S2Point(1 + DBL_EPSILON, 0, 0),
-      S1ChordAngle::Zero(), 0, EXACT);
+      S1ChordAngle.fromRadians(math.PI_4), -1, Precision.REAL);
+  testCompareDistance!Sin2Distance(
+      S2Point(1, 1e-40, 0), S2Point(1 + double.epsilon, 1e-40, 0),
+      S1ChordAngle.fromRadians(0.9 * double.epsilon * 1e-40), 1, Precision.EXACT);
+  testCompareDistance!Sin2Distance(
+      S2Point(1, 1e-40, 0), S2Point(1 + double.epsilon, 1e-40, 0),
+      S1ChordAngle.fromRadians(1.1 * double.epsilon * 1e-40), -1, Precision.EXACT);
+  testCompareDistance!Sin2Distance(
+      S2Point(1, 0, 0), S2Point(1 + double.epsilon, 0, 0),
+      S1ChordAngle.zero(), 0, Precision.EXACT);
 
   // Test TriageCompareCosDistance.
-  TestCompareDistance<CosDistance>(
+  testCompareDistance!CosDistance(
       S2Point(1, 0, 0), S2Point(1, 1e-8, 0),
-      S1ChordAngle::Radians(1e-7), -1, DOUBLE);
-  TestCompareDistance<CosDistance>(
+      S1ChordAngle.fromRadians(1e-7), -1, Precision.DOUBLE);
+  testCompareDistance!CosDistance(
       S2Point(1, 0, 0), S2Point(-1, 1e-8, 0),
-      S1ChordAngle::Radians(M_PI - 1e-7), 1, DOUBLE);
-  TestCompareDistance<CosDistance>(
-      S2Point(1, 1, 0), S2Point(1, -1 - 2 * DBL_EPSILON, 0),
-      S1ChordAngle::Right(), 1, DOUBLE);
-  TestCompareDistance<CosDistance>(
-      S2Point(1, 1, 0), S2Point(1, -1 - DBL_EPSILON, 0),
-      S1ChordAngle::Right(), 1, LONG_DOUBLE);
-  TestCompareDistance<CosDistance>(
+      S1ChordAngle.fromRadians(math.PI - 1e-7), 1, Precision.DOUBLE);
+  testCompareDistance!CosDistance(
+      S2Point(1, 1, 0), S2Point(1, -1 - 2 * double.epsilon, 0),
+      S1ChordAngle.right(), 1, Precision.DOUBLE);
+  testCompareDistance!CosDistance(
+      S2Point(1, 1, 0), S2Point(1, -1 - double.epsilon, 0),
+      S1ChordAngle.right(), 1, Precision.REAL);
+  testCompareDistance!CosDistance(
       S2Point(1, 1, 0), S2Point(1, -1, 1e-30),
-      S1ChordAngle::Right(), 0, EXACT);
+      S1ChordAngle.right(), 0, Precision.EXACT);
   // The angle between these two points is exactly 60 degrees.
-  TestCompareDistance<CosDistance>(
+  testCompareDistance!CosDistance(
       S2Point(1, 1, 0), S2Point(0, 1, 1),
-      S1ChordAngle::FromLength2(1), 0, EXACT);
+      S1ChordAngle.fromLength2(1), 0, Precision.EXACT);
 }
 
 // Checks that the result at one level of precision is consistent with the
 // result at the next higher level of precision.  Returns the minimum
 // precision that yielded a non-zero result.
-template <class CompareDistanceWrapper>
-Precision TestCompareDistanceConsistency(const S2Point& x, const S2Point& y,
-                                         S1ChordAngle r) {
-  int dbl_sign = CompareDistanceWrapper::Triage(x, y, r);
-  int ld_sign = CompareDistanceWrapper::Triage(ToLD(x), ToLD(y), r);
-  int exact_sign = ExactCompareDistance(ToExact(x), ToExact(y), r.length2());
-  EXPECT_EQ(exact_sign, CompareDistance(x, y, r));
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
-  return (ld_sign == 0) ? EXACT : (dbl_sign == 0) ? LONG_DOUBLE : DOUBLE;
+Precision testCompareDistanceConsistency(CompareDistanceWrapperT)(
+    in S2Point x, in S2Point y, S1ChordAngle r) {
+  int dbl_sign = CompareDistanceWrapperT.triage(x, y, r);
+  int r_sign = CompareDistanceWrapperT.triage(Vector3_r.from(x), Vector3_r.from(y), r);
+  int exact_sign = s2pred.exactCompareDistance(
+      s2pred.Vector3_xf.from(x), s2pred.Vector3_xf.from(y), ExactFloat(r.length2()));
+  Assert.equal(exact_sign, s2pred.compareDistance(x, y, r));
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
+  return (r_sign == 0) ? Precision.EXACT : (dbl_sign == 0) ? Precision.REAL : Precision.DOUBLE;
 }
 
-TEST(CompareDistance, Consistency) {
+@("CompareDistance.Consistency")
+unittest {
   // This test chooses random inputs such that the distance between points X
   // and Y is very close to the threshold distance "r".  It then checks that
   // the answer given by a method at one level of precision is consistent with
   // the answer given at the next higher level of precision.  See also the
   // comments in the CompareDistances consistency test.
-  auto& rnd = S2Testing::rnd;
+  auto rnd = S2Testing.rnd;
   PrecisionStats sin2_stats, cos_stats;
-  for (int iter = 0; iter < FLAGS_consistency_iters; ++iter) {
-    rnd.Reset(iter + 1);  // Easier to reproduce a specific case.
-    S2Point x = ChoosePoint();
-    S2Point dir = ChoosePoint();
-    S1Angle r = S1Angle::Radians(M_PI_2 * pow(1e-30, rnd.RandDouble()));
-    if (rnd.OneIn(2)) r = S1Angle::Radians(M_PI_2) - r;
-    if (rnd.OneIn(5)) r = S1Angle::Radians(M_PI_2) + r;
-    S2Point y = S2::InterpolateAtDistance(r, x, dir);
-    Precision prec = TestCompareDistanceConsistency<CosDistance>(
-        x, y, S1ChordAngle(r));
-    if (r.degrees() >= 45) cos_stats.Tally(prec);
-    if (r.radians() < M_PI_2 - 1e-14) {
-      prec = TestCompareDistanceConsistency<Sin2Distance>(
+  for (int iter = 0; iter < CONSISTENCY_ITERS; ++iter) {
+    rnd.reset(iter + 1);  // Easier to reproduce a specific case.
+    S2Point x = choosePoint();
+    S2Point dir = choosePoint();
+    S1Angle r = S1Angle.fromRadians(math.PI_2 * math.pow(1e-30, rnd.randDouble()));
+    if (rnd.oneIn(2)) r = S1Angle.fromRadians(math.PI_2) - r;
+    if (rnd.oneIn(5)) r = S1Angle.fromRadians(math.PI_2) + r;
+    S2Point y = interpolateAtDistance(r, x, dir);
+    Precision prec = testCompareDistanceConsistency!CosDistance(x, y, S1ChordAngle(r));
+    if (r.degrees() >= 45) cos_stats.tally(prec);
+    if (r.radians() < math.PI_2 - 1e-14) {
+      prec = testCompareDistanceConsistency!Sin2Distance(
           x, y, S1ChordAngle(r));
-      if (r.degrees() < 45) sin2_stats.Tally(prec);
+      if (r.degrees() < 45) sin2_stats.tally(prec);
     }
   }
-  LOG(ERROR) << "\nsin2:  " << sin2_stats.ToString()
-             << "\ncos:   " << cos_stats.ToString();
+  writeln(
+      "\nsin2:  ", sin2_stats.toString(),
+      "\ncos:   ", cos_stats.toString());
 }
 
 // Verifies that CompareEdgeDistance(x, a0, a1, r) == expected_sign, and
 // furthermore checks that the minimum required precision is "expected_prec".
-void TestCompareEdgeDistance(S2Point x, S2Point a0, S2Point a1, S1ChordAngle r,
+void testCompareEdgeDistance(S2Point x, S2Point a0, S2Point a1, S1ChordAngle r,
                              int expected_sign, Precision expected_prec) {
+
+  scope(failure) writeln(
+      "testCompareEdgeDistance failure::",
+      "\n  x=", x, ", a0=", a0, ", a1=", a1, ", r=", r,
+      "\n  expected_sign=", expected_sign, ", expected_prec=", expected_prec);
+
   // Don't normalize the arguments unless necessary (to allow testing points
   // that differ only in magnitude).
-  if (!S2::IsUnitLength(x)) x = x.Normalize();
-  if (!S2::IsUnitLength(a0)) a0 = a0.Normalize();
-  if (!S2::IsUnitLength(a1)) a1 = a1.Normalize();
+  if (!isUnitLength(x)) x = x.normalize();
+  if (!isUnitLength(a0)) a0 = a0.normalize();
+  if (!isUnitLength(a1)) a1 = a1.normalize();
 
-  int dbl_sign = TriageCompareEdgeDistance(x, a0, a1, r.length2());
-  int ld_sign = TriageCompareEdgeDistance(ToLD(x), ToLD(a0), ToLD(a1),
-                                          ToLD(r.length2()));
-  int exact_sign = ExactCompareEdgeDistance(x, a0, a1, r);
+  int dbl_sign = s2pred.triageCompareEdgeDistance(x, a0, a1, r.length2());
+  int r_sign = s2pred.triageCompareEdgeDistance(
+      Vector3_r.from(x), Vector3_r.from(a0), Vector3_r.from(a1), r.length2());
+  int exact_sign = s2pred.exactCompareEdgeDistance(x, a0, a1, r);
 
   // Check that the signs are correct (if non-zero), and also that if dbl_sign
   // is non-zero then so is ld_sign, etc.
-  EXPECT_EQ(expected_sign, exact_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
+  Assert.equal(expected_sign, exact_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
 
-  Precision actual_prec = (dbl_sign ? DOUBLE : ld_sign ? LONG_DOUBLE : EXACT);
-  EXPECT_EQ(expected_prec, actual_prec);
+  Precision actual_prec = dbl_sign ? Precision.DOUBLE : r_sign ? Precision.REAL : Precision.EXACT;
+  Assert.equal(actual_prec, expected_prec);
 
   // Make sure that the top-level function returns the expected result.
-  EXPECT_EQ(expected_sign, CompareEdgeDistance(x, a0, a1, r));
+  Assert.equal(s2pred.compareEdgeDistance(x, a0, a1, r), expected_sign);
 }
 
-TEST(CompareEdgeDistance, Coverage) {
+@("CompareEdgeDistance.Coverage")
+unittest {
   // Test TriageCompareLineSin2Distance.
-  TestCompareEdgeDistance(
+  testCompareEdgeDistance(
       S2Point(1, 1e-10, 1e-15), S2Point(1, 0, 0), S2Point(0, 1, 0),
-      S1ChordAngle::Radians(1e-15 + DBL_EPSILON), -1, DOUBLE);
-  TestCompareEdgeDistance(
+      S1ChordAngle.fromRadians(1e-15 + double.epsilon), -1, Precision.DOUBLE);
+  testCompareEdgeDistance(
       S2Point(1, 1, 1e-15), S2Point(1, 0, 0), S2Point(0, 1, 0),
-      S1ChordAngle::Radians(1e-15 + DBL_EPSILON), -1, LONG_DOUBLE);
-  TestCompareEdgeDistance(
+      S1ChordAngle.fromRadians(1e-15 + double.epsilon), -1, Precision.REAL);
+  testCompareEdgeDistance(
       S2Point(1, 1, 1e-40), S2Point(1, 0, 0), S2Point(0, 1, 0),
-      S1ChordAngle::Radians(1e-40), -1, EXACT);
-  TestCompareEdgeDistance(
+      S1ChordAngle.fromRadians(1e-40), -1, Precision.EXACT);
+  testCompareEdgeDistance(
       S2Point(1, 1, 0), S2Point(1, 0, 0), S2Point(0, 1, 0),
-      S1ChordAngle::Zero(), 0, EXACT);
+      S1ChordAngle.zero(), 0, Precision.EXACT);
 
   // Test TriageCompareLineCos2Distance.
-  TestCompareEdgeDistance(
+  testCompareEdgeDistance(
       S2Point(1e-15, 0, 1), S2Point(1, 0, 0), S2Point(0, 1, 0),
-      S1ChordAngle::Radians(M_PI_2 - 1e-15 - 3 * DBL_EPSILON),
-      1, DOUBLE);
-  TestCompareEdgeDistance(
+      S1ChordAngle.fromRadians(cast(double) math.PI_2 - 1e-15 - 5 * double.epsilon),
+      1, Precision.DOUBLE);
+  testCompareEdgeDistance(
       S2Point(1e-15, 0, 1), S2Point(1, 0, 0), S2Point(0, 1, 0),
-      S1ChordAngle::Radians(M_PI_2 - 1e-15 - DBL_EPSILON),
-      1, LONG_DOUBLE);
-  TestCompareEdgeDistance(
+      S1ChordAngle.fromRadians(cast(double) math.PI_2 - 1e-15 - double.epsilon),
+      1, Precision.REAL);
+  testCompareEdgeDistance(
       S2Point(1e-40, 0, 1), S2Point(1, 0, 0), S2Point(0, 1, 0),
-      S1ChordAngle::Right(), -1, EXACT);
-  TestCompareEdgeDistance(
+      S1ChordAngle.right(), -1, Precision.EXACT);
+  testCompareEdgeDistance(
       S2Point(0, 0, 1), S2Point(1, 0, 0), S2Point(0, 1, 0),
-      S1ChordAngle::Right(), 0, EXACT);
+      S1ChordAngle.right(), 0, Precision.EXACT);
 
   // Test cases where the closest point is an edge endpoint.
-  TestCompareEdgeDistance(
+  testCompareEdgeDistance(
       S2Point(1e-15, -1, 0), S2Point(1, 0, 0), S2Point(1, 1, 0),
-      S1ChordAngle::Right(), -1, DOUBLE);
-  TestCompareEdgeDistance(
+      S1ChordAngle.right(), -1, Precision.DOUBLE);
+  testCompareEdgeDistance(
       S2Point(1e-18, -1, 0), S2Point(1, 0, 0), S2Point(1, 1, 0),
-      S1ChordAngle::Right(), -1, LONG_DOUBLE);
-  TestCompareEdgeDistance(
+      S1ChordAngle.right(), -1, Precision.REAL);
+  testCompareEdgeDistance(
       S2Point(1e-100, -1, 0), S2Point(1, 0, 0), S2Point(1, 1, 0),
-      S1ChordAngle::Right(), -1, EXACT);
-  TestCompareEdgeDistance(
+      S1ChordAngle.right(), -1, Precision.EXACT);
+  testCompareEdgeDistance(
       S2Point(0, -1, 0), S2Point(1, 0, 0), S2Point(1, 1, 0),
-      S1ChordAngle::Right(), 0, EXACT);
+      S1ChordAngle.right(), 0, Precision.EXACT);
 }
 
 // Checks that the result at one level of precision is consistent with the
 // result at the next higher level of precision.  Returns the minimum
 // precision that yielded a non-zero result.
-Precision TestCompareEdgeDistanceConsistency(
-    const S2Point& x, const S2Point& a0, const S2Point& a1, S1ChordAngle r) {
-  int dbl_sign = TriageCompareEdgeDistance(x, a0, a1, r.length2());
-  int ld_sign = TriageCompareEdgeDistance(ToLD(x), ToLD(a0), ToLD(a1),
-                                          ToLD(r.length2()));
-  int exact_sign = ExactCompareEdgeDistance(x, a0, a1, r);
-  EXPECT_EQ(exact_sign, CompareEdgeDistance(x, a0, a1, r));
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
-  return (ld_sign == 0) ? EXACT : (dbl_sign == 0) ? LONG_DOUBLE : DOUBLE;
+Precision testCompareEdgeDistanceConsistency(
+    in S2Point x, in S2Point a0, in S2Point a1, S1ChordAngle r) {
+  int dbl_sign = s2pred.triageCompareEdgeDistance(x, a0, a1, r.length2());
+  int r_sign = s2pred.triageCompareEdgeDistance(
+      Vector3_r.from(x), Vector3_r.from(a0), Vector3_r.from(a1), r.length2());
+  int exact_sign = s2pred.exactCompareEdgeDistance(x, a0, a1, r);
+  Assert.equal(exact_sign, s2pred.compareEdgeDistance(x, a0, a1, r));
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
+  return (r_sign == 0) ? Precision.EXACT : (dbl_sign == 0) ? Precision.REAL : Precision.DOUBLE;
 }
 
-TEST(CompareEdgeDistance, Consistency) {
+@("CompareEdgeDistance.Consistency")
+unittest {
   // This test chooses random inputs such that the distance between "x" and
   // the line (a0, a1) is very close to the threshold distance "r".  It then
   // checks that the answer given by a method at one level of precision is
   // consistent with the answer given at the next higher level of precision.
   // See also the comments in the CompareDistances consistency test.
-  auto& rnd = S2Testing::rnd;
+  auto rnd = S2Testing.rnd;
   PrecisionStats stats;
-  for (int iter = 0; iter < FLAGS_consistency_iters; ++iter) {
-    rnd.Reset(iter + 1);  // Easier to reproduce a specific case.
-    S2Point a0 = ChoosePoint();
-    S1Angle len = S1Angle::Radians(M_PI * pow(1e-20, rnd.RandDouble()));
-    S2Point a1 = S2::InterpolateAtDistance(len, a0, ChoosePoint());
-    if (rnd.OneIn(2)) a1 = -a1;
+  for (int iter = 0; iter < CONSISTENCY_ITERS; ++iter) {
+    rnd.reset(iter + 1);  // Easier to reproduce a specific case.
+    S2Point a0 = choosePoint();
+    S1Angle len = S1Angle.fromRadians(math.PI * math.pow(1e-20, rnd.randDouble()));
+    S2Point a1 = interpolateAtDistance(len, a0, choosePoint());
+    if (rnd.oneIn(2)) a1 = -a1;
     if (a0 == -a1) continue;  // Not allowed by API.
-    S2Point n = S2::RobustCrossProd(a0, a1).Normalize();
-    double f = pow(1e-20, rnd.RandDouble());
-    S2Point a = ((1 - f) * a0 + f * a1).Normalize();
-    S1Angle r = S1Angle::Radians(M_PI_2 * pow(1e-20, rnd.RandDouble()));
-    if (rnd.OneIn(2)) r = S1Angle::Radians(M_PI_2) - r;
-    S2Point x = S2::InterpolateAtDistance(r, a, n);
-    if (rnd.OneIn(5)) {
+    S2Point n = robustCrossProd(a0, a1).normalize();
+    double f = math.pow(1e-20, rnd.randDouble());
+    S2Point a = ((1 - f) * a0 + f * a1).normalize();
+    S1Angle r = S1Angle.fromRadians(math.PI_2 * math.pow(1e-20, rnd.randDouble()));
+    if (rnd.oneIn(2)) r = S1Angle.fromRadians(math.PI_2) - r;
+    S2Point x = interpolateAtDistance(r, a, n);
+    if (rnd.oneIn(5)) {
       // Replace "x" with a random point that is closest to an edge endpoint.
       do {
-        x = ChoosePoint();
-      } while (CompareEdgeDirections(a0, x, a0, a1) > 0 &&
-               CompareEdgeDirections(x, a1, a0, a1) > 0);
-      r = min(S1Angle(x, a0), S1Angle(x, a1));
+        x = choosePoint();
+      } while (s2pred.compareEdgeDirections(a0, x, a0, a1) > 0 &&
+               s2pred.compareEdgeDirections(x, a1, a0, a1) > 0);
+      r = algorithm.min(S1Angle(x, a0), S1Angle(x, a1));
     }
-    Precision prec = TestCompareEdgeDistanceConsistency(x, a0, a1,
-                                                        S1ChordAngle(r));
-    stats.Tally(prec);
+    Precision prec = testCompareEdgeDistanceConsistency(x, a0, a1, S1ChordAngle(r));
+    stats.tally(prec);
   }
-  LOG(ERROR) << stats.ToString();
+  writeln(stats.toString());
 }
 
 // Verifies that CompareEdgeDirections(a0, a1, b0, b1) == expected_sign, and
 // furthermore checks that the minimum required precision is "expected_prec".
-void TestCompareEdgeDirections(S2Point a0, S2Point a1, S2Point b0, S2Point b1,
-                               int expected_sign, Precision expected_prec) {
+void testCompareEdgeDirections(
+    S2Point a0, S2Point a1, S2Point b0, S2Point b1, int expected_sign, Precision expected_prec) {
   // Don't normalize the arguments unless necessary (to allow testing points
   // that differ only in magnitude).
-  if (!S2::IsUnitLength(a0)) a0 = a0.Normalize();
-  if (!S2::IsUnitLength(a1)) a1 = a1.Normalize();
-  if (!S2::IsUnitLength(b0)) b0 = b0.Normalize();
-  if (!S2::IsUnitLength(b1)) b1 = b1.Normalize();
+  if (!isUnitLength(a0)) a0 = a0.normalize();
+  if (!isUnitLength(a1)) a1 = a1.normalize();
+  if (!isUnitLength(b0)) b0 = b0.normalize();
+  if (!isUnitLength(b1)) b1 = b1.normalize();
 
-  int dbl_sign = TriageCompareEdgeDirections(a0, a1, b0, b1);
-  int ld_sign = TriageCompareEdgeDirections(ToLD(a0), ToLD(a1),
-                                            ToLD(b0), ToLD(b1));
-  int exact_sign = ExactCompareEdgeDirections(ToExact(a0), ToExact(a1),
-                                              ToExact(b0), ToExact(b1));
+  int dbl_sign = s2pred.triageCompareEdgeDirections(a0, a1, b0, b1);
+  int r_sign = s2pred.triageCompareEdgeDirections(
+      Vector3_r.from(a0), Vector3_r.from(a1), Vector3_r.from(b0), Vector3_r.from(b1));
+  int exact_sign = s2pred.exactCompareEdgeDirections(
+      s2pred.Vector3_xf.from(a0), s2pred.Vector3_xf.from(a1), s2pred.Vector3_xf.from(b0),
+      s2pred.Vector3_xf.from(b1));
 
   // Check that the signs are correct (if non-zero), and also that if dbl_sign
   // is non-zero then so is ld_sign, etc.
-  EXPECT_EQ(expected_sign, exact_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
+  Assert.equal(expected_sign, exact_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
 
-  Precision actual_prec = (dbl_sign ? DOUBLE : ld_sign ? LONG_DOUBLE : EXACT);
-  EXPECT_EQ(expected_prec, actual_prec);
+  Precision actual_prec = dbl_sign ? Precision.DOUBLE : r_sign ? Precision.REAL : Precision.EXACT;
+  Assert.equal(expected_prec, actual_prec);
 
   // Make sure that the top-level function returns the expected result.
-  EXPECT_EQ(expected_sign, CompareEdgeDirections(a0, a1, b0, b1));
+  Assert.equal(expected_sign, s2pred.compareEdgeDirections(a0, a1, b0, b1));
 
   // Check various identities involving swapping or negating arguments.
-  EXPECT_EQ(expected_sign, CompareEdgeDirections(b0, b1, a0, a1));
-  EXPECT_EQ(expected_sign, CompareEdgeDirections(-a0, -a1, b0, b1));
-  EXPECT_EQ(expected_sign, CompareEdgeDirections(a0, a1, -b0, -b1));
-  EXPECT_EQ(-expected_sign, CompareEdgeDirections(a1, a0, b0, b1));
-  EXPECT_EQ(-expected_sign, CompareEdgeDirections(a0, a1, b1, b0));
-  EXPECT_EQ(-expected_sign, CompareEdgeDirections(-a0, a1, b0, b1));
-  EXPECT_EQ(-expected_sign, CompareEdgeDirections(a0, -a1, b0, b1));
-  EXPECT_EQ(-expected_sign, CompareEdgeDirections(a0, a1, -b0, b1));
-  EXPECT_EQ(-expected_sign, CompareEdgeDirections(a0, a1, b0, -b1));
+  Assert.equal(expected_sign, s2pred.compareEdgeDirections(b0, b1, a0, a1));
+  Assert.equal(expected_sign, s2pred.compareEdgeDirections(-a0, -a1, b0, b1));
+  Assert.equal(expected_sign, s2pred.compareEdgeDirections(a0, a1, -b0, -b1));
+  Assert.equal(-expected_sign, s2pred.compareEdgeDirections(a1, a0, b0, b1));
+  Assert.equal(-expected_sign, s2pred.compareEdgeDirections(a0, a1, b1, b0));
+  Assert.equal(-expected_sign, s2pred.compareEdgeDirections(-a0, a1, b0, b1));
+  Assert.equal(-expected_sign, s2pred.compareEdgeDirections(a0, -a1, b0, b1));
+  Assert.equal(-expected_sign, s2pred.compareEdgeDirections(a0, a1, -b0, b1));
+  Assert.equal(-expected_sign, s2pred.compareEdgeDirections(a0, a1, b0, -b1));
 }
 
-TEST(CompareEdgeDirections, Coverage) {
-  TestCompareEdgeDirections(S2Point(1, 0, 0), S2Point(1, 1, 0),
-                            S2Point(1, -1, 0), S2Point(1, 0, 0),
-                            1, DOUBLE);
-  TestCompareEdgeDirections(S2Point(1, 0, 1.5e-15), S2Point(1, 1, 0),
-                            S2Point(0, -1, 0), S2Point(0, 0, 1),
-                            1, DOUBLE);
-  TestCompareEdgeDirections(S2Point(1, 0, 1e-18), S2Point(1, 1, 0),
-                            S2Point(0, -1, 0), S2Point(0, 0, 1),
-                            1, LONG_DOUBLE);
-  TestCompareEdgeDirections(S2Point(1, 0, 1e-50), S2Point(1, 1, 0),
-                            S2Point(0, -1, 0), S2Point(0, 0, 1),
-                            1, EXACT);
-  TestCompareEdgeDirections(S2Point(1, 0, 0), S2Point(1, 1, 0),
-                            S2Point(0, -1, 0), S2Point(0, 0, 1),
-                            0, EXACT);
+@("CompareEdgeDirections.Coverage")
+unittest {
+  testCompareEdgeDirections(
+      S2Point(1, 0, 0), S2Point(1, 1, 0), S2Point(1, -1, 0), S2Point(1, 0, 0),
+      1, Precision.DOUBLE);
+  testCompareEdgeDirections(
+      S2Point(1, 0, 1.5e-15), S2Point(1, 1, 0), S2Point(0, -1, 0), S2Point(0, 0, 1),
+      1, Precision.DOUBLE);
+  testCompareEdgeDirections(
+      S2Point(1, 0, 1e-18), S2Point(1, 1, 0), S2Point(0, -1, 0), S2Point(0, 0, 1),
+      1, Precision.REAL);
+  testCompareEdgeDirections(
+      S2Point(1, 0, 1e-50), S2Point(1, 1, 0), S2Point(0, -1, 0), S2Point(0, 0, 1),
+      1, Precision.EXACT);
+  testCompareEdgeDirections(
+      S2Point(1, 0, 0), S2Point(1, 1, 0), S2Point(0, -1, 0), S2Point(0, 0, 1),
+      0, Precision.EXACT);
 }
 
 // Checks that the result at one level of precision is consistent with the
 // result at the next higher level of precision.  Returns the minimum
 // precision that yielded a non-zero result.
-Precision TestCompareEdgeDirectionsConsistency(
-    const S2Point& a0, const S2Point& a1,
-    const S2Point& b0, const S2Point& b1) {
-  int dbl_sign = TriageCompareEdgeDirections(a0, a1, b0, b1);
-  int ld_sign = TriageCompareEdgeDirections(ToLD(a0), ToLD(a1),
-                                            ToLD(b0), ToLD(b1));
-  int exact_sign = ExactCompareEdgeDirections(ToExact(a0), ToExact(a1),
-                                              ToExact(b0), ToExact(b1));
-  EXPECT_EQ(exact_sign, CompareEdgeDirections(a0, a1, b0, b1));
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
-  return (ld_sign == 0) ? EXACT : (dbl_sign == 0) ? LONG_DOUBLE : DOUBLE;
+Precision testCompareEdgeDirectionsConsistency(
+    in S2Point a0, in S2Point a1, in S2Point b0, in S2Point b1) {
+  int dbl_sign = s2pred.triageCompareEdgeDirections(a0, a1, b0, b1);
+  int r_sign = s2pred.triageCompareEdgeDirections(
+      Vector3_r.from(a0), Vector3_r.from(a1), Vector3_r.from(b0), Vector3_r.from(b1));
+  int exact_sign = s2pred.exactCompareEdgeDirections(
+      s2pred.Vector3_xf.from(a0), s2pred.Vector3_xf.from(a1), s2pred.Vector3_xf.from(b0),
+      s2pred.Vector3_xf.from(b1));
+  Assert.equal(exact_sign, s2pred.compareEdgeDirections(a0, a1, b0, b1));
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
+  return (r_sign == 0) ? Precision.EXACT : (dbl_sign == 0) ? Precision.REAL : Precision.DOUBLE;
 }
 
-TEST(CompareEdgeDirections, Consistency) {
+@("CompareEdgeDirections.Consistency")
+unittest {
   // This test chooses random pairs of edges that are nearly perpendicular,
   // then checks that the answer given by a method at one level of precision
   // is consistent with the answer given at the next higher level of
   // precision.  See also the comments in the CompareDistances test.
-  auto& rnd = S2Testing::rnd;
+  auto rnd = S2Testing.rnd;
   PrecisionStats stats;
-  for (int iter = 0; iter < FLAGS_consistency_iters; ++iter) {
-    rnd.Reset(iter + 1);  // Easier to reproduce a specific case.
-    S2Point a0 = ChoosePoint();
-    S1Angle a_len = S1Angle::Radians(M_PI * pow(1e-20, rnd.RandDouble()));
-    S2Point a1 = S2::InterpolateAtDistance(a_len, a0, ChoosePoint());
-    S2Point a_norm = S2::RobustCrossProd(a0, a1).Normalize();
-    S2Point b0 = ChoosePoint();
-    S1Angle b_len = S1Angle::Radians(M_PI * pow(1e-20, rnd.RandDouble()));
-    S2Point b1 = S2::InterpolateAtDistance(b_len, b0, a_norm);
+  for (int iter = 0; iter < CONSISTENCY_ITERS; ++iter) {
+    rnd.reset(iter + 1);  // Easier to reproduce a specific case.
+    S2Point a0 = choosePoint();
+    S1Angle a_len = S1Angle.fromRadians(math.PI * math.pow(1e-20, rnd.randDouble()));
+    S2Point a1 = interpolateAtDistance(a_len, a0, choosePoint());
+    S2Point a_norm = robustCrossProd(a0, a1).normalize();
+    S2Point b0 = choosePoint();
+    S1Angle b_len = S1Angle.fromRadians(math.PI * math.pow(1e-20, rnd.randDouble()));
+    S2Point b1 = interpolateAtDistance(b_len, b0, a_norm);
     if (a0 == -a1 || b0 == -b1) continue;  // Not allowed by API.
-    Precision prec = TestCompareEdgeDirectionsConsistency(a0, a1, b0, b1);
+    Precision prec = testCompareEdgeDirectionsConsistency(a0, a1, b0, b1);
     // Don't skew the statistics by recording degenerate inputs.
     if (a0 == a1 || b0 == b1) {
-      EXPECT_EQ(EXACT, prec);
+      Assert.equal(Precision.EXACT, prec);
     } else {
-      stats.Tally(prec);
+      stats.tally(prec);
     }
   }
-  LOG(ERROR) << stats.ToString();
+  writeln(stats.toString());
 }
 
 // Verifies that EdgeCircumcenterSign(x0, x1, a, b, c) == expected_sign, and
 // furthermore checks that the minimum required precision is "expected_prec".
-void TestEdgeCircumcenterSign(
+void testEdgeCircumcenterSign(
     S2Point x0, S2Point x1, S2Point a, S2Point b, S2Point c,
     int expected_sign, Precision expected_prec) {
   // Don't normalize the arguments unless necessary (to allow testing points
   // that differ only in magnitude).
-  if (!S2::IsUnitLength(x0)) x0 = x0.Normalize();
-  if (!S2::IsUnitLength(x1)) x1 = x1.Normalize();
-  if (!S2::IsUnitLength(a)) a = a.Normalize();
-  if (!S2::IsUnitLength(b)) b = b.Normalize();
-  if (!S2::IsUnitLength(c)) c = c.Normalize();
+  if (!isUnitLength(x0)) x0 = x0.normalize();
+  if (!isUnitLength(x1)) x1 = x1.normalize();
+  if (!isUnitLength(a)) a = a.normalize();
+  if (!isUnitLength(b)) b = b.normalize();
+  if (!isUnitLength(c)) c = c.normalize();
 
-  int abc_sign = Sign(a, b, c);
-  int dbl_sign = TriageEdgeCircumcenterSign(x0, x1, a, b, c, abc_sign);
-  int ld_sign = TriageEdgeCircumcenterSign(
-      ToLD(x0), ToLD(x1), ToLD(a), ToLD(b), ToLD(c), abc_sign);
-  int exact_sign = ExactEdgeCircumcenterSign(
-      ToExact(x0), ToExact(x1), ToExact(a), ToExact(b), ToExact(c), abc_sign);
+  int abc_sign = s2pred.sign(a, b, c);
+  int dbl_sign = s2pred.triageEdgeCircumcenterSign(x0, x1, a, b, c, abc_sign);
+  int r_sign = s2pred.triageEdgeCircumcenterSign(
+      Vector3_r.from(x0), Vector3_r.from(x1), Vector3_r.from(a), Vector3_r.from(b),
+      Vector3_r.from(c), abc_sign);
+  int exact_sign = s2pred.exactEdgeCircumcenterSign(
+      s2pred.Vector3_xf.from(x0), s2pred.Vector3_xf.from(x1), s2pred.Vector3_xf.from(a),
+      s2pred.Vector3_xf.from(b), s2pred.Vector3_xf.from(c), abc_sign);
   int actual_sign = (exact_sign != 0 ? exact_sign :
-                     SymbolicEdgeCircumcenterSign(x0, x1, a, b, c));
+                     s2pred.symbolicEdgeCircumcenterSign(x0, x1, a, b, c));
 
   // Check that the signs are correct (if non-zero), and also that if dbl_sign
   // is non-zero then so is ld_sign, etc.
-  EXPECT_EQ(expected_sign, actual_sign);
-  if (exact_sign != 0) EXPECT_EQ(exact_sign, actual_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
+  Assert.equal(expected_sign, actual_sign);
+  if (exact_sign != 0) Assert.equal(exact_sign, actual_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
 
-  Precision actual_prec = (dbl_sign ? DOUBLE :
-                           ld_sign ? LONG_DOUBLE :
-                           exact_sign ? EXACT : SYMBOLIC);
-  EXPECT_EQ(expected_prec, actual_prec);
+  Precision actual_prec = (dbl_sign ? Precision.DOUBLE :
+                           r_sign ? Precision.REAL :
+                           exact_sign ? Precision.EXACT : Precision.SYMBOLIC);
+  Assert.equal(expected_prec, actual_prec);
 
   // Make sure that the top-level function returns the expected result.
-  EXPECT_EQ(expected_sign, EdgeCircumcenterSign(x0, x1, a, b, c));
+  Assert.equal(expected_sign, s2pred.edgeCircumcenterSign(x0, x1, a, b, c));
 
   // Check various identities involving swapping or negating arguments.
-  EXPECT_EQ(expected_sign, EdgeCircumcenterSign(x0, x1, a, c, b));
-  EXPECT_EQ(expected_sign, EdgeCircumcenterSign(x0, x1, b, a, c));
-  EXPECT_EQ(expected_sign, EdgeCircumcenterSign(x0, x1, b, c, a));
-  EXPECT_EQ(expected_sign, EdgeCircumcenterSign(x0, x1, c, a, b));
-  EXPECT_EQ(expected_sign, EdgeCircumcenterSign(x0, x1, c, b, a));
-  EXPECT_EQ(-expected_sign, EdgeCircumcenterSign(x1, x0, a, b, c));
-  EXPECT_EQ(expected_sign, EdgeCircumcenterSign(-x0, -x1, a, b, c));
+  Assert.equal(expected_sign, s2pred.edgeCircumcenterSign(x0, x1, a, c, b));
+  Assert.equal(expected_sign, s2pred.edgeCircumcenterSign(x0, x1, b, a, c));
+  Assert.equal(expected_sign, s2pred.edgeCircumcenterSign(x0, x1, b, c, a));
+  Assert.equal(expected_sign, s2pred.edgeCircumcenterSign(x0, x1, c, a, b));
+  Assert.equal(expected_sign, s2pred.edgeCircumcenterSign(x0, x1, c, b, a));
+  Assert.equal(-expected_sign, s2pred.edgeCircumcenterSign(x1, x0, a, b, c));
+  Assert.equal(expected_sign, s2pred.edgeCircumcenterSign(-x0, -x1, a, b, c));
   if (actual_sign == exact_sign) {
     // Negating the input points may not preserve the result when symbolic
     // perturbations are used, since -X is not an exact multiple of X.
-    EXPECT_EQ(-expected_sign, EdgeCircumcenterSign(x0, x1, -a, -b, -c));
+    Assert.equal(-expected_sign, s2pred.edgeCircumcenterSign(x0, x1, -a, -b, -c));
   }
 }
 
-TEST(EdgeCircumcenterSign, Coverage) {
-  TestEdgeCircumcenterSign(
+@("EdgeCircumcenterSign.Coverage")
+unittest {
+  testEdgeCircumcenterSign(
       S2Point(1, 0, 0), S2Point(1, 1, 0),
       S2Point(0, 0, 1), S2Point(1, 0, 1), S2Point(0, 1, 1),
-      1, DOUBLE);
-  TestEdgeCircumcenterSign(
+      1, Precision.DOUBLE);
+  testEdgeCircumcenterSign(
       S2Point(1, 0, 0), S2Point(1, 1, 0),
       S2Point(0, 0, -1), S2Point(1, 0, -1), S2Point(0, 1, -1),
-      -1, DOUBLE);
-  TestEdgeCircumcenterSign(
+      -1, Precision.DOUBLE);
+  testEdgeCircumcenterSign(
       S2Point(1, -1, 0), S2Point(1, 1, 0),
       S2Point(1, -1e-5, 1), S2Point(1, 1e-5, -1), S2Point(1, 1 - 1e-5, 1e-5),
-      -1, DOUBLE);
-  TestEdgeCircumcenterSign(
+      -1, Precision.DOUBLE);
+  testEdgeCircumcenterSign(
       S2Point(1, -1, 0), S2Point(1, 1, 0),
       S2Point(1, -1e-5, 1), S2Point(1, 1e-5, -1), S2Point(1, 1 - 1e-9, 1e-5),
-      -1, LONG_DOUBLE);
-  TestEdgeCircumcenterSign(
+      -1, Precision.REAL);
+  testEdgeCircumcenterSign(
       S2Point(1, -1, 0), S2Point(1, 1, 0),
       S2Point(1, -1e-5, 1), S2Point(1, 1e-5, -1), S2Point(1, 1 - 1e-15, 1e-5),
-      -1, EXACT);
-  TestEdgeCircumcenterSign(
+      -1, Precision.EXACT);
+  testEdgeCircumcenterSign(
       S2Point(1, -1, 0), S2Point(1, 1, 0),
       S2Point(1, -1e-5, 1), S2Point(1, 1e-5, -1), S2Point(1, 1, 1e-5),
-      1, SYMBOLIC);
+      1, Precision.SYMBOLIC);
 
   // This test falls back to the second symbolic perturbation:
-  TestEdgeCircumcenterSign(
+  testEdgeCircumcenterSign(
       S2Point(1, -1, 0), S2Point(1, 1, 0),
       S2Point(0, -1, 0), S2Point(0, 0, -1), S2Point(0, 0, 1),
-      -1, SYMBOLIC);
+      -1, Precision.SYMBOLIC);
 
   // This test falls back to the third symbolic perturbation:
-  TestEdgeCircumcenterSign(
+  testEdgeCircumcenterSign(
       S2Point(0, -1, 1), S2Point(0, 1, 1),
       S2Point(0, 1, 0), S2Point(0, -1, 0), S2Point(1, 0, 0),
-      -1, SYMBOLIC);
+      -1, Precision.SYMBOLIC);
 }
 
 // Checks that the result at one level of precision is consistent with the
 // result at the next higher level of precision.  Returns the minimum
 // precision that yielded a non-zero result.
-Precision TestEdgeCircumcenterSignConsistency(
-    const S2Point& x0, const S2Point& x1,
-    const S2Point& a, const S2Point& b, const S2Point& c) {
-  int abc_sign = Sign(a, b, c);
-  int dbl_sign = TriageEdgeCircumcenterSign(x0, x1, a, b, c, abc_sign);
-  int ld_sign = TriageEdgeCircumcenterSign(
-      ToLD(x0), ToLD(x1), ToLD(a), ToLD(b), ToLD(c), abc_sign);
-  int exact_sign = ExactEdgeCircumcenterSign(
-      ToExact(x0), ToExact(x1), ToExact(a), ToExact(b), ToExact(c), abc_sign);
-  if (dbl_sign != 0) EXPECT_EQ(ld_sign, dbl_sign);
-  if (ld_sign != 0) EXPECT_EQ(exact_sign, ld_sign);
+Precision testEdgeCircumcenterSignConsistency(
+    in S2Point x0, in S2Point x1,
+    in S2Point a, in S2Point b, in S2Point c) {
+  int abc_sign = s2pred.sign(a, b, c);
+  int dbl_sign = s2pred.triageEdgeCircumcenterSign(x0, x1, a, b, c, abc_sign);
+  int r_sign = s2pred.triageEdgeCircumcenterSign(
+      Vector3_r.from(x0), Vector3_r.from(x1), Vector3_r.from(a), Vector3_r.from(b),
+      Vector3_r.from(c), abc_sign);
+  int exact_sign = s2pred.exactEdgeCircumcenterSign(
+      s2pred.Vector3_xf.from(x0), s2pred.Vector3_xf.from(x1), s2pred.Vector3_xf.from(a),
+      s2pred.Vector3_xf.from(b), s2pred.Vector3_xf.from(c), abc_sign);
+  if (dbl_sign != 0) Assert.equal(r_sign, dbl_sign);
+  if (r_sign != 0) Assert.equal(exact_sign, r_sign);
   if (exact_sign != 0) {
-    EXPECT_EQ(exact_sign, EdgeCircumcenterSign(x0, x1, a, b, c));
-    return (ld_sign == 0) ? EXACT : (dbl_sign == 0) ? LONG_DOUBLE : DOUBLE;
+    Assert.equal(exact_sign, s2pred.edgeCircumcenterSign(x0, x1, a, b, c));
+    return (r_sign == 0) ? Precision.EXACT : (dbl_sign == 0) ? Precision.REAL : Precision.DOUBLE;
   } else {
     // Unlike the other methods, SymbolicEdgeCircumcenterSign has the
     // precondition that the exact sign must be zero.
-    int symbolic_sign = SymbolicEdgeCircumcenterSign(x0, x1, a, b, c);
-    EXPECT_EQ(symbolic_sign, EdgeCircumcenterSign(x0, x1, a, b, c));
-    return SYMBOLIC;
+    int symbolic_sign = s2pred.symbolicEdgeCircumcenterSign(x0, x1, a, b, c);
+    Assert.equal(symbolic_sign, s2pred.edgeCircumcenterSign(x0, x1, a, b, c));
+    return Precision.SYMBOLIC;
   }
 }
 
-TEST(EdgeCircumcenterSign, Consistency) {
+@("EdgeCircumcenterSign.Consistency")
+unittest {
   // This test chooses random a random edge X, then chooses a random point Z
   // on the great circle through X, and finally choose three points A, B, C
   // that are nearly equidistant from X.  It then checks that the answer given
   // by a method at one level of precision is consistent with the answer given
   // at the next higher level of precision.
-  auto& rnd = S2Testing::rnd;
+  auto rnd = S2Testing.rnd;
   PrecisionStats stats;
-  for (int iter = 0; iter < FLAGS_consistency_iters; ++iter) {
-    rnd.Reset(iter + 1);  // Easier to reproduce a specific case.
-    S2Point x0 = ChoosePoint();
-    S2Point x1 = ChoosePoint();
+  for (int iter = 0; iter < CONSISTENCY_ITERS; ++iter) {
+    rnd.reset(iter + 1);  // Easier to reproduce a specific case.
+    S2Point x0 = choosePoint();
+    S2Point x1 = choosePoint();
     if (x0 == -x1) continue;  // Not allowed by API.
-    double c0 = (rnd.OneIn(2) ? -1 : 1) * pow(1e-20, rnd.RandDouble());
-    double c1 = (rnd.OneIn(2) ? -1 : 1) * pow(1e-20, rnd.RandDouble());
-    S2Point z = (c0 * x0 + c1 * x1).Normalize();
-    S1Angle r = S1Angle::Radians(M_PI * pow(1e-30, rnd.RandDouble()));
-    S2Point a = S2::InterpolateAtDistance(r, z, ChoosePoint());
-    S2Point b = S2::InterpolateAtDistance(r, z, ChoosePoint());
-    S2Point c = S2::InterpolateAtDistance(r, z, ChoosePoint());
-    Precision prec = TestEdgeCircumcenterSignConsistency(x0, x1, a, b, c);
+    double c0 = (rnd.oneIn(2) ? -1 : 1) * math.pow(1e-20, rnd.randDouble());
+    double c1 = (rnd.oneIn(2) ? -1 : 1) * math.pow(1e-20, rnd.randDouble());
+    S2Point z = (c0 * x0 + c1 * x1).normalize();
+    S1Angle r = S1Angle.fromRadians(math.PI * math.pow(1e-30, rnd.randDouble()));
+    S2Point a = interpolateAtDistance(r, z, choosePoint());
+    S2Point b = interpolateAtDistance(r, z, choosePoint());
+    S2Point c = interpolateAtDistance(r, z, choosePoint());
+    Precision prec = testEdgeCircumcenterSignConsistency(x0, x1, a, b, c);
     // Don't skew the statistics by recording degenerate inputs.
     if (x0 == x1) {
       // This precision would be SYMBOLIC if we handled this degeneracy.
-      EXPECT_EQ(EXACT, prec);
+      Assert.equal(Precision.EXACT, prec);
     } else if (a == b || b == c || c == a) {
-      EXPECT_EQ(SYMBOLIC, prec);
+      Assert.equal(Precision.SYMBOLIC, prec);
     } else {
-      stats.Tally(prec);
+      stats.tally(prec);
     }
   }
-  LOG(ERROR) << stats.ToString();
+  writeln(stats.toString());
 }
 
 // Verifies that VoronoiSiteExclusion(a, b, x0, x1, r) == expected_result, and
 // furthermore checks that the minimum required precision is "expected_prec".
-void TestVoronoiSiteExclusion(
+void testVoronoiSiteExclusion(
     S2Point a, S2Point b, S2Point x0, S2Point x1, S1ChordAngle r,
-    Excluded expected_result, Precision expected_prec) {
-  constexpr Excluded UNCERTAIN = Excluded::UNCERTAIN;
+    s2pred.Excluded expected_result, Precision expected_prec) {
+  s2pred.Excluded UNCERTAIN = s2pred.Excluded.UNCERTAIN;
 
   // Don't normalize the arguments unless necessary (to allow testing points
   // that differ only in magnitude).
-  if (!S2::IsUnitLength(a)) a = a.Normalize();
-  if (!S2::IsUnitLength(b)) b = b.Normalize();
-  if (!S2::IsUnitLength(x0)) x0 = x0.Normalize();
-  if (!S2::IsUnitLength(x1)) x1 = x1.Normalize();
+  if (!isUnitLength(a)) a = a.normalize();
+  if (!isUnitLength(b)) b = b.normalize();
+  if (!isUnitLength(x0)) x0 = x0.normalize();
+  if (!isUnitLength(x1)) x1 = x1.normalize();
 
   // The internal methods (Triage, Exact, etc) require that site A is closer
   // to X0 and site B is closer to X1.  GetVoronoiSiteExclusion has special
@@ -1221,180 +1226,181 @@ void TestVoronoiSiteExclusion(
   // that code here.  Essentially, since the API requires site A to be closer
   // than site B to X0, then if site A is also closer to X1 then site B must
   // be excluded.
-  if (s2pred::CompareDistances(x1, a, b) < 0) {
-    EXPECT_EQ(expected_result, Excluded::SECOND);
+  if (s2pred.compareDistances(x1, a, b) < 0) {
+    Assert.equal(expected_result, s2pred.Excluded.SECOND);
     // We don't know what precision was used by CompareDistances(), but we
     // arbitrarily require the test to specify it as DOUBLE.
-    EXPECT_EQ(expected_prec, DOUBLE);
+    Assert.equal(expected_prec, Precision.DOUBLE);
   } else {
-    Excluded dbl_result = TriageVoronoiSiteExclusion(a, b, x0, x1, r.length2());
-    Excluded ld_result = TriageVoronoiSiteExclusion(
-        ToLD(a), ToLD(b), ToLD(x0), ToLD(x1), ToLD(r.length2()));
-    Excluded exact_result = ExactVoronoiSiteExclusion(
-        ToExact(a), ToExact(b), ToExact(x0), ToExact(x1), r.length2());
+    s2pred.Excluded dbl_result = s2pred.triageVoronoiSiteExclusion(a, b, x0, x1, r.length2());
+    s2pred.Excluded r_result = s2pred.triageVoronoiSiteExclusion(
+        Vector3_r.from(a), Vector3_r.from(b), Vector3_r.from(x0), Vector3_r.from(x1),
+        r.length2());
+    s2pred.Excluded exact_result = s2pred.exactVoronoiSiteExclusion(
+        s2pred.Vector3_xf.from(a), s2pred.Vector3_xf.from(b), s2pred.Vector3_xf.from(x0),
+        s2pred.Vector3_xf.from(x1), ExactFloat(r.length2()));
 
     // Check that the results are correct (if not UNCERTAIN), and also that if
-    // dbl_result is not UNCERTAIN then so is ld_result, etc.
-    EXPECT_EQ(expected_result, exact_result);
-    if (ld_result != UNCERTAIN) EXPECT_EQ(exact_result, ld_result);
-    if (dbl_result != UNCERTAIN) EXPECT_EQ(ld_result, dbl_result);
+    // dbl_result is not UNCERTAIN then so is r_result, etc.
+    Assert.equal(expected_result, exact_result);
+    if (r_result != UNCERTAIN) Assert.equal(exact_result, r_result);
+    if (dbl_result != UNCERTAIN) Assert.equal(r_result, dbl_result);
 
-    Precision actual_prec = (dbl_result != UNCERTAIN ? DOUBLE :
-                             ld_result != UNCERTAIN ? LONG_DOUBLE : EXACT);
-    EXPECT_EQ(expected_prec, actual_prec);
+    Precision actual_prec = (dbl_result != UNCERTAIN ? Precision.DOUBLE :
+                             r_result != UNCERTAIN ? Precision.REAL : Precision.EXACT);
+    Assert.equal(expected_prec, actual_prec);
   }
   // Make sure that the top-level function returns the expected result.
-  EXPECT_EQ(expected_result, GetVoronoiSiteExclusion(a, b, x0, x1, r));
+  Assert.equal(expected_result, s2pred.getVoronoiSiteExclusion(a, b, x0, x1, r));
 
   // If site B is closer to X1, then the same site should be excluded (if any)
   // when we swap the sites and the edge direction.
-  Excluded swapped_result =
-      expected_result == Excluded::FIRST ? Excluded::SECOND :
-      expected_result == Excluded::SECOND ? Excluded::FIRST : expected_result;
-  if (s2pred::CompareDistances(x1, b, a) < 0) {
-    EXPECT_EQ(swapped_result, GetVoronoiSiteExclusion(b, a, x1, x0, r));
+  s2pred.Excluded swapped_result =
+      expected_result == s2pred.Excluded.FIRST ? s2pred.Excluded.SECOND :
+      expected_result == s2pred.Excluded.SECOND ? s2pred.Excluded.FIRST : expected_result;
+  if (s2pred.compareDistances(x1, b, a) < 0) {
+    Assert.equal(swapped_result, s2pred.getVoronoiSiteExclusion(b, a, x1, x0, r));
   }
 }
 
-TEST(VoronoiSiteExclusion, Coverage) {
+@("VoronoiSiteExclusion.Coverage")
+unittest {
   // Both sites are closest to edge endpoint X0.
-  TestVoronoiSiteExclusion(
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-5, 0), S2Point(1, -2e-5, 0),
-      S2Point(1, 0, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1e-3),
-      Excluded::SECOND, DOUBLE);
+      S2Point(1, 0, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1e-3),
+      s2pred.Excluded.SECOND, Precision.DOUBLE);
 
   // Both sites are closest to edge endpoint X1.
-  TestVoronoiSiteExclusion(
+  testVoronoiSiteExclusion(
       S2Point(1, 1, 1e-30), S2Point(1, 1, -1e-20),
-      S2Point(1, 0, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1e-10),
-      Excluded::SECOND, DOUBLE);
+      S2Point(1, 0, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1e-10),
+      s2pred.Excluded.SECOND, Precision.DOUBLE);
 
   // Test cases where neither site is excluded.
-  TestVoronoiSiteExclusion(
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-10, 1e-5), S2Point(1, 1e-10, -1e-5),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1e-4),
-      Excluded::NEITHER, DOUBLE);
-  TestVoronoiSiteExclusion(
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1e-4),
+      s2pred.Excluded.NEITHER, Precision.DOUBLE);
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-10, 1e-5), S2Point(1, 1e-10, -1e-5),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1e-5),
-      Excluded::NEITHER, LONG_DOUBLE);
-  TestVoronoiSiteExclusion(
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1e-5),
+      s2pred.Excluded.NEITHER, Precision.REAL);
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-17, 1e-5), S2Point(1, 1e-17, -1e-5),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1e-4),
-      Excluded::NEITHER, LONG_DOUBLE);
-  TestVoronoiSiteExclusion(
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1e-4),
+      s2pred.Excluded.NEITHER, Precision.REAL);
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-20, 1e-5), S2Point(1, 1e-20, -1e-5),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1e-5),
-      Excluded::NEITHER, EXACT);
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1e-5),
+      s2pred.Excluded.NEITHER, Precision.EXACT);
 
   // Test cases where the first site is excluded.  (Tests where the second
   // site is excluded are constructed by TestVoronoiSiteExclusion.)
-  TestVoronoiSiteExclusion(
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-6, 1.0049999999e-5), S2Point(1, 0, -1e-5),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1.005e-5),
-      Excluded::FIRST, DOUBLE);
-  TestVoronoiSiteExclusion(
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1.005e-5),
+      s2pred.Excluded.FIRST, Precision.DOUBLE);
+  testVoronoiSiteExclusion(
       S2Point(1, -1.00105e-6, 1.0049999999e-5), S2Point(1, 0, -1e-5),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1.005e-5),
-      Excluded::FIRST, LONG_DOUBLE);
-  TestVoronoiSiteExclusion(
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1.005e-5),
+      s2pred.Excluded.FIRST, Precision.REAL);
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-6, 1.005e-5), S2Point(1, 0, -1e-5),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1.005e-5),
-      Excluded::FIRST, LONG_DOUBLE);
-  TestVoronoiSiteExclusion(
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1.005e-5),
+      s2pred.Excluded.FIRST, Precision.REAL);
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-31, 1.005e-30), S2Point(1, 0, -1e-30),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1.005e-30),
-      Excluded::FIRST, EXACT);
-  TestVoronoiSiteExclusion(
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1.005e-30),
+      s2pred.Excluded.FIRST, Precision.EXACT);
+  testVoronoiSiteExclusion(
       S2Point(1, -1e-31, 1.005e-30), S2Point(1, 0, -1e-30),
-      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle::Radians(1.005e-30),
-      Excluded::FIRST, EXACT);
+      S2Point(1, -1, 0), S2Point(1, 1, 0), S1ChordAngle.fromRadians(1.005e-30),
+      s2pred.Excluded.FIRST, Precision.EXACT);
 
   // These two sites are exactly 60 degrees away from the point (1, 1, 0),
   // which is the midpoint of edge X.  This case requires symbolic
   // perturbations to resolve correctly.  Site A is closer to every point in
   // its coverage interval except for (1, 1, 0), but site B is considered
   // closer to that point symbolically.
-  TestVoronoiSiteExclusion(
+  testVoronoiSiteExclusion(
       S2Point(0, 1, 1), S2Point(1, 0, 1),
-      S2Point(0, 1, 1), S2Point(1, 0, -1), S1ChordAngle::FromLength2(1),
-      Excluded::NEITHER, EXACT);
+      S2Point(0, 1, 1), S2Point(1, 0, -1), S1ChordAngle.fromLength2(1),
+      s2pred.Excluded.NEITHER, Precision.EXACT);
 
   // This test is similar except that site A is considered closer to the
   // equidistant point (-1, 1, 0), and therefore site B is excluded.
-  TestVoronoiSiteExclusion(
+  testVoronoiSiteExclusion(
       S2Point(0, 1, 1), S2Point(-1, 0, 1),
-      S2Point(0, 1, 1), S2Point(-1, 0, -1), S1ChordAngle::FromLength2(1),
-      Excluded::SECOND, EXACT);
+      S2Point(0, 1, 1), S2Point(-1, 0, -1), S1ChordAngle.fromLength2(1),
+      s2pred.Excluded.SECOND, Precision.EXACT);
 }
 
 // Checks that the result at one level of precision is consistent with the
 // result at the next higher level of precision.  Returns the minimum
 // precision that yielded a non-zero result.
-Precision TestVoronoiSiteExclusionConsistency(
-    const S2Point& a, const S2Point& b, const S2Point& x0, const S2Point& x1,
-    S1ChordAngle r) {
-  constexpr Excluded UNCERTAIN = Excluded::UNCERTAIN;
+Precision testVoronoiSiteExclusionConsistency(
+    in S2Point a, in S2Point b, in S2Point x0, in S2Point x1, S1ChordAngle r) {
+  s2pred.Excluded UNCERTAIN = s2pred.Excluded.UNCERTAIN;
 
   // The internal methods require this (see TestVoronoiSiteExclusion).
-  if (s2pred::CompareDistances(x1, a, b) < 0) return DOUBLE;
+  if (s2pred.compareDistances(x1, a, b) < 0) return Precision.DOUBLE;
 
-  Excluded dbl_result = TriageVoronoiSiteExclusion(a, b, x0, x1, r.length2());
-  Excluded ld_result = TriageVoronoiSiteExclusion(
-      ToLD(a), ToLD(b), ToLD(x0), ToLD(x1), ToLD(r.length2()));
-  Excluded exact_result = ExactVoronoiSiteExclusion(
-      ToExact(a), ToExact(b), ToExact(x0), ToExact(x1), r.length2());
-  EXPECT_EQ(exact_result, GetVoronoiSiteExclusion(a, b, x0, x1, r));
+  s2pred.Excluded dbl_result = s2pred.triageVoronoiSiteExclusion(a, b, x0, x1, r.length2());
+  s2pred.Excluded r_result = s2pred.triageVoronoiSiteExclusion(
+      Vector3_r.from(a), Vector3_r.from(b), Vector3_r.from(x0), Vector3_r.from(x1), r.length2());
+  s2pred.Excluded exact_result = s2pred.exactVoronoiSiteExclusion(
+      s2pred.Vector3_xf.from(a), s2pred.Vector3_xf.from(b), s2pred.Vector3_xf.from(x0),
+      s2pred.Vector3_xf.from(x1), ExactFloat(r.length2()));
+  Assert.equal(exact_result, s2pred.getVoronoiSiteExclusion(a, b, x0, x1, r));
 
-  EXPECT_NE(UNCERTAIN, exact_result);
-  if (ld_result == UNCERTAIN) {
-    EXPECT_EQ(UNCERTAIN, dbl_result);
-    return EXACT;
+  Assert.notEqual(UNCERTAIN, exact_result);
+  if (r_result == UNCERTAIN) {
+    Assert.equal(UNCERTAIN, dbl_result);
+    return Precision.EXACT;
   }
-  EXPECT_EQ(exact_result, ld_result);
+  Assert.equal(exact_result, r_result);
   if (dbl_result == UNCERTAIN) {
-    return LONG_DOUBLE;
+    return Precision.REAL;
   }
-  EXPECT_EQ(exact_result, dbl_result);
-  return DOUBLE;
+  Assert.equal(exact_result, dbl_result);
+  return Precision.DOUBLE;
 }
 
-TEST(VoronoiSiteExclusion, Consistency) {
+@("VoronoiSiteExclusion.Consistency")
+unittest {
   // This test chooses random a random edge X, a random point P on that edge,
   // and a random threshold distance "r".  It then choose two sites A and B
   // whose distance to P is almost exactly "r".  This ensures that the
   // coverage intervals for A and B will (almost) share a common endpoint.  It
   // then checks that the answer given by a method at one level of precision
   // is consistent with the answer given at higher levels of precision.
-  auto& rnd = S2Testing::rnd;
+  auto rnd = S2Testing.rnd;
   PrecisionStats stats;
-  for (int iter = 0; iter < FLAGS_consistency_iters; ++iter) {
-    rnd.Reset(iter + 1);  // Easier to reproduce a specific case.
-    S2Point x0 = ChoosePoint();
-    S2Point x1 = ChoosePoint();
+  for (int iter = 0; iter < CONSISTENCY_ITERS; ++iter) {
+    rnd.reset(iter + 1);  // Easier to reproduce a specific case.
+    S2Point x0 = choosePoint();
+    S2Point x1 = choosePoint();
     if (x0 == -x1) continue;  // Not allowed by API.
-    double f = pow(1e-20, rnd.RandDouble());
-    S2Point p = ((1 - f) * x0 + f * x1).Normalize();
-    S1Angle r1 = S1Angle::Radians(M_PI_2 * pow(1e-20, rnd.RandDouble()));
-    S2Point a = S2::InterpolateAtDistance(r1, p, ChoosePoint());
-    S2Point b = S2::InterpolateAtDistance(r1, p, ChoosePoint());
+    double f = math.pow(1e-20, rnd.randDouble());
+    S2Point p = ((1 - f) * x0 + f * x1).normalize();
+    S1Angle r1 = S1Angle.fromRadians(math.PI_2 * math.pow(1e-20, rnd.randDouble()));
+    S2Point a = interpolateAtDistance(r1, p, choosePoint());
+    S2Point b = interpolateAtDistance(r1, p, choosePoint());
     // Check that the other API requirements are met.
-    S1ChordAngle r(r1);
-    if (s2pred::CompareEdgeDistance(a, x0, x1, r) > 0) continue;
-    if (s2pred::CompareEdgeDistance(b, x0, x1, r) > 0) continue;
-    if (s2pred::CompareDistances(x0, a, b) > 0) std::swap(a, b);
+    S1ChordAngle r = S1ChordAngle(r1);
+    if (s2pred.compareEdgeDistance(a, x0, x1, r) > 0) continue;
+    if (s2pred.compareEdgeDistance(b, x0, x1, r) > 0) continue;
+    if (s2pred.compareDistances(x0, a, b) > 0) algorithm.swap(a, b);
     if (a == b) continue;
 
-    Precision prec = TestVoronoiSiteExclusionConsistency(a, b, x0, x1, r);
+    Precision prec = testVoronoiSiteExclusionConsistency(a, b, x0, x1, r);
     // Don't skew the statistics by recording degenerate inputs.
     if (x0 == x1) {
-      EXPECT_EQ(DOUBLE, prec);
+      Assert.equal(Precision.DOUBLE, prec);
     } else {
-      stats.Tally(prec);
+      stats.tally(prec);
     }
   }
-  LOG(ERROR) << stats.ToString();
+  writeln(stats.toString());
 }
-
-}  // namespace s2pred
-*/

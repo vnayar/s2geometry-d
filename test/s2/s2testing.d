@@ -23,6 +23,8 @@ package int s2RandomSeed = 1;
 struct S2Testing {
 public:
 
+  static immutable double EARTH_RADIUS_KM = 6371.01;
+
   /**
    * Returns a vector of points shaped as a regular polygon with
    * num_vertices vertices, all on a circle of the specified angular
@@ -111,7 +113,7 @@ public:
   //   std::unique_ptr<S2Loop> MakeLoop(const Matrix3x3_d& frame,
   //                                    S1Angle nominal_radius) const;
   //
-  //  private:
+  // private:
   //   void ComputeMinLevel();
   //   void ComputeOffsets();
   //   void GetR2Vertices(std::vector<R2Point>* vertices) const;
@@ -138,7 +140,9 @@ public:
   // Convert a distance on the Earth's surface to an angle.
   // Do not use these methods in non-testing code; use s2earth.h instead.
   //static S1Angle MetersToAngle(double meters);
-  //static S1Angle KmToAngle(double km);
+  static S1Angle kmToAngle(double km) {
+    return S1Angle.fromRadians(km / EARTH_RADIUS_KM);
+  }
 
   // Convert an area in steradians (as returned by the S2 area methods) to
   // square meters or square kilometers.
