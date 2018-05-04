@@ -41,7 +41,7 @@ public:
 
   void print() {
     int total = 0;
-    int totals[IntersectionMethod];
+    int[IntersectionMethod] totals;
     foreach (method; traits.EnumMembers!IntersectionMethod) {
       total += _tally[method];
       totals[method] = total;

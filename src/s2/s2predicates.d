@@ -22,6 +22,7 @@ import s2.util.math.exactfloat;
 import s2.util.math.vector;
 import std.exception;
 import s2pointutil = s2.s2pointutil;
+import std.exception;
 import algorithm = std.algorithm;
 import math = std.math;
 import traits = std.traits;
@@ -1435,9 +1436,9 @@ int sign(in S2Point a, in S2Point b, in S2Point c, in Vector3_d a_cross_b) {
  */
 int triageSign(in S2Point a, in S2Point b, in S2Point c, in Vector3_d a_cross_b)
 in {
-  assert(s2pointutil.isUnitLength(a));
-  assert(s2pointutil.isUnitLength(b));
-  assert(s2pointutil.isUnitLength(c));
+  //assert(s2pointutil.isUnitLength(a));
+  //assert(s2pointutil.isUnitLength(b));
+  //assert(s2pointutil.isUnitLength(c));
 } body {
   // MAX_DET_ERROR is the maximum error in computing (AxB).C where all vectors
   // are unit length.  Using standard inequalities, it can be shown that
@@ -1460,9 +1461,9 @@ in {
   double det = a_cross_b.dotProd(c);
 
   // Double-check borderline cases in debug mode.
-  assert(math.fabs(det) <= MAX_DET_ERROR ||
-         math.fabs(det) >= 100 * MAX_DET_ERROR ||
-         det * expensiveSign(a, b, c) > 0);
+  //enforce(math.fabs(det) <= MAX_DET_ERROR ||
+  //       math.fabs(det) >= 100 * MAX_DET_ERROR ||
+  //       det * expensiveSign(a, b, c) > 0);
 
   if (det > MAX_DET_ERROR) {
     return 1;

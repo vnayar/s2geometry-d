@@ -94,8 +94,8 @@ S2Point ortho(in S2Point a) {
 // The result is not guaranteed to be unit length.
 S2Point robustCrossProd(in S2Point a, in S2Point b)
 in {
-  assert(isUnitLength(a));
-  assert(isUnitLength(b));
+  //assert(isUnitLength(a));
+  //assert(isUnitLength(b));
 } body {
   // The direction of a.CrossProd(b) becomes unstable as (a + b) or (a - b)
   // approaches zero.  This leads to situations where a.CrossProd(b) is not

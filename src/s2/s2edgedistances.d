@@ -150,7 +150,12 @@ in {
 // between 0 and 1.  Note that all distances are measured on the surface of
 // the sphere, so this is more complicated than just computing (1-t)*a + t*b
 // and normalizing the result.
-//S2Point Interpolate(double t, const S2Point& a, const S2Point& b);
+S2Point interpolate(double t, in S2Point a, in S2Point b) {
+  if (t == 0) return a;
+  if (t == 1) return b;
+  auto ab = S1Angle(a, b);
+  return interpolateAtDistance(t * ab, a, b);
+}
 
 // Like Interpolate(), except that the parameter "ax" represents the desired
 // distance from A to the result X rather than a fraction between 0 and 1.

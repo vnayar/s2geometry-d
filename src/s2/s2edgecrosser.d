@@ -41,10 +41,10 @@ public:
   // Convenience constructor that calls Init() with the given fixed edge AB.
   // The arguments "a" and "b" must point to values that persist for the
   // lifetime of the S2EdgeCrosser object (or until the next Init() call).
-  this(ref S2Point a, ref S2Point b)
+  this(ref in S2Point a, ref in S2Point b)
   in {
-    assert(isUnitLength(a));
-    assert(isUnitLength(b));
+    //assert(isUnitLength(a));
+    //assert(isUnitLength(b));
   } body {
     _a = &a;
     _b = &b;
@@ -65,7 +65,7 @@ public:
   // Initialize the S2EdgeCrosser with the given fixed edge AB.  The arguments
   // "a" and "b" must point to values that persist for the lifetime of the
   // S2EdgeCrosser object (or until the next Init() call).
-  void init(ref S2Point a, ref S2Point b) {
+  void init(ref in S2Point a, ref in S2Point b) {
     _a = &a;
     _b = &b;
     _aCrossB = a.crossProd(*_b);
@@ -102,7 +102,7 @@ public:
    *
    * The arguments must point to values that persist until the next call.
    */
-  int crossingSign(ref S2Point c, ref S2Point d) {
+  int crossingSign(ref in S2Point c, ref in S2Point d) {
     if (_c != &c) {
       restartAt(c);
     }
@@ -122,7 +122,7 @@ public:
    *
    * The arguments must point to values that persist until the next call.
    */
-  bool edgeOrVertexCrossing(ref S2Point c, ref S2Point d) {
+  bool edgeOrVertexCrossing(ref in S2Point c, ref in S2Point d) {
     if (_c != &c) {
       restartAt(c);
     }
@@ -150,8 +150,8 @@ public:
    */
   this(ref in S2Point a, ref in S2Point b, ref in S2Point c)
   in {
-    assert(isUnitLength(a));
-    assert(isUnitLength(b));
+    //assert(isUnitLength(a));
+    //assert(isUnitLength(b));
   } body {
     _a = &a;
     _b = &b;
@@ -167,7 +167,7 @@ public:
    */
   void restartAt(ref in S2Point c)
   in {
-    assert(isUnitLength(c));
+    //assert(isUnitLength(c));
   } body {
     _c = &c;
     _acb = -triageSign(*_a, *_b, *_c, _aCrossB);
@@ -183,7 +183,7 @@ public:
    */
   int crossingSign(ref in S2Point d)
   in {
-    assert(isUnitLength(d));
+    //assert(isUnitLength(d));
   } body {
     // For there to be an edge crossing, the triangles ACB, CBD, BDA, DAC must
     // all be oriented the same way (CW or CCW).  We keep the orientation of ACB
@@ -376,7 +376,7 @@ public:
     _crosser.init(_a, _b);
   }
 
-  int crossingSign(in S2Point c, in S2Point d) {
+  int crossingSign(ref in S2Point c, ref in S2Point d) {
     if (c != _c || _crosser._c == null) {
       restartAt(c);
     }
@@ -402,10 +402,10 @@ public:
     _crosser.restartAt(_c);
   }
 
-  int crossingSign(in S2Point d) {
+  int crossingSign(ref in S2Point d) {
+    int result = _crosser.crossingSign(d);
     _c = d;
     _crosser.setC(_c);
-    int result = _crosser.crossingSign(_c);
     return result;
   }
 
