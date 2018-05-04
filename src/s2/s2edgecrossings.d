@@ -19,15 +19,17 @@ import s2.s1interval;
 import s2.s2latlng;
 import s2.s2latlng;
 import s2.s2point;
-// import s2.s2latlngrect;
 import s2.s2pointutil;
 import s2.s2predicates;
-import s2.util.math.vector;
 import s2.s2edgecrosser;
+import s2.util.math.exactfloat;
 import s2.util.math.vector;
+import std.stdio;
 import algorithm = std.algorithm;
 import math = std.math;
 import traits = std.traits;
+
+package int[IntersectionMethod]* intersectionMethodTally;
 
 /**
  * This function determines whether the edge AB intersects the edge CD.
@@ -294,7 +296,7 @@ static bool getIntersectionStableR(
   return false;
 }
 
-private enum IntersectionMethod {
+package enum IntersectionMethod {
   SIMPLE,
   SIMPLE_R,
   STABLE,
@@ -382,15 +384,14 @@ in {
   } else if (getIntersectionStableR(a0, a1, b0, b1, result)) {
     method = IntersectionMethod.STABLE_R;
   } else {
-    // TODO: Add support for ExactFloat.
-    // result = getIntersectionExact(a0, a1, b0, b1);
-    // method = IntersectionMethod.EXACT;
+    result = getIntersectionExact(a0, a1, b0, b1);
+    method = IntersectionMethod.EXACT;
     method = IntersectionMethod.STABLE_R;
   }
 
-  //if (intersection_method_tally_) {
-  //  ++intersection_method_tally_[static_cast<int>(method)];
-  //}
+  if (intersectionMethodTally) {
+    ++(*intersectionMethodTally)[method];
+  }
 
   // Make sure the intersection point is on the correct side of the sphere.
   // Since all vertices are unit length, and edges are less than 180 degrees,
@@ -417,3 +418,72 @@ immutable S1Angle INTERSECTION_ERROR = S1Angle.fromRadians(8 * DBL_ERR);
  * opposite directions.
  */
 immutable S1Angle INTERSECTION_MERGE_RADIUS = 2 * INTERSECTION_ERROR;
+
+
+// Compute the intersection point of (a0, a1) and (b0, b1) using exact
+// arithmetic.  Note that the result is not exact because it is rounded to
+// double precision.  Also, the intersection point is not guaranteed to have
+// the correct sign (i.e., the return value may need to be negated).
+package S2Point getIntersectionExact(
+    in S2Point a0, in S2Point a1, in S2Point b0, in S2Point b1)
+out(x) {
+  assert(isUnitLength(x));
+} body {
+  // Since we are using exact arithmetic, we don't need to worry about
+  // numerical stability.
+  Vector3_xf a0_xf = Vector3_xf.from(a0);
+  Vector3_xf a1_xf = Vector3_xf.from(a1);
+  Vector3_xf b0_xf = Vector3_xf.from(b0);
+  Vector3_xf b1_xf = Vector3_xf.from(b1);
+  Vector3_xf a_norm_xf = a0_xf.crossProd(a1_xf);
+  Vector3_xf b_norm_xf = b0_xf.crossProd(b1_xf);
+  Vector3_xf x_xf = a_norm_xf.crossProd(b_norm_xf);
+
+  // The final Normalize() call is done in double precision, which creates a
+  // directional error of up to 2 * DBL_ERR.  (ToDouble() and Normalize() each
+  // contribute up to DBL_ERR of directional error.)
+  S2Point x = S2PointFromExact(x_xf);
+
+  if (x == S2Point(0, 0, 0)) {
+    // The two edges are exactly collinear, but we still consider them to be
+    // "crossing" because of simulation of simplicity.  Out of the four
+    // endpoints, exactly two lie in the interior of the other edge.  Of
+    // those two we return the one that is lexicographically smallest.
+    x = S2Point(10, 10, 10);  // Greater than any valid S2Point
+    S2Point a_norm = S2PointFromExact(a_norm_xf);
+    S2Point b_norm = S2PointFromExact(b_norm_xf);
+    if (a_norm == S2Point(0, 0, 0) || b_norm == S2Point(0, 0, 0)) {
+      // TODO(ericv): To support antipodal edges properly, we would need to
+      // add an s2pred::CrossProd() function that computes the cross product
+      // using simulation of simplicity and rounds the result to the nearest
+      // floating-point representation.
+      writeln("Exactly antipodal edges not supported by GetIntersection");
+    }
+    if (orderedCCW(b0, a0, b1, b_norm) && a0 < x) x = a0;
+    if (orderedCCW(b0, a1, b1, b_norm) && a1 < x) x = a1;
+    if (orderedCCW(a0, b0, a1, a_norm) && b0 < x) x = b0;
+    if (orderedCCW(a0, b1, a1, a_norm) && b1 < x) x = b1;
+  }
+  return x;
+}
+
+private S2Point S2PointFromExact(in Vector3_xf xf) {
+  // If all components of "x" have absolute value less than about 1e-154,
+  // then x.Norm2() is zero in double precision due to underflow.  Therefore
+  // we need to scale "x" by an appropriate power of 2 before the conversion.
+  S2Point x = S2Point(xf[0].toDouble(), xf[1].toDouble(), xf[2].toDouble());
+  if (x.norm2() > 0) return x.normalize();
+
+  // Scale so that the largest component magnitude is in the range [0.5, 1).
+  int exp = ExactFloat.MIN_EXP - 1;
+  for (int i = 0; i < 3; ++i) {
+    if (xf[i].isNormal()) exp = algorithm.max(exp, xf[i].exp());
+  }
+  if (exp < ExactFloat.MIN_EXP) {
+    return S2Point(0, 0, 0);
+  }
+  return S2Point(ldexp(xf[0], -exp).toDouble(),
+                 ldexp(xf[1], -exp).toDouble(),
+                 ldexp(xf[2], -exp).toDouble()).normalize();
+}
+

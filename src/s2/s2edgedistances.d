@@ -24,7 +24,11 @@ import math = std.math;
 // If you want to compare a distance against a fixed threshold, e.g.
 //    if (S2::GetDistance(x, a, b) < limit)
 // then it is significantly faster to use UpdateMinDistance() below.
-//S1Angle GetDistance(const S2Point& x, const S2Point& a, const S2Point& b);
+S1Angle getDistance(in S2Point x, in S2Point a, in S2Point b) {
+  S1ChordAngle min_dist;
+  alwaysUpdateMinDistance!(true)(x, a, b, min_dist);
+  return min_dist.toS1Angle();
+}
 
 // Returns true if the distance from X to the edge AB is less than "limit".
 // (Specify limit.Successor() for "less than or equal to".)  This method is
