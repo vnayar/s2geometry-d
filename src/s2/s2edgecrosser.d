@@ -2,12 +2,13 @@ module s2.s2edgecrosser;
 
 // Original author: ericv@google.com (Eric Veach)
 
-import s2.s2point;
+import math = std.math;
+import s2.logger;
 import s2.s2edgecrossings;
+import s2.s2point;
 import s2.s2pointutil;
 import s2.s2predicates;
 import s2.util.math.vector;
-import math = std.math;
 
 /**
  * This class allows edges to be efficiently tested for intersection with a
@@ -41,11 +42,10 @@ public:
   // Convenience constructor that calls Init() with the given fixed edge AB.
   // The arguments "a" and "b" must point to values that persist for the
   // lifetime of the S2EdgeCrosser object (or until the next Init() call).
-  this(ref in S2Point a, ref in S2Point b)
-  in {
-    //assert(isUnitLength(a));
-    //assert(isUnitLength(b));
-  } body {
+  this(ref in S2Point a, ref in S2Point b) {
+    if (!isUnitLength(a)) logger.logWarn("Invalid");
+    if (!isUnitLength(b)) logger.logWarn("Invalid");
+
     _a = &a;
     _b = &b;
     _aCrossB = _a.crossProd(*_b);
@@ -148,11 +148,10 @@ public:
    *
    * The arguments must point to values that persist until the next call.
    */
-  this(ref in S2Point a, ref in S2Point b, ref in S2Point c)
-  in {
-    //assert(isUnitLength(a));
-    //assert(isUnitLength(b));
-  } body {
+  this(ref in S2Point a, ref in S2Point b, ref in S2Point c) {
+    if (!isUnitLength(a)) logger.logWarn("Invalid");
+    if (!isUnitLength(b)) logger.logWarn("Invalid");
+
     _a = &a;
     _b = &b;
     _aCrossB = _a.crossProd(*_b);
@@ -165,10 +164,8 @@ public:
    * Call this method when your chain 'jumps' to a new place.
    * The argument must point to a value that persists until the next call.
    */
-  void restartAt(ref in S2Point c)
-  in {
-    //assert(isUnitLength(c));
-  } body {
+  void restartAt(ref in S2Point c) {
+    if (!isUnitLength(c)) logger.logWarn("Invalid");
     _c = &c;
     _acb = -triageSign(*_a, *_b, *_c, _aCrossB);
   }
@@ -181,10 +178,8 @@ public:
    *
    * The argument must point to a value that persists until the next call.
    */
-  int crossingSign(ref in S2Point d)
-  in {
-    //assert(isUnitLength(d));
-  } body {
+  int crossingSign(ref in S2Point d) {
+    if (!isUnitLength(d)) logger.logWarn("Invalid");
     // For there to be an edge crossing, the triangles ACB, CBD, BDA, DAC must
     // all be oriented the same way (CW or CCW).  We keep the orientation of ACB
     // as part of our state.  When each new point D arrives, we compute the

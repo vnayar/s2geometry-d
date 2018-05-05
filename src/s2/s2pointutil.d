@@ -5,12 +5,12 @@ module s2.s2pointutil;
 // Defines additional operations for points on the unit sphere (in addition to
 // the standard vector operations defined in "util/math/vector.h").
 
+import math = std.math;
+import s2.logger;
 import s2.s1angle;
 import s2.s2point;
 import s2.util.math.matrix3x3;
 import s2.util.math.vector;
-
-import math = std.math;
 
 // Uncomment the following line for testing purposes only.
 // version = S2_TEST_DEGENERACIES;
@@ -92,11 +92,9 @@ S2Point ortho(in S2Point a) {
 //   (4) RCP(a,-b) == -RCP(a,b) unless a == b or a == -b
 //
 // The result is not guaranteed to be unit length.
-S2Point robustCrossProd(in S2Point a, in S2Point b)
-in {
-  //assert(isUnitLength(a));
-  //assert(isUnitLength(b));
-} body {
+S2Point robustCrossProd(in S2Point a, in S2Point b) {
+  if (!isUnitLength(a)) logger.logWarn("Invalid");
+  if (!isUnitLength(b)) logger.logWarn("Invalid");
   // The direction of a.CrossProd(b) becomes unstable as (a + b) or (a - b)
   // approaches zero.  This leads to situations where a.CrossProd(b) is not
   // very orthogonal to "a" and/or "b".  We could fix this using Gram-Schmidt,

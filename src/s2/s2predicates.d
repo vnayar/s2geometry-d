@@ -15,16 +15,17 @@ module s2.s2predicates;
 // (This is trickier than the usual textbook implementations because we want
 // to model S2Points as lying exactly on the mathematical unit sphere.)
 
-import s2.s1chordangle;
-import s2.s2pointutil;
-import s2.s2point;
-import s2.util.math.exactfloat;
-import s2.util.math.vector;
-import std.exception;
-import s2pointutil = s2.s2pointutil;
-import std.exception;
 import algorithm = std.algorithm;
 import math = std.math;
+import s2.logger;
+import s2.s1chordangle;
+import s2.s2point;
+import s2.s2pointutil;
+import s2.util.math.exactfloat;
+import s2.util.math.vector;
+import s2pointutil = s2.s2pointutil;
+import std.exception;
+import std.exception;
 import traits = std.traits;
 
 // A predefined S1ChordAngle representing (approximately) 45 degrees.
@@ -1434,12 +1435,10 @@ int sign(in S2Point a, in S2Point b, in S2Point c, in Vector3_d a_cross_b) {
  * The purpose of this method is to allow additional cheap tests to be done,
  * where possible, in order to avoid calling ExpensiveSign unnecessarily.
  */
-int triageSign(in S2Point a, in S2Point b, in S2Point c, in Vector3_d a_cross_b)
-in {
-  //assert(s2pointutil.isUnitLength(a));
-  //assert(s2pointutil.isUnitLength(b));
-  //assert(s2pointutil.isUnitLength(c));
-} body {
+int triageSign(in S2Point a, in S2Point b, in S2Point c, in Vector3_d a_cross_b) {
+  if (!s2pointutil.isUnitLength(a)) logger.logWarn("Invalid");
+  if (!s2pointutil.isUnitLength(b)) logger.logWarn("Invalid");
+  if (!s2pointutil.isUnitLength(c)) logger.logWarn("Invalid");
   // MAX_DET_ERROR is the maximum error in computing (AxB).C where all vectors
   // are unit length.  Using standard inequalities, it can be shown that
   //
