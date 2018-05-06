@@ -208,14 +208,14 @@ public:
 }
 
 // Trigonmetric functions (not necessary but slightly more convenient).
-double sin(S1Angle a) {
+double sin(in S1Angle a) {
   return math.sin(a.radians());
 }
 
-double cos(S1Angle a) {
+double cos(in S1Angle a) {
   return math.cos(a.radians());
 }
 
-double tan(S1Angle a) {
+double tan(in S1Angle a) {
   return math.tan(a.radians());
 }

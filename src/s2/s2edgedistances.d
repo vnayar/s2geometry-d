@@ -84,8 +84,19 @@ in {
 // If the distance from X to the edge AB is greater than "max_dist", this
 // method updates "max_dist" and returns true.  Otherwise it returns false.
 // The case A == B is handled correctly.
-//bool UpdateMaxDistance(const S2Point& x, const S2Point& a, const S2Point& b,
-//                       S1ChordAngle* max_dist);
+bool updateMaxDistance(in S2Point x, in S2Point a, in S2Point b, out S1ChordAngle max_dist) {
+  auto dist = algorithm.max(S1ChordAngle(x, a), S1ChordAngle(x, b));
+  if (dist > S1ChordAngle.right()) {
+    alwaysUpdateMinDistance!true(-x, a, b, dist);
+    dist = S1ChordAngle.straight() - dist;
+  }
+  if (max_dist < dist) {
+    max_dist = dist;
+    return true;
+  }
+
+  return false;
+}
 
 // Returns the maximum error in the result of UpdateMinDistance (and
 // associated functions such as UpdateMinInteriorDistance, IsDistanceLess,

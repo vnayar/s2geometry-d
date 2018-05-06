@@ -191,12 +191,12 @@ public:
     }
   }
 
-  S2LatLng opBinary(string op)(double m)
+  S2LatLng opBinary(string op)(double m) const
   if (op == "*" || op == "/") {
     return mixin("S2LatLng(_coords " ~ op ~ " m)");
   }
 
-  S2LatLng opBinaryRight(string op)(double m)
+  S2LatLng opBinaryRight(string op)(double m) const
   if (op == "*" || op == "/") {
     return mixin("S2LatLng(m " ~ op ~ " _coords)");
   }
