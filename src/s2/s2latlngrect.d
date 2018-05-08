@@ -62,7 +62,6 @@ public:
     }
   }
 
-
   // Construct a rectangle from latitude and longitude intervals.  The two
   // intervals must either be both empty or both non-empty, and the latitude
   // interval must not extend outside [-90, +90] degrees.
