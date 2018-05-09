@@ -1,18 +1,17 @@
 module s2.s1chordangle_test;
 
-import s2.s1chordangle;
-import s2.s1angle;
-import s2.s2point;
-//#include "s2/s2edge_distances.h"
-//#include "s2/s2predicates.h"
-import s2.s2testing;
-
 import fluent.asserts;
 import math = std.math;
+import s2.s1angle;
+import s2.s1chordangle;
+import s2.s2edgedistances;
+import s2.s2point;
+import s2.s2predicates;
+import s2.s2testing;
 import std.stdio;
 
 
-immutable double EPSILON = 0.0001;
+enum double EPSILON = 0.0001;
 
 @("DefaultConstructor")
 unittest {
@@ -183,27 +182,24 @@ unittest {
   Assert.equal(S1ChordAngle.fromLength2(0.75), S1ChordAngle.fromLength2(1).plusError(-0.25));
 }
 
-// TODO: Add when S2Predicates is implemented.
-// @("GetS2PointConstructorMaxError")
-// unittest {
-//   // Check that the error bound returned by GetS2PointConstructorMaxError() is
-//   // large enough.
-//   auto& rnd = S2Testing::rnd;
-//   for (int iter = 0; iter < 100000; ++iter) {
-//     rnd.Reset(iter);  // Easier to reproduce a specific case.
-//     S2Point x = S2Testing::RandomPoint();
-//     S2Point y = S2Testing::RandomPoint();
-//     if (rnd.OneIn(10)) {
-//       // Occasionally test a point pair that is nearly identical or antipodal.
-//       S1Angle r = S1Angle.radians(1e-15 * rnd.RandDouble());
-//       y = S2::InterpolateAtDistance(r, x, y);
-//       if (rnd.OneIn(2)) y = -y;
-//     }
-//     S1ChordAngle dist = S1ChordAngle(x, y);
-//     double error = dist.GetS2PointConstructorMaxError();
-//     EXPECT_LE(s2pred::CompareDistance(x, y, dist.PlusError(error)), 0)
-//         << "angle=" << S1Angle(dist) << ", iter=" << iter;
-//     EXPECT_GE(s2pred::CompareDistance(x, y, dist.PlusError(-error)), 0)
-//         << "angle=" << S1Angle(dist) << ", iter=" << iter;
-//   }
-// }
+@("GetS2PointConstructorMaxError")
+unittest {
+  // Check that the error bound returned by GetS2PointConstructorMaxError() is
+  // large enough.
+  auto rnd = S2Testing.rnd;
+  foreach (iter; 0 .. 100_000) {
+    rnd.reset(iter);  // Easier to reproduce a specific case.
+    S2Point x = S2Testing.randomPoint();
+    S2Point y = S2Testing.randomPoint();
+    if (rnd.oneIn(10)) {
+      // Occasionally test a point pair that is nearly identical or antipodal.
+      S1Angle r = S1Angle.fromRadians(1e-15 * rnd.randDouble());
+      y = interpolateAtDistance(r, x, y);
+      if (rnd.oneIn(2)) y = -y;
+    }
+    S1ChordAngle dist = S1ChordAngle(x, y);
+    double error = dist.getS2PointConstructorMaxError();
+    Assert.notGreaterThan(compareDistance(x, y, dist.plusError(error)), 0);
+    Assert.notLessThan(compareDistance(x, y, dist.plusError(-error)), 0);
+  }
+}
