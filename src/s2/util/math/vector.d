@@ -27,7 +27,11 @@ protected:
     alias FloatT = ElemT;
   }
 
-  ElemT[SizeV] _data;
+  static if (traits.isNumeric!ElemT) {
+    ElemT[SizeV] _data = 0;
+  } else {
+    ElemT[SizeV] _data;
+  }
 
 public:
 
@@ -289,6 +293,10 @@ public:
     bool isNaN() const {
       return algorithm.any!(a => a.isNaN())(_data[]);
     }
+
+    ThisT fabs() const {
+      return ThisT(algorithm.map!(a => a.fabs())(_data[]));
+    }
   }
 
   // Compute the absolute value of each component.
@@ -360,7 +368,6 @@ public:
         return cast(FloatT) crossProd(va).norm().atan2(dotProd(va));
       }
     }
-
 
     // return the index of the largest component (fabs)
     int largestAbsComponent() const {

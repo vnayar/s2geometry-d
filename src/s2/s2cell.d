@@ -591,6 +591,13 @@ public:
   // Decodes an S2Cell encoded with Encode().  Returns true on success.
   //bool Decode(Decoder* const decoder);
 
+  override
+  string toString() const {
+    import std.format;
+    return format!("[face=%d, level=%d, orientation=%d, id=%s, uv=%s]")(
+        _face, _level, _orientation, _id, _uv);
+  }
+
  private:
   // Returns the latitude or longitude of the cell vertex given by (i,j),
   // where "i" and "j" are either 0 or 1.

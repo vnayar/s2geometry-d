@@ -208,8 +208,10 @@ S2Point FaceXYZtoUVW(int face, in S2Point p) {
   }
 }
 
-// Return the face containing the given direction vector.  (For points on
-// the boundary between faces, the result is arbitrary but repeatable.)
+/**
+ * Return the face containing the given direction vector.  (For points on
+ * the boundary between faces, the result is arbitrary but repeatable.)
+ */
 int GetFace(in S2Point p) {
   int face = p.largestAbsComponent();
   if (p[face] < 0) {
@@ -218,8 +220,10 @@ int GetFace(in S2Point p) {
   return face;
 }
 
-// Convert a direction vector (not necessarily unit length) to
-// (face, u, v) coordinates.
+/**
+ * Convert a direction vector (not necessarily unit length) to
+ * (face, u, v) coordinates.
+ */
 int XYZtoFaceUV(in S2Point p, out double pu, out double pv) {
   int face = GetFace(p);
   ValidFaceXYZtoUV(face, p, pu, pv);
@@ -230,9 +234,11 @@ int XYZtoFaceUV(in S2Point p, out R2Point puv) {
   return XYZtoFaceUV(p, puv.data[0], puv.data[1]);
 }
 
-// Convert a direction vector (not necessarily unit length) to
-// (face, si, ti) coordinates and, if p is exactly equal to the center of a
-// cell, return the level of this cell (-1 otherwise).
+/**
+ * Convert a direction vector (not necessarily unit length) to
+ * (face, si, ti) coordinates and, if p is exactly equal to the center of a
+ * cell, return the level of this cell (-1 otherwise).
+ */
 int XYZtoFaceSiTi(in S2Point p, out int face, out uint si, out uint ti) {
   double u, v;
 
@@ -248,7 +254,7 @@ int XYZtoFaceSiTi(in S2Point p, out int face, out uint si, out uint ti) {
       level != MAX_CELL_LEVEL - bitop.bsf(ti | MAX_SI_TI)) {
     return -1;
   }
-  assert(level < MAX_CELL_LEVEL);
+  assert(level <= MAX_CELL_LEVEL);
   // In infinite precision, this test could be changed to ST == SiTi. However,
   // due to rounding errors, UVtoST(XYZtoFaceUV(FaceUVtoXYZ(STtoUV(...)))) is
   // not idempotent. On the other hand, center_raw is computed exactly the same
