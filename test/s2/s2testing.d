@@ -23,6 +23,7 @@ package int s2RandomSeed = 1;
 struct S2Testing {
 public:
 
+  // The Earth's mean radius in kilometers (according to NASA).
   static immutable double EARTH_RADIUS_KM = 6371.01;
 
   /**
@@ -224,7 +225,7 @@ public:
 
   // // Returns the user time consumed by this process, in seconds.
   // static double GetCpuTime();
-};
+}
 
 // Functions in this class return random numbers that are as good as random()
 // is.  The results are reproducible since the seed is deterministic.  This

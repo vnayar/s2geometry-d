@@ -66,6 +66,8 @@ private:
   }
 
 public:
+  static double PI = math.PI;
+
   // These methods construct S1Angle objects from their measure in radians
   // or degrees.
   static S1Angle fromRadians(double radians) {
@@ -73,7 +75,7 @@ public:
   }
 
   static S1Angle fromDegrees(double degrees) {
-    return S1Angle((math.PI / 180) * degrees);
+    return S1Angle((PI / 180) * degrees);
   }
 
   static S1Angle fromE5(int e5) {
@@ -131,7 +133,7 @@ public:
   }
 
   double degrees() const {
-    return (180 / math.PI) * _radians;
+    return (180 / PI) * _radians;
   }
 
   // Note that the E5, E6, and E7 conversion involve two multiplications rather
@@ -169,9 +171,20 @@ public:
     return radians() > y.radians() ? 1 : -1;
   }
 
+  // Implement negation.
+  S1Angle opUnary(string op)()
+  if (op == "-") {
+    return S1Angle(-radians());
+  }
+
   // Simple arithmetic operators for manipulating S1Angles.
   S1Angle opOpAssign(string op)(in S1Angle v) {
-    mixin("_radians " ~ op ~ "= v.radians()");
+    mixin("_radians " ~ op ~ "= v.radians();");
+    return this;
+  }
+
+  S1Angle opOpAssign(string op)(in double v) {
+    mixin("_radians " ~ op ~ "= v;");
     return this;
   }
 
@@ -196,9 +209,9 @@ public:
 
   // Normalize this angle to the range (-180, 180] degrees.
   void normalize() {
-    _radians = math.remainder(_radians, 2.0 * math.PI);
-    if (_radians <= -math.PI) {
-      _radians = math.PI;
+    _radians = math.remainder(_radians, 2.0 * PI);
+    if (_radians <= -PI) {
+      _radians = PI;
     }
   }
 
