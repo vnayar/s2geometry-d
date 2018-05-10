@@ -11,6 +11,7 @@ import format = std.format;
 import std.math;
 import range = std.range;
 import traits = std.traits;
+import s2.util.hash.mix;
 
 // CRTP base class for all Vector templates.
 struct Vector(ElemT, size_t SizeV)
@@ -133,7 +134,7 @@ public:
   }
 
   // Implement indexing of the form: v[i1]
-  ElemT opIndex(size_t i1) const
+  ref inout(ElemT) opIndex(size_t i1) inout
   in {
     assert(i1 >= 0);
     assert(i1 < SizeV);
@@ -318,6 +319,24 @@ public:
       sep = ", ";
     }
     return val ~ "]";
+  }
+
+  static if (traits.isNumeric!ElemT) {
+    size_t toHash() const nothrow @safe {
+      HashMix h = HashMix(cast(size_t) _data[0]);
+      foreach (d; _data[1 .. $]) {
+        h.mix(cast(size_t) d);
+      }
+      return h.get();
+    }
+  } else {
+    size_t toHash() const nothrow @safe {
+      HashMix h = HashMix(_data[0].toHash());
+      foreach (d; _data[1 .. $]) {
+        h.mix(d.toHash());
+      }
+      return h.get();
+    }
   }
 
   // Function implementations specific to 2-dimentional vectors.

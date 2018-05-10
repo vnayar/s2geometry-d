@@ -172,7 +172,7 @@ public:
   }
 
   // Implement negation.
-  S1Angle opUnary(string op)()
+  S1Angle opUnary(string op)() const
   if (op == "-") {
     return S1Angle(-radians());
   }

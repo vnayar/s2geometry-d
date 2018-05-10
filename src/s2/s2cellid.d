@@ -50,6 +50,7 @@ import format = std.format;
 import math = std.math;
 import range = std.range;
 
+
 struct S2CellId {
 private:
   // The default constructor returns an invalid cell id.
@@ -1006,6 +1007,7 @@ public:
     for (int d = 0; d < 2; ++d) {
       int ij_lo = ij[d] & -cell_size;
       int ij_hi = ij_lo + cell_size;
+
       bound[d][0] = s2coords.STtoUV(s2coords.IJtoSTMin(ij_lo));
       bound[d][1] = s2coords.STtoUV(s2coords.IJtoSTMin(ij_hi));
     }

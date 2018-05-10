@@ -2,19 +2,20 @@ module s2.s2cellid_test;
 
 // Original author: ericv@google.com (Eric Veach)
 
+import algorithm = std.algorithm;
+import array = std.array;
 import fluent.asserts;
-import std.stdio;
+import math = std.math;
 import s2.r2point;
 import s2.r2rect;
 import s2.s1angle;
+import s2.s2cap;
 import s2.s2cellid;
 import s2.s2coords;
 import s2.s2latlng;
 import s2.s2point;
 import s2.s2testing;
-import algorithm = std.algorithm;
-import array = std.array;
-import math = std.math;
+import s2.util.math.matrix3x3;
 import s2coords = s2.s2coords;
 import s2metrics = s2.s2metrics;
 
@@ -540,10 +541,6 @@ private R2Point projectToBoundary(in R2Point uv, in R2Rect rect) {
   return R2Point(rect[0].project(uv[0]), rect[1][1]);
 }
 
-/+
-////
-// TODO: Depends on S2Cap, add test when S2Cap is added.
-////
 private void testExpandedByDistanceUV(in S2CellId id, in S1Angle distance) {
   R2Rect bound = id.getBoundUV();
   R2Rect expanded = S2CellId.expandedByDistanceUV(bound, distance);
@@ -551,18 +548,18 @@ private void testExpandedByDistanceUV(in S2CellId id, in S1Angle distance) {
     // Choose a point on the boundary of the rectangle.
     int face = S2Testing.rnd.uniform(6);
     R2Point center_uv = sampleBoundary(bound);
-    S2Point center = S2.faceUVtoXYZ(face, center_uv).normalize();
+    S2Point center = s2coords.FaceUVtoXYZ(face, center_uv).normalize();
 
     // Now sample a point from a disc of radius (2 * distance).
-    S2Point p = S2Testing.samplePoint(S2Cap(center, 2 * distance.abs()));
+    S2Point p = S2Testing.samplePoint(new S2Cap(center, 2 * distance.abs()));
 
     // Find the closest point on the boundary to the sampled point.
     R2Point uv;
-    if (!s2coords.faceXYZtoUV(face, p, uv)) {
+    if (!s2coords.FaceXYZtoUV(face, p, uv)) {
       continue;
     }
     R2Point closest_uv = projectToBoundary(uv, bound);
-    S2Point closest = s2coords.faceUVtoXYZ(face, closest_uv).normalize();
+    S2Point closest = s2coords.FaceUVtoXYZ(face, closest_uv).normalize();
     S1Angle actual_dist = S1Angle(p, closest);
 
     if (distance >= S1Angle.zero()) {
@@ -581,16 +578,15 @@ private void testExpandedByDistanceUV(in S2CellId id, in S1Angle distance) {
   }
 }
 
-TEST(S2CellId, ExpandedByDistanceUV) {
+@("ExpandedByDistanceUV")
+unittest {
   double max_dist_degrees = 10;
   for (int iter = 0; iter < 100; ++iter) {
-    S2CellId id = S2Testing::GetRandomCellId();
-    double dist_degrees = S2Testing::rnd.UniformDouble(-max_dist_degrees,
-                                                       max_dist_degrees);
-    TestExpandedByDistanceUV(id, S1Angle::Degrees(dist_degrees));
+    S2CellId id = S2Testing.getRandomCellId();
+    double dist_degrees = S2Testing.rnd.uniformDouble(-max_dist_degrees, max_dist_degrees);
+    testExpandedByDistanceUV(id, S1Angle.fromDegrees(dist_degrees));
   }
 }
-+/
 
 @("toString")
 unittest {

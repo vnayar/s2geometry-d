@@ -80,7 +80,7 @@ public:
   // Methods that allow the R1Interval to be accessed as a vector.  (The
   // recommended style is to use lo() and hi() whenever possible, but these
   // methods are useful when the endpoint to be selected is not constant.)
-  double opIndex(size_t i) const {
+  ref inout(double) opIndex(size_t i) inout {
     return _bounds[i];
   }
 

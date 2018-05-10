@@ -88,11 +88,11 @@ public:
   }
 
   // Methods that allow the R2Rect to be accessed as a vector.
-  R1Interval opIndex(size_t i) const {
+  ref inout(R1Interval) opIndex(size_t i) inout {
     return _bounds[i];
   }
 
-  void opIndexAssign(R1Interval value, size_t i)
+  void opIndexAssign(in R1Interval value, size_t i)
   in {
     assert(i >= 0 && i < 2);
   } body {

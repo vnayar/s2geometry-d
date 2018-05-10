@@ -2,12 +2,15 @@ module s2.s2testing;
 
 // Original author: ericv@google.com (Eric Veach)
 
-import s2.r2point;
-import s2.s1angle;
-import s2.s2cellid;
-import s2.s2point;
 import math = std.math;
 import random = std.random;
+import s2.r2point;
+import s2.s1angle;
+import s2.s2cap;
+import s2.s2cellid;
+import s2.s2point;
+import s2.s2pointutil;
+import s2.util.math.matrix3x3;
 
 // You can optionally call S2Testing::rnd.Reset(FLAGS_s2_random_seed) at the
 // start of a test or benchmark to ensure that its results do not depend on
@@ -189,7 +192,25 @@ public:
 
   // Return a point chosen uniformly at random (with respect to area)
   // from the given cap.
-  //static S2Point samplePoint(const S2Cap& cap);
+  static S2Point samplePoint(in S2Cap cap) {
+    // We consider the cap axis to be the "z" axis.  We choose two other axes to
+    // complete the coordinate frame.
+
+    Matrix3x3_d m;
+    getFrame(cap.center(), m);
+
+    // The surface area of a spherical cap is directly proportional to its
+    // height.  First we choose a random height, and then we choose a random
+    // point along the circle at that height.
+
+    double h = rnd.randDouble() * cap.height();
+    double theta = 2 * math.PI * rnd.randDouble();
+    double r = math.sqrt(h * (2 - h));  // Radius of circle.
+
+    // The result should already be very close to unit-length, but we might as
+    // well make it accurate as possible.
+    return fromFrame(m, S2Point(math.cos(theta) * r, math.sin(theta) * r, 1 - h)).normalize();
+  }
 
   // Return a point chosen uniformly at random (with respect to area on the
   // sphere) from the given latitude-longitude rectangle.

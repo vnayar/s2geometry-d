@@ -7,8 +7,6 @@ import conv = std.conv;
 import math = std.math;
 import traits = std.traits;
 
-import std.stdio;
-
 /**
  * A simple class to handle 3x3 matrices
  * The aim of this class is to be able to manipulate 3x3 matrices
@@ -206,7 +204,7 @@ public:
   }
 
   // Return matrix element (i,j) with 0<=i<=2 0<=j<=2
-  ElemT opIndex(in size_t i, in size_t j)
+  ref inout(ElemT) opIndex(in size_t i, in size_t j) inout
   in {
     assert(i >= 0 && i < 3);
     assert(j >= 0 && j < 3);

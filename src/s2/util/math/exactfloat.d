@@ -96,9 +96,10 @@ module s2.util.math.exactfloat;
 import algorithm = std.algorithm;
 import format = std.format;
 import math = std.math;
-import traits = std.traits;
-import std.range;
+import s2.util.hash.mix;
 import std.bigint;
+import std.range;
+import traits = std.traits;
 
 struct ExactFloat {
 public:
@@ -383,11 +384,11 @@ public:
   // Note that if two values have different precisions, they may have the same
   // ToString() value even though their values are slightly different.  If you
   // need to distinguish such values, use ToUniqueString() intead.
-  //string toString() const {
-  //  int max_digits = algorithm.max(MIN_SIGNIFICANT_DIGITS,
-  //      numSignificantDigitsForPrec(prec()));
-  //  return toStringWithMaxDigits(max_digits);
-  //}
+  string toString() const {
+    int max_digits = algorithm.max(MIN_SIGNIFICANT_DIGITS,
+        numSignificantDigitsForPrec(prec()));
+    return toStringWithMaxDigits(max_digits);
+  }
 
   // Return a string formatted according to printf("%Ng") where N is the given
   // maximum number of significant digits.
@@ -451,10 +452,17 @@ public:
   // values, then their string representations are always different.  This
   // method is useful for debugging.  The string has the form "value<prec>",
   // where "prec" is the actual precision of the ExactFloat (e.g., "0.215<50>").
-  //string toUniqueString() const {
-  //  string precStr = format.format("<%d>", prec());
-  //  return toString() ~ precStr;
-  //}
+  string toUniqueString() const {
+    string precStr = format.format("<%d>", prec());
+    return toString() ~ precStr;
+  }
+
+  size_t toHash() const nothrow @safe {
+    return HashMix(_bn.toHash())
+        .mix(cast(size_t) _bnExp)
+        .mix(cast(size_t) _sign)
+        .get();
+  }
 
   // Return an upper bound on the number of significant digits required to
   // distinguish any two floating-point numbers with the given precision when
