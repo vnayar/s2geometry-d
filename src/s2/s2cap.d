@@ -444,12 +444,14 @@ public:
   // The output is not sorted.
   override
   void getCellUnionBound(out S2CellId[] cell_ids) const {
+    import std.stdio;
     // TODO(ericv): The covering could be made quite a bit tighter by mapping
     // the cap to a rectangle in (i,j)-space and finding a covering for that.
 
     // Find the maximum level such that the cap contains at most one cell vertex
     // and such that S2CellId::AppendVertexNeighbors() can be called.
     int level = s2metrics.MIN_WIDTH.getLevelForMinValue(getRadius().radians()) - 1;
+    writeln("level = ", level);
 
     // If level < 0, then more than three face cells are required.
     if (level < 0) {
@@ -460,7 +462,7 @@ public:
     } else {
       // The covering consists of the 4 cells at the given level that share the
       // cell vertex that is closest to the cap center.
-      cell_ids.length = 4;
+      cell_ids.reserve(4);
       S2CellId(_center).appendVertexNeighbors(level, cell_ids);
     }
   }
