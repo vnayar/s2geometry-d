@@ -1,3 +1,20 @@
+// Copyright 2012 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Original author: ericv@google.com (Eric Veach)
+// Converted to D:  madric@gmail.com (Vijay Nayar)
+
 module s2.r2rect;
 
 import s2.r1interval;
@@ -5,13 +22,13 @@ import s2.r2point;
 import s2.logger;
 import conv = std.conv;
 
-// Original author: ericv@google.com (Eric Veach)
-//
-// An R2Rect represents a closed axis-aligned rectangle in the (x,y) plane.
-//
-// This class is intended to be copied by value as desired.  It uses
-// the default copy constructor and assignment operator, however it is
-// not a "plain old datatype" (POD) because it has virtual functions.
+/**
+ * An R2Rect represents a closed axis-aligned rectangle in the (x,y) plane.
+ *
+ * This class is intended to be copied by value as desired.  It uses
+ * the default copy constructor and assignment operator, however it is
+ * not a "plain old datatype" (POD) because it has virtual functions.
+ */
 struct R2Rect {
 private:
   R1Interval[2] _bounds;

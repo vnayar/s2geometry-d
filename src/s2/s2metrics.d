@@ -1,7 +1,22 @@
-module s2.s2metrics;
+// Copyright 2005 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Original author: ericv@google.com (Eric Veach)
-//
+// Converted to D:  madric@gmail.com (Vijay Nayar)
+
+module s2.s2metrics;
+
 // The following are various constants that describe the shapes and sizes of
 // S2Cells (see s2coords.h and s2cell_id.h).  They are useful for deciding
 // which cell level to use in order to satisfy a given condition (e.g. that
