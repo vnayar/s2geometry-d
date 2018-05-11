@@ -92,7 +92,7 @@ public:
   }
 
   this(in S2LatLng ll) {
-    this(ll.toPoint());
+    this(ll.toS2Point());
   }
 
   static S2CellId none() {
@@ -130,11 +130,11 @@ public:
   // The maximum directional error in ToPoint() (compared to the exact
   // mathematical result) is 1.5 * DBL_EPSILON radians, and the maximum length
   // error is 2 * DBL_EPSILON (the same as Normalize).
-  S2Point toPoint() const {
-    return toPointRaw().normalize();
+  S2Point toS2Point() const {
+    return toS2PointRaw().normalize();
   }
 
-  S2Point toPointRaw() const {
+  S2Point toS2PointRaw() const {
     int si, ti;
     int face = getCenterSiTi(si, ti);
     return s2coords.FaceSiTitoXYZ(face, si, ti);
@@ -271,7 +271,7 @@ public:
 
   // Return the S2LatLng corresponding to the center of the given cell.
   S2LatLng toLatLng() const {
-    return S2LatLng(toPointRaw());
+    return S2LatLng(toS2PointRaw());
   }
 
   // The 64-bit unique identifier for this cell.

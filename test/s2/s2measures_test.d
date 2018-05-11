@@ -105,12 +105,12 @@ unittest {
   // degree edge and one near-degenerate edge.
   for (int i = 0; i < 100; ++i) {
     double lng = 2 * math.PI * S2Testing.rnd.randDouble();
-    S2Point p0 = S2LatLng.fromRadians(1e-20, lng).normalized().toPoint();
-    S2Point p1 = S2LatLng.fromRadians(0, lng).normalized().toPoint();
+    S2Point p0 = S2LatLng.fromRadians(1e-20, lng).normalized().toS2Point();
+    S2Point p1 = S2LatLng.fromRadians(0, lng).normalized().toS2Point();
     double p2_lng = lng + S2Testing.rnd.randDouble();
-    S2Point p2 = S2LatLng.fromRadians(0, p2_lng).normalized().toPoint();
-    S2Point p3 = S2LatLng.fromRadians(0, lng + math.PI).normalized().toPoint();
-    S2Point p4 = S2LatLng.fromRadians(0, lng + 5.0).normalized().toPoint();
+    S2Point p2 = S2LatLng.fromRadians(0, p2_lng).normalized().toS2Point();
+    S2Point p3 = S2LatLng.fromRadians(0, lng + math.PI).normalized().toS2Point();
+    S2Point p4 = S2LatLng.fromRadians(0, lng + 5.0).normalized().toS2Point();
     double area = area(p0, p1, p2) + area(p0, p2, p3)
         + area(p0, p3, p4) + area(p0, p4, p1);
     Assert.approximately(area, 2 * math.PI, 2e-15);

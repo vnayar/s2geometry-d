@@ -20,7 +20,7 @@ import s2.util.math.vector;
 import s2metrics = s2.s2metrics;
 
 static S2Point getLatLngPoint(double lat_degrees, double lng_degrees) {
-  return S2LatLng.fromDegrees(lat_degrees, lng_degrees).toPoint();
+  return S2LatLng.fromDegrees(lat_degrees, lng_degrees).toS2Point();
 }
 
 enum {

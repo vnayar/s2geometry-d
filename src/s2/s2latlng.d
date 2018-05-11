@@ -137,7 +137,7 @@ public:
   // Converts a normalized S2LatLng to the equivalent unit-length vector.
   // The maximum error in the result is 1.5 * DBL_EPSILON.  (This does not
   // include the error of converting degrees, E5, E6, or E7 to radians.)
-  S2Point toPoint() const
+  S2Point toS2Point() const
   in {
     assert(isValid(), "Invalid S2LatLng in S2LatLng.toPoint() : " ~ this.toString());
   } body {

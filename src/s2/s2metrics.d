@@ -212,18 +212,18 @@ version (S2_QUADRATIC_PROJECTION) {
 // and the maximum is at most kMaxArea.GetValue(k).  The average area of all
 // cells at level k is exactly kAvgArea.GetValue(k).
 version (S2_LINEAR_PROJECTION) {
-  immutable LengthMetric MIN_AREA = LengthMetric(4 / (3 * math.sqrt(3)));        // 0.770
-  immutable LengthMetric MAX_AREA = LengthMetric(4);                             // 4.000
+  immutable AreaMetric MIN_AREA = AreaMetric(4 / (3 * math.sqrt(3)));        // 0.770
+  immutable AreaMetric MAX_AREA = AreaMetric(4);                             // 4.000
 }
 version (S2_TAN_PROJECTION) {
-  immutable LengthMetric MIN_AREA = LengthMetric((math.PI*math.PI) / (4*math.sqrt(2))); // 1.745
-  immutable LengthMetric MAX_AREA = LengthMetric(math.PI * math.PI / 4);         // 2.467
+  immutable AreaMetric MIN_AREA = AreaMetric((math.PI*math.PI) / (4*math.sqrt(2))); // 1.745
+  immutable AreaMetric MAX_AREA = AreaMetric(math.PI * math.PI / 4);         // 2.467
 }
 version (S2_QUADRATIC_PROJECTION) {
-  immutable LengthMetric MIN_AREA = LengthMetric(8 * math.sqrt(2.0) / 9);        // 1.257
-  immutable LengthMetric MAX_AREA = LengthMetric(2.635799256963161491);          // 2.636
+  immutable AreaMetric MIN_AREA = AreaMetric(8 * math.sqrt(2.0) / 9);        // 1.257
+  immutable AreaMetric MAX_AREA = AreaMetric(2.635799256963161491);          // 2.636
 }
-immutable LengthMetric AVG_AREA = LengthMetric(4 * math.PI / 6);                 // 2.094
+immutable AreaMetric AVG_AREA = AreaMetric(4 * math.PI / 6);                 // 2.094
 
 // This is the maximum edge aspect ratio over all cells at any level, where
 // the edge aspect ratio of a cell is defined as the ratio of its longest

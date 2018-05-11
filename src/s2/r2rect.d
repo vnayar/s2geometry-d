@@ -2,6 +2,7 @@ module s2.r2rect;
 
 import s2.r1interval;
 import s2.r2point;
+import s2.logger;
 import conv = std.conv;
 
 // Original author: ericv@google.com (Eric Veach)
@@ -29,7 +30,7 @@ public:
   // intervals must either be both empty or both non-empty.
   this(in R1Interval x, in R1Interval y)
   out {
-    assert(isValid());
+    if (!isValid()) logger.logError("Invalid: " ~ toString());
   } body {
     _bounds[0] = x;
     _bounds[1] = y;

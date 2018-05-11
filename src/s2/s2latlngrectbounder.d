@@ -34,7 +34,7 @@ private:
   in {
     // Simple consistency check to verify that b and b_latlng are alternate
     // representations of the same vertex.
-    assert(approxEquals(b, b_latlng.toPoint()));
+    assert(approxEquals(b, b_latlng.toS2Point()));
   } body {
     if (_bound.isEmpty()) {
       _bound.addPoint(b_latlng);
@@ -188,7 +188,7 @@ public:
    * represented as an S2LatLng.  Repeated vertices are ignored.
    */
   void addLatLng(in S2LatLng b_latlng) {
-    addInternal(b_latlng.toPoint(), b_latlng);
+    addInternal(b_latlng.toS2Point(), b_latlng);
   }
 
   /**

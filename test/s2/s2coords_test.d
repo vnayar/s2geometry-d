@@ -104,13 +104,13 @@ unittest {
       S2CellId id = S2Testing.getRandomCellId(level);
       int face;
       uint si, ti;
-      int actual_level = XYZtoFaceSiTi(id.toPoint(), face, si, ti);
+      int actual_level = XYZtoFaceSiTi(id.toS2Point(), face, si, ti);
       Assert.equal(level, actual_level);
       S2CellId actual_id = S2CellId.fromFaceIJ(face, si / 2, ti / 2).parent(level);
       Assert.equal(id, actual_id);
 
       // Now test a point near the cell center but not equal to it.
-      S2Point p_moved = id.toPoint() + S2Point(1e-13, 1e-13, 1e-13);
+      S2Point p_moved = id.toS2Point() + S2Point(1e-13, 1e-13, 1e-13);
       int face_moved;
       uint si_moved, ti_moved;
       actual_level = XYZtoFaceSiTi(p_moved, face_moved, si_moved, ti_moved);
@@ -140,7 +140,7 @@ unittest {
         if (actual_level >= 0) {
           Assert.equal(
               p_random,
-              S2CellId.fromFaceIJ(face, si / 2, ti / 2).parent(actual_level).toPoint());
+              S2CellId.fromFaceIJ(face, si / 2, ti / 2).parent(actual_level).toS2Point());
         }
       }
     }

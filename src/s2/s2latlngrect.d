@@ -169,7 +169,7 @@ public:
   }
 
   // The full allowable range of latitudes and longitudes.
-  static R1Interval fullLat() { return R1Interval(-math.PI_2, math.PI_2); }
+  static R1Interval fullLat() { return R1Interval(-S1Angle.PI_2, S1Angle.PI_2); }
   static S1Interval fullLng() { return S1Interval.full(); }
 
   // Returns true if the rectangle is valid, which essentially just means
@@ -178,8 +178,8 @@ public:
   // either the latitude or longitude bound is empty then both must be.
   bool isValid() const {
     // The lat/lng ranges must either be both empty or both non-empty.
-    return (math.fabs(_lat.lo()) <= math.PI_2
-        && math.fabs(_lat.hi()) <= math.PI_2
+    return (math.fabs(_lat.lo()) <= S1Angle.PI_2
+        && math.fabs(_lat.hi()) <= S1Angle.PI_2
         && _lng.isValid()
         && _lat.isEmpty() == _lng.isEmpty());
   }
@@ -348,7 +348,7 @@ public:
 
     if (isEmpty()) return false;
     if (contains(cell.getCenterRaw())) return true;
-    if (cell.contains(getCenter().toPoint())) return true;
+    if (cell.contains(getCenter().toS2Point())) return true;
 
     // Quick rejection test (not required for correctness).
     if (!intersects(cell.getRectBound())) return false;
@@ -363,7 +363,7 @@ public:
       cell_v[i] = cell.getVertex(i);  // Must be normalized.
       cell_ll[i] = S2LatLng(cell_v[i]);
       if (contains(cell_ll[i])) return true;
-      if (cell.contains(getVertex(i).toPoint())) return true;
+      if (cell.contains(getVertex(i).toS2Point())) return true;
     }
 
     // Now check whether the boundaries intersect.  Unfortunately, a
@@ -404,10 +404,10 @@ public:
       if (intersectsLngEdge(v0, v1, _lat, _lng.lo())) return true;
       if (intersectsLngEdge(v0, v1, _lat, _lng.hi())) return true;
     }
-    if (_lat.lo() != -math.PI_2 && intersectsLatEdge(v0, v1, _lat.lo(), _lng)) {
+    if (_lat.lo() != -S1Angle.PI_2 && intersectsLatEdge(v0, v1, _lat.lo(), _lng)) {
       return true;
     }
-    if (_lat.hi() != math.PI_2 && intersectsLatEdge(v0, v1, _lat.hi(), _lng)) {
+    if (_lat.hi() != S1Angle.PI_2 && intersectsLatEdge(v0, v1, _lat.hi(), _lng)) {
       return true;
     }
     return false;
@@ -466,7 +466,7 @@ public:
    * contains all possible representations of the contained pole(s).
    */
   S2LatLngRect polarClosure() const {
-    if (_lat.lo() == -math.PI_2 || _lat.hi() == math.PI_2) {
+    if (_lat.lo() == -S1Angle.PI_2 || _lat.hi() == S1Angle.PI_2) {
       return new S2LatLngRect(_lat, S1Interval.full());
     }
     return new S2LatLngRect(this);
@@ -544,7 +544,7 @@ public:
       auto radius = S1ChordAngle(distance);
       S2LatLngRect r = new S2LatLngRect(this);
       for (int k = 0; k < 4; ++k) {
-        scope S2Cap cap = new S2Cap(getVertex(k).toPoint(), radius);
+        scope S2Cap cap = new S2Cap(getVertex(k).toS2Point(), radius);
         r = r.unite(cap.getRectBound());
       }
       return r;
@@ -572,7 +572,7 @@ public:
       // When sin_a >= sin_c, the cap covers all the latitude.
       double sin_a = math.sin(-distance.radians());
       double sin_c = math.cos(max_abs_lat);
-      double max_lng_margin = sin_a < sin_c ? math.asin(sin_a / sin_c) : math.PI_2;
+      double max_lng_margin = sin_a < sin_c ? math.asin(sin_a / sin_c) : S1Angle.PI_2;
 
       S1Interval lng_result = lng().expanded(-max_lng_margin);
       if (lng_result.isEmpty()) {
@@ -631,10 +631,10 @@ public:
     // single point-edge distance by comparing the relative latitudes of the
     // endpoints, but for the sake of clarity, we'll do all four point-edge
     // distance tests.
-    S2Point a_lo = S2LatLng(a.latLo(), a_lng).toPoint();
-    S2Point a_hi = S2LatLng(a.latHi(), a_lng).toPoint();
-    S2Point b_lo = S2LatLng(b.latLo(), b_lng).toPoint();
-    S2Point b_hi = S2LatLng(b.latHi(), b_lng).toPoint();
+    S2Point a_lo = S2LatLng(a.latLo(), a_lng).toS2Point();
+    S2Point a_hi = S2LatLng(a.latHi(), a_lng).toS2Point();
+    S2Point b_lo = S2LatLng(b.latLo(), b_lng).toS2Point();
+    S2Point b_hi = S2LatLng(b.latHi(), b_lng).toS2Point();
     return algorithm.min(
         edgedistances.getDistance(a_lo, b_lo, b_hi),
         algorithm.min(
@@ -670,9 +670,9 @@ public:
     } else {
       a_lng = a.lng().lo();
     }
-    S2Point lo = S2LatLng.fromRadians(a.lat().lo(), a_lng).toPoint();
-    S2Point hi = S2LatLng.fromRadians(a.lat().hi(), a_lng).toPoint();
-    return edgedistances.getDistance(p.toPoint(), lo, hi);
+    S2Point lo = S2LatLng.fromRadians(a.lat().lo(), a_lng).toS2Point();
+    S2Point hi = S2LatLng.fromRadians(a.lat().hi(), a_lng).toS2Point();
+    return edgedistances.getDistance(p.toS2Point(), lo, hi);
   }
 
   // Returns the (directed or undirected) Hausdorff distance (measured along the
@@ -692,7 +692,7 @@ public:
       return S1Angle.fromRadians(0);
     }
     if (other.isEmpty()) {
-      return S1Angle.fromRadians(math.PI);  // maximum possible distance on S2
+      return S1Angle.fromRadians(S1Angle.PI);  // maximum possible distance on S2
     }
 
     double lng_distance = lng().getDirectedHausdorffDistance(other.lng());
@@ -745,10 +745,10 @@ public:
     if (_lat.lo() + _lat.hi() < 0) {
       // South pole axis yields smaller cap.
       pole_z = -1;
-      pole_angle = math.PI_2 + _lat.hi();
+      pole_angle = S1Angle.PI_2 + _lat.hi();
     } else {
       pole_z = 1;
-      pole_angle = math.PI_2 - _lat.lo();
+      pole_angle = S1Angle.PI_2 - _lat.lo();
     }
     S2Cap pole_cap = new S2Cap(S2Point(0, 0, pole_z), S1Angle.fromRadians(pole_angle));
 
@@ -757,10 +757,10 @@ public:
     // rectangles that are larger than 180 degrees, we punt and always return a
     // bounding cap centered at one of the two poles.
     double lng_span = _lng.hi() - _lng.lo();
-    if (math.remainder(lng_span, 2 * math.PI) >= 0 && lng_span < 2 * math.PI) {
-      auto mid_cap = new S2Cap(getCenter().toPoint(), S1Angle.fromRadians(0));
+    if (math.remainder(lng_span, 2 * S1Angle.PI) >= 0 && lng_span < 2 * S1Angle.PI) {
+      auto mid_cap = new S2Cap(getCenter().toS2Point(), S1Angle.fromRadians(0));
       for (int k = 0; k < 4; ++k) {
-        mid_cap.addPoint(getVertex(k).toPoint());
+        mid_cap.addPoint(getVertex(k).toS2Point());
       }
       if (mid_cap.height() < pole_cap.height())
         return mid_cap;
@@ -827,8 +827,8 @@ public:
     // they are straight lines on the sphere (geodesics).
 
     return crossingSign(
-        a, b, S2LatLng.fromRadians(lat.lo(), lng).toPoint(),
-        S2LatLng.fromRadians(lat.hi(), lng).toPoint()) > 0;
+        a, b, S2LatLng.fromRadians(lat.lo(), lng).toS2Point(),
+        S2LatLng.fromRadians(lat.hi(), lng).toS2Point()) > 0;
   }
 
   // Returns true if the edge AB intersects the given edge of constant
@@ -902,7 +902,7 @@ public:
   static S1Angle getDirectedHausdorffDistance(double lng_diff, in R1Interval a, in R1Interval b)
   in {
     assert(lng_diff >= 0);
-    assert(lng_diff <= math.PI);
+    assert(lng_diff <= S1Angle.PI);
   } body {
     // By symmetry, we can assume a's longtitude is 0 and b's longtitude is
     // lng_diff. Call b's two endpoints b_lo and b_hi. Let H be the hemisphere
@@ -938,20 +938,20 @@ public:
     // Assumed longtitude of b.
     double b_lng = lng_diff;
     // Two endpoints of b.
-    S2Point b_lo = S2LatLng.fromRadians(b.lo(), b_lng).toPoint();
-    S2Point b_hi = S2LatLng.fromRadians(b.hi(), b_lng).toPoint();
+    S2Point b_lo = S2LatLng.fromRadians(b.lo(), b_lng).toS2Point();
+    S2Point b_hi = S2LatLng.fromRadians(b.hi(), b_lng).toS2Point();
 
     // Handling of each case outlined at the top of the function starts here.
     // This is initialized a few lines below.
     S1Angle max_distance;
 
     // Cases A1 and B1.
-    S2Point a_lo = S2LatLng.fromRadians(a.lo(), 0).toPoint();
-    S2Point a_hi = S2LatLng.fromRadians(a.hi(), 0).toPoint();
+    S2Point a_lo = S2LatLng.fromRadians(a.lo(), 0).toS2Point();
+    S2Point a_hi = S2LatLng.fromRadians(a.hi(), 0).toS2Point();
     max_distance = edgedistances.getDistance(a_lo, b_lo, b_hi);
     max_distance = algorithm.max(max_distance, edgedistances.getDistance(a_hi, b_lo, b_hi));
 
-    if (lng_diff <= math.PI_2) {
+    if (lng_diff <= S1Angle.PI_2) {
       // Case A2.
       if (a.contains(0) && b.contains(0)) {
         max_distance = algorithm.max(max_distance, S1Angle.fromRadians(lng_diff));
@@ -1012,13 +1012,13 @@ public:
     // A vector orthogonal to the bisector of the given longitudinal edge.
     S2LatLng ortho_bisector;
     if (lat_center >= 0) {
-      ortho_bisector = S2LatLng.fromRadians(lat_center - math.PI_2, lng);
+      ortho_bisector = S2LatLng.fromRadians(lat_center - S1Angle.PI_2, lng);
     } else {
-      ortho_bisector = S2LatLng.fromRadians(-lat_center - math.PI_2, lng - math.PI);
+      ortho_bisector = S2LatLng.fromRadians(-lat_center - S1Angle.PI_2, lng - S1Angle.PI);
     }
     // A vector orthogonal to longitude 0.
     static const S2Point ortho_lng = S2Point(0, -1, 0);
-    return robustCrossProd(ortho_lng, ortho_bisector.toPoint());
+    return robustCrossProd(ortho_lng, ortho_bisector.toS2Point());
   }
 
   R1Interval _lat;

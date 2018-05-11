@@ -66,7 +66,8 @@ private:
   }
 
 public:
-  static double PI = math.PI;
+  static immutable double PI = math.PI;
+  static immutable double PI_2 = math.PI_2;
 
   // These methods construct S1Angle objects from their measure in radians
   // or degrees.

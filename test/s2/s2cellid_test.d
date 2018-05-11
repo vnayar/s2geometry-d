@@ -402,14 +402,14 @@ unittest {
   S2CellId end = S2CellId.end(MAX_WALK_LEVEL);
   S2CellId id = S2CellId.begin(MAX_WALK_LEVEL);
   for (; id != end; id = id.next()) {
-    Assert.notGreaterThan(id.toPointRaw().angle(id.nextWrap().toPointRaw()), max_dist);
+    Assert.notGreaterThan(id.toS2PointRaw().angle(id.nextWrap().toS2PointRaw()), max_dist);
     Assert.equal(id.nextWrap(), id.advanceWrap(1));
     Assert.equal(id, id.nextWrap().advanceWrap(-1));
 
     // Check that the ToPointRaw() returns the center of each cell
     // in (s,t) coordinates.
     double u, v;
-    s2coords.XYZtoFaceUV(id.toPointRaw(), u, v);
+    s2coords.XYZtoFaceUV(id.toS2PointRaw(), u, v);
     immutable double kCellSize = 1.0 / (1 << MAX_WALK_LEVEL);
     Assert.approximately(math.remainder(s2coords.UVtoST(u), 0.5 * kCellSize), 0.0, 1e-15);
     Assert.approximately(math.remainder(s2coords.UVtoST(v), 0.5 * kCellSize), 0.0, 1e-15);
@@ -428,7 +428,7 @@ unittest {
   double max_dist = 0.5 * s2metrics.MAX_DIAG.getValue(S2CellId.MAX_LEVEL);
   for (int i = 0; i < 1_000_000; ++i) {
     S2Point p = S2Testing.randomPoint();
-    S2Point q = S2CellId(p).toPointRaw();
+    S2Point q = S2CellId(p).toS2PointRaw();
     Assert.notGreaterThan(p.angle(q), max_dist);
   }
 }

@@ -147,7 +147,7 @@ public:
   //   children[pos] = S2Cell(id);
   //
   // except that it is more than two times faster.
-  bool subdivide(S2Cell[4] children) const {
+  bool subdivide(out S2Cell[4] children) const {
     // This function is equivalent to just iterating over the child cell ids
     // and calling the S2Cell constructor, but it is about 2.5 times faster.
 
@@ -161,7 +161,7 @@ public:
     // Create four children with the appropriate bounds.
     S2CellId id = _id.childBegin();
     for (int pos = 0; pos < 4; ++pos, id = id.next()) {
-      S2Cell child = children[pos];
+      S2Cell child = new S2Cell();
       child._face = _face;
       child._level = cast(byte)(_level + 1);
       child._orientation = cast(byte)(_orientation ^ s2coords.POS_TO_ORIENTATION[pos]);
@@ -176,6 +176,7 @@ public:
       child._uv[0][1-i] = uv_mid[0];
       child._uv[1][j] = _uv[1][j];
       child._uv[1][1-j] = uv_mid[1];
+      children[pos] = child;
     }
     return true;
   }
@@ -190,7 +191,7 @@ public:
   }
 
   S2Point getCenterRaw() const {
-    return _id.toPointRaw();
+    return _id.toS2PointRaw();
   }
 
   // Returns the average area for cells at the given level.
