@@ -15,7 +15,7 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2cellid_test;
+module s2.s2cell_id_test;
 
 import algorithm = std.algorithm;
 import array = std.array;
@@ -25,7 +25,7 @@ import s2.r2point;
 import s2.r2rect;
 import s2.s1angle;
 import s2.s2cap;
-import s2.s2cellid;
+import s2.s2cell_id;
 import s2.s2coords;
 import s2.s2latlng;
 import s2.s2point;

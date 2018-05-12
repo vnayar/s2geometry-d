@@ -21,7 +21,7 @@ import fluent.asserts;
 import s2.s2pointutil;
 import s2.util.math.matrix3x3;
 import s2.s2point;
-import s2.s2edgedistances;
+import s2.s2edge_distances;
 import s2.s2testing;
 import s2.s1angle;
 import s2.s2measures;

@@ -15,20 +15,20 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2latlngrect;
+module s2.s2latlng_rect;
 
 import algorithm = std.algorithm;
-import edgedistances = s2.s2edgedistances;
+import edgedistances = s2.s2edge_distances;
 import math = std.math;
 import s2.logger;
 import s2.r1interval;
 import s2.s1angle;
-import s2.s1chordangle;
+import s2.s1chord_angle;
 import s2.s1interval;
 import s2.s2cap;
 import s2.s2cell;
-import s2.s2cellid;
-import s2.s2edgecrossings;
+import s2.s2cell_id;
+import s2.s2edge_crossings;
 import s2.s2latlng;
 import s2.s2point;
 import s2.s2pointutil;

@@ -15,7 +15,7 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2cellid;
+module s2.s2cell_id;
 
 // An S2CellId is a 64-bit unsigned integer that uniquely identifies a
 // cell in the S2 cell decomposition.  It has the following format:

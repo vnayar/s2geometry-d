@@ -22,7 +22,7 @@ import random = std.random;
 import s2.r2point;
 import s2.s1angle;
 import s2.s2cap;
-import s2.s2cellid;
+import s2.s2cell_id;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.util.math.matrix3x3;

@@ -22,16 +22,16 @@ import format = std.format;
 import math = std.math;
 import s2.r1interval;
 import s2.s1angle;
-import s2.s1chordangle;
+import s2.s1chord_angle;
 import s2.s1interval;
 import s2.s2cell;
-import s2.s2cellid;
+import s2.s2cell_id;
 import s2.s2latlng;
-import s2.s2latlngrect;
+import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2region;
 import s2.util.math.vector;
-import s2edgedistances = s2.s2edgedistances;
+import s2edge_distances = s2.s2edge_distances;
 import s2metrics = s2.s2metrics;
 import s2pointutil = s2.s2pointutil;
 
@@ -382,7 +382,7 @@ public:
       return new S2Cap(this);
     } else {
       S1Angle result_radius = 0.5 * (distance + this_radius + other_radius);
-      S2Point result_center = s2edgedistances.interpolateAtDistance(
+      S2Point result_center = s2edge_distances.interpolateAtDistance(
           0.5 * (distance - this_radius + other_radius),
           center(),
           other.center());

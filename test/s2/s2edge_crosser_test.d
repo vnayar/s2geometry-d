@@ -15,12 +15,12 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2edgecrosser_test;
+module s2.s2edge_crosser_test;
 
 import fluent.asserts;
-import s2.s2edgecrosser;
-import s2.s2edgecrossings;
-import s2.s2edgedistances;
+import s2.s2edge_crosser;
+import s2.s2edge_crossings;
+import s2.s2edge_distances;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.s2testing;

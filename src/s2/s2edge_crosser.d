@@ -16,11 +16,11 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2edgecrosser;
+module s2.s2edge_crosser;
 
 import math = std.math;
 import s2.logger;
-import s2.s2edgecrossings;
+import s2.s2edge_crossings;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.s2predicates;

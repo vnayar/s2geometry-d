@@ -33,7 +33,7 @@ module s2.s2predicates;
 import algorithm = std.algorithm;
 import math = std.math;
 import s2.logger;
-import s2.s1chordangle;
+import s2.s1chord_angle;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.util.math.exactfloat;

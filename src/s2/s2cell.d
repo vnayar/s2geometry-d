@@ -21,19 +21,19 @@ import algorithm = std.algorithm;
 import math = std.math;
 import s2.r2point;
 import s2.r2rect;
-import s2.s1chordangle;
+import s2.s1chord_angle;
 import s2.s2cap;
-import s2.s2cellid;
+import s2.s2cell_id;
 import s2.r1interval;
 import s2.s1interval;
-import s2.s2edgecrosser;
+import s2.s2edge_crosser;
 import s2.s2latlng;
-import s2.s2latlngrect;
+import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2region;
 import s2.util.math.vector;
 import s2coords = s2.s2coords;
-import s2edgedistances = s2.s2edgedistances;
+import s2edge_distances = s2.s2edge_distances;
 import s2measures = s2.s2measures;
 import s2metrics = s2.s2metrics;
 import std.exception;
@@ -337,7 +337,7 @@ public:
     // the interior of a cell edge, because the only way that this distance can
     // be minimal is if the two edges cross (already checked above).
     for (int i = 0; i < 4; ++i) {
-      s2edgedistances.updateMinDistance(v[i], a, b, min_dist);
+      s2edge_distances.updateMinDistance(v[i], a, b, min_dist);
     }
     return min_dist;
   }
@@ -382,8 +382,8 @@ public:
     S1ChordAngle min_dist = S1ChordAngle.infinity();
     for (int i = 0; i < 4; ++i) {
       for (int j = 0; j < 4; ++j) {
-        s2edgedistances.updateMinDistance(va[i], vb[j], vb[(j + 1) & 3], min_dist);
-        s2edgedistances.updateMinDistance(vb[i], va[j], va[(j + 1) & 3], min_dist);
+        s2edge_distances.updateMinDistance(va[i], vb[j], vb[(j + 1) & 3], min_dist);
+        s2edge_distances.updateMinDistance(vb[i], va[j], va[(j + 1) & 3], min_dist);
       }
     }
     return min_dist;
@@ -413,8 +413,8 @@ public:
     S1ChordAngle max_dist = S1ChordAngle.negative();
     for (int i = 0; i < 4; ++i) {
       for (int j = 0; j < 4; ++j) {
-        s2edgedistances.updateMaxDistance(va[i], vb[j], vb[(j + 1) & 3], max_dist);
-        s2edgedistances.updateMaxDistance(vb[i], va[j], va[(j + 1) & 3], max_dist);
+        s2edge_distances.updateMaxDistance(va[i], vb[j], vb[(j + 1) & 3], max_dist);
+        s2edge_distances.updateMaxDistance(vb[i], va[j], va[(j + 1) & 3], max_dist);
       }
     }
     return max_dist;

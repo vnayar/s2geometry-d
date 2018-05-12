@@ -15,7 +15,7 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2latlngrect_test;
+module s2.s2latlng_rect_test;
 
 // Most of the S2LatLngRect methods have trivial implementations that
 // use the R1Interval and S1Interval classes, so most of the testing
@@ -31,9 +31,9 @@ import s2.s1angle;
 import s2.s1interval;
 import s2.s2cap;
 import s2.s2cell;
-import s2.s2edgedistances;
+import s2.s2edge_distances;
 import s2.s2latlng;
-import s2.s2latlngrect;
+import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.s2testing;
@@ -757,9 +757,9 @@ static S1Angle bruteForceDistance(in S2LatLngRect a, in S2LatLngRect b) {
       // Get distances to latitude and longitude edges.
       S1Angle a_to_lat = getDistance(current_a, lat_b[j], b.lng());
       S1Angle b_to_lat = getDistance(current_b, lat_a[j], a.lng());
-      S1Angle a_to_lng = s2.s2edgedistances.getDistance(
+      S1Angle a_to_lng = s2.s2edge_distances.getDistance(
           current_a.toS2Point(), lng_edge_b[j][0], lng_edge_b[j][1]);
-      S1Angle b_to_lng = s2.s2edgedistances.getDistance(
+      S1Angle b_to_lng = s2.s2edge_distances.getDistance(
           current_b.toS2Point(), lng_edge_a[j][0], lng_edge_a[j][1]);
 
       min_distance = algorithm.min(
@@ -777,11 +777,11 @@ static S1Angle bruteForceRectPointDistance(in S2LatLngRect a, in S2LatLng b) {
 
   S1Angle b_to_lo_lat = getDistance(b, a.latLo(), a.lng());
   S1Angle b_to_hi_lat = getDistance(b, a.latHi(), a.lng());
-  S1Angle b_to_lo_lng = s2.s2edgedistances.getDistance(
+  S1Angle b_to_lo_lng = s2.s2edge_distances.getDistance(
       b.toS2Point(),
       S2LatLng(a.latLo(), a.lngLo()).toS2Point(),
       S2LatLng(a.latHi(), a.lngLo()).toS2Point());
-  S1Angle b_to_hi_lng = s2.s2edgedistances.getDistance(
+  S1Angle b_to_hi_lng = s2.s2edge_distances.getDistance(
       b.toS2Point(),
       S2LatLng(a.latLo(), a.lngHi()).toS2Point(),
       S2LatLng(a.latHi(), a.lngHi()).toS2Point());

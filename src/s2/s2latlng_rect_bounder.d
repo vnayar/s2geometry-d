@@ -15,15 +15,15 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2latlngrectbounder;
+module s2.s2latlng_rect_bounder;
 
 import algorithm = std.algorithm;
 import math = std.math;
 import s2.r1interval;
-import s2.s1chordangle;
+import s2.s1chord_angle;
 import s2.s1interval;
 import s2.s2latlng;
-import s2.s2latlngrect;
+import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.util.math.vector;

@@ -15,7 +15,7 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s1chordangle;
+module s2.s1chord_angle;
 
 import s2.s1angle;
 import s2.s2point;

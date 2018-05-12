@@ -15,13 +15,13 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2edgedistances;
+module s2.s2edge_distances;
 
 // Defines a collection of functions for computing the distance to an edge,
 // interpolating along an edge, projecting points onto edges, etc.
 
 import s2.s1angle;
-import s2.s1chordangle;
+import s2.s1chord_angle;
 import s2.s2point;
 import s2pointutil = s2.s2pointutil;
 import s2.util.math.vector;

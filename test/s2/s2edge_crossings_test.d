@@ -15,16 +15,16 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2edgecrossings_test;
+module s2.s2edge_crossings_test;
 
 import fluent.asserts;
 import s2.s2point;
 import s2.s1angle;
-import s2.s2edgecrossings;
-import s2.s2edgedistances;
+import s2.s2edge_crossings;
+import s2.s2edge_distances;
 import s2.s2predicates;
 import s2.s2testing;
-import s2.s2edgedistances;
+import s2.s2edge_distances;
 import s2.util.math.exactfloat;
 import s2.util.math.vector;
 import std.stdio;

@@ -19,7 +19,7 @@ module s2.s2coords_test;
 
 import fluent.asserts;
 import s2.s2coords;
-import s2.s2cellid;
+import s2.s2cell_id;
 import s2.s2testing;
 import s2.s2point;
 import math = std.math;

@@ -15,7 +15,7 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2edgecrossings;
+module s2.s2edge_crossings;
 
 // Defines functions related to determining whether two geodesic edges cross
 // and for computing intersection points.
@@ -29,14 +29,14 @@ module s2.s2edgecrossings;
 // the process).
 
 import s2.s1angle;
-import s2.s1chordangle;
+import s2.s1chord_angle;
 import s2.s1interval;
 import s2.s2latlng;
 import s2.s2latlng;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.s2predicates;
-import s2.s2edgecrosser;
+import s2.s2edge_crosser;
 import s2.util.math.exactfloat;
 import s2.util.math.vector;
 import std.stdio;
