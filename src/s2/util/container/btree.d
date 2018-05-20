@@ -81,6 +81,52 @@ public:
   enum MIN_DEGREE = getMinDegree();
   enum MAX_DEGREE = MIN_DEGREE * 2;
 
+  this() {
+    // TODO: ALLOCATE-NODE() which allocates a disk page in O(1).
+    _root = Node();
+    _root._isLeaf = true;
+    _root._numValues = 0;
+    // TODO: DISK-WRITE(_root)
+  }
+
+  @property
+  inout(Node) root() inout {
+    return _root;
+  }
+
+  /**
+   * Recursively search for a given key and produce a result indicating whether a match
+   * was found and what it's value is.
+   */
+  inout(Result) search(KeyT k) inout {
+    return _root.search(k);
+  }
+
+  /**
+   * Inserts a new value into the BTree, whose key is extracted using the $(D_INLINECODE KeyF)
+   * template parameter.
+   */
+  void insert(ValueT v) {
+    Node* r = &_root;
+    if (r.isFull()) {
+      Node newRoot = Node();
+      _root = newRoot;
+      newRoot._isLeaf = false;
+      newRoot._numValues = 0;
+      newRoot._children[0] = r;
+      newRoot.splitChild(0);
+      newRoot.insertNonFull(v);
+    } else {
+      r.insertNonFull(v);
+    }
+  }
+
+  /**
+   * The result of a search operation.
+   *
+   * It is a separate structure to account for the fact that the BTree may contain non-nullable
+   * types, and thus a way of identifying an unsuccessful search is needed.
+   */
   struct Result {
   private:
     Node* _node;
@@ -100,16 +146,27 @@ public:
     }
   }
 
+  /**
+   * A node in the BTree.
+   *
+   * A notable feature is that the values that are inserted are stored inside the BTree itself
+   * in the case of value data types, such as integers, floats, static arrays, or structs. In
+   * other cases, such as dynamic arrays and classes, on the reference is stored.
+   */
   struct Node {
   private:
-    // Dynamic arrays have a length field of type size_t.
-    // The key is extracted from the value using KeyF.
+    // The values are stored together with the keys, which are extracted using the KeyF param.
     ValueT[MAX_DEGREE - 1] _values;
     size_t _numValues;
     bool _isLeaf;
     // Only non-leaf (internal) nodes have children.
     Node*[MAX_DEGREE] _children;
 
+    /**
+     * Given that this node is non-full, but a child child node that is, split the child node
+     * into two separate nodes that are half full, and insert a new key into this node between
+     * them.
+     */
     void splitChild(size_t i)
     in {
       assert(!isFull());
@@ -151,7 +208,13 @@ public:
       // TODO: DISK-WRITE(this)
     }
 
-    void insertNonFull(ValueT v) {
+    /**
+     * Inserts a new value/key into the BTree, provided that this node is not already full.
+     */
+    void insertNonFull(ValueT v)
+    in {
+      assert(!isFull());
+    } body {
       int i = cast(int) _numValues - 1;
       KeyT k = _getKey(v);
       if (_isLeaf) {
@@ -181,34 +244,44 @@ public:
     }
 
   public:
+
+    /// Retrieves a key at a given position of a node. The key is derived from the stored value.
     inout(KeyT) getKey(size_t i) inout
     in {
       assert(i >= 0);
-      assert(i < MAX_DEGREE - 1);
+      assert(i < _numValues);
     } body {
       return _getKey(getValue(i));
     }
 
+    /// Indicates how many keys are in this node.
     size_t numKeys() const {
       return _numValues;
     }
 
+    /// Indicates if the node has reached the size limit specified in $(D_INLINECODE NodeSizeV).
     bool isFull() {
       return _numValues >= MAX_DEGREE - 1;
     }
 
+    /// Retrieves a values stored in this node.
     inout(ValueT) getValue(size_t i) inout
     in {
       assert(i >= 0);
-      assert(i < MAX_DEGREE);
+      assert(i < _numValues);
     } body {
       return _values[i];
     }
 
+    /// Indicates how many values are in this node.
     size_t numValues() const {
       return _numValues;
     }
 
+    /**
+     * Recursively search for a given key and produce a result indicating whether a match
+     * was found and what it's value is.
+     */
     inout(Result) search(KeyT k) inout {
       size_t i = 0;
       while (i < numKeys() && _keyLess(getKey(i), k)) {
@@ -222,38 +295,6 @@ public:
       } else {
         return _children[i].search(k);
       }
-    }
-  }
-
-  this() {
-    // TODO: ALLOCATE-NODE() which allocates a disk page in O(1).
-    _root = Node();
-    _root._isLeaf = true;
-    _root._numValues = 0;
-    // TODO: DISK-WRITE(_root)
-  }
-
-  @property
-  inout(Node) root() inout {
-    return _root;
-  }
-
-  inout(Result) search(KeyT k) inout {
-    return _root.search(k);
-  }
-
-  void insert(ValueT v) {
-    Node* r = &_root;
-    if (r.isFull()) {
-      Node newRoot = Node();
-      _root = newRoot;
-      newRoot._isLeaf = false;
-      newRoot._numValues = 0;
-      newRoot._children[0] = r;
-      newRoot.splitChild(0);
-      newRoot.insertNonFull(v);
-    } else {
-      r.insertNonFull(v);
     }
   }
 }
