@@ -3,6 +3,10 @@ module s2.util.container.btree;
 import std.algorithm : max;
 import std.functional : unaryFun, binaryFun;
 import std.traits : ReturnType;
+import std.format : format;
+
+import std.stdio;
+import std.conv : to;
 
 /**
  * A B-Tree implementation based upon "Introduction to Algorithms" by Cormen, Leiserson, Rivest,
@@ -73,7 +77,7 @@ private:
   //   = NodeSize
   static size_t getMinDegree() @nogc @safe pure nothrow {
     return (NodeSizeV - bool.sizeof - size_t.sizeof + ValueT.sizeof)
-        / (2 * (ValueT.sizeof + (Node*).sizeof));
+        / (2 * (ValueT.sizeof + (Node).sizeof));
   }
 
 public:
@@ -83,7 +87,7 @@ public:
 
   this() {
     // TODO: ALLOCATE-NODE() which allocates a disk page in O(1).
-    _root = Node();
+    _root = new Node();
     _root._isLeaf = true;
     _root._numValues = 0;
     // TODO: DISK-WRITE(_root)
@@ -107,17 +111,17 @@ public:
    * template parameter.
    */
   void insert(ValueT v) {
-    Node* r = &_root;
-    if (r.isFull()) {
-      Node newRoot = Node();
+    Node curRoot = _root;
+    if (curRoot.isFull()) {
+      Node newRoot = new Node();
       _root = newRoot;
       newRoot._isLeaf = false;
       newRoot._numValues = 0;
-      newRoot._children[0] = r;
+      newRoot._children[0] = curRoot;
       newRoot.splitChild(0);
       newRoot.insertNonFull(v);
     } else {
-      r.insertNonFull(v);
+      curRoot.insertNonFull(v);
     }
   }
 
@@ -129,7 +133,7 @@ public:
    */
   struct Result {
   private:
-    Node* _node;
+    Node _node;
     size_t _position;
   public:
 
@@ -153,14 +157,22 @@ public:
    * in the case of value data types, such as integers, floats, static arrays, or structs. In
    * other cases, such as dynamic arrays and classes, on the reference is stored.
    */
-  struct Node {
+  class Node {
   private:
     // The values are stored together with the keys, which are extracted using the KeyF param.
     ValueT[MAX_DEGREE - 1] _values;
     size_t _numValues;
-    bool _isLeaf;
+    bool _isLeaf = true;
     // Only non-leaf (internal) nodes have children.
-    Node*[MAX_DEGREE] _children;
+    Node[MAX_DEGREE] _children;
+
+    invariant {
+      if (!_isLeaf) {
+        foreach (i; 0 .. _numValues + 1) {
+          assert(_children[i] !is null);
+        }
+      }
+    }
 
     /**
      * Given that this node is non-full, but a child child node that is, split the child node
@@ -169,38 +181,43 @@ public:
      */
     void splitChild(size_t i)
     in {
-      assert(!isFull());
-      assert(_children[i].isFull());
+      assert(!isFull(), "this = " ~ toString());
+      assert(_children[i].isFull(), format("_children[%d] = %s", i, _children[i].toString()));
+    } out {
+      assert(_children[i]._numValues == MIN_DEGREE - 1);
+      assert(_children[i+1]._numValues == MIN_DEGREE - 1);
     } body {
-      Node* toSplitNode = _children[i];
+      Node toSplitNode = _children[i];
 
       // Prepare a new node containig the right half of the node at _children[i].
       // TODO: ALLOCATE-NODE(newNode)
-      Node newNode = Node();
+      Node newNode = new Node();
       newNode._isLeaf = toSplitNode._isLeaf;
       newNode._numValues = MIN_DEGREE - 1;
       foreach (j; 0 .. MIN_DEGREE - 1) {
         newNode._values[j] = toSplitNode._values[j + MIN_DEGREE];
       }
       if (!toSplitNode._isLeaf) {
-        foreach (j; 1 .. MIN_DEGREE) {
+        foreach (j; 0 .. MIN_DEGREE) {
           newNode._children[j] = toSplitNode._children[j + MIN_DEGREE];
         }
       }
 
-      // Make way for a key value to be added from _children[i].
-      for (auto j = _numValues; j >= i; j--) {
-        _children[j + 1] = _children[j];
+      // Make way for a newNode to be added at position i + 1.
+      // There can be up to _numValues + 1 children.
+      for (auto j = _numValues + 1; j >= i + 1; j--) {
+        _children[j] = _children[j - 1];
       }
-      _children[i] = &newNode;
+      _children[i + 1] = newNode;
 
-      for (auto j = _numValues - 1; j >= i; j--) {
-        _values[j+1] = _values[j];
+      // Make way for the new value added at position i.
+      for (auto j = _numValues; j > i; j--) {
+        _values[j] = _values[j - 1];
       }
-      _values[i] = toSplitNode._values[MIN_DEGREE];
+      _values[i] = toSplitNode._values[MIN_DEGREE - 1];
       _numValues++;
 
-      // Finally reduce the size of key/values in the node being split, cutting it in half.
+      // Reduce the size of key/values in the node being split, cutting it in half.
       toSplitNode._numValues = MIN_DEGREE - 1;
 
       // TODO: DISK-WRITE(toSplitNode)
@@ -218,10 +235,11 @@ public:
       int i = cast(int) _numValues - 1;
       KeyT k = _getKey(v);
       if (_isLeaf) {
+        // Shift over the keys to make room.
         for (; i >= 0 && _keyLess(k, getKey(i)); i--) {
-          _values[i+1] = _values[i];
+          _values[i + 1] = _values[i];
         }
-        _values[i+1] = v;
+        _values[i + 1] = v;
         _numValues++;
         // TODO: DISK-WRITE(this)
       } else {
@@ -235,7 +253,7 @@ public:
         if (_children[i].isFull()) {
           splitChild(i);
           // After splitting, the median value of the child is not in this node at index i.
-          if (k > getKey(i)) {
+          if (_keyLess(getKey(i), k)) {
             i++;
           }
         }
@@ -243,7 +261,30 @@ public:
       }
     }
 
+  package:
+    bool isLeaf() {
+      return _isLeaf;
+    }
+
+    Node getChild(size_t i)
+    in {
+      assert(!_isLeaf);
+      assert(i >= 0);
+      assert(i <= _numValues);
+    } body {
+      return _children[i];
+    }
+
+    size_t numChildren() const {
+      return _isLeaf ? 0 : _numValues + 1;
+    }
+
   public:
+
+    override
+    string toString() {
+      return format("[L=%d, #V=%d]", _isLeaf, _numValues);
+    }
 
     /// Retrieves a key at a given position of a node. The key is derived from the stored value.
     inout(KeyT) getKey(size_t i) inout
@@ -288,7 +329,7 @@ public:
         i++;
       }
       if (i < numKeys() && _keyEqual(getKey(i), k)) {
-        return inout(Result)(&this, i);
+        return inout(Result)(this, i);
       }
       if (_isLeaf) {
         return inout(Result)(null, -1);
@@ -347,10 +388,30 @@ unittest {
 
   // Organize the BTree using the _id field as the key used for comparison.
   auto btree = new BTree!(Structo, 1024, int, "a._id");
+  btree.insert(Structo(1, "Good Day"));
+  btree.insert(Structo(2, "Guten Tag"));
+  btree.insert(Structo(3, "G'Day Mate"));
+  assert(btree.search(2).isFound());
+  assert(!btree.search(4).isFound());
+  assert(btree.search(3).getValue()._data == "G'Day Mate");
+}
+
+/// Use case using comparison by a specific value.
+unittest {
+  struct Structo {
+    int _id;
+    string _data;
+  }
 
   // This time use the string _data field, but only the first two characters.
   auto btree2 = new BTree!(
       Structo, 1024, string, "a._data", "a[0..2] > b[0..2]", "a[0..2] == b[0..2]");
+  btree2.insert(Structo(1, "RW-Fish"));
+  btree2.insert(Structo(2, "LG-Sheep"));
+  btree2.insert(Structo(3, "BK-Bunny"));
+  assert(btree2.search("RW").isFound());
+  assert(!btree2.search("ZM").isFound());
+  assert(btree2.search("BK").getValue()._data == "BK-Bunny");
 }
 
 /// Use case compatible with class comparing operator overrides:
@@ -388,4 +449,3 @@ unittest {
   assert(btree.search(new Thingy(2, 1)).isFound());
   assert(!btree.search(new Thingy(2, 2)).isFound());
 }
-
