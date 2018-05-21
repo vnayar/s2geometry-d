@@ -5,9 +5,6 @@ import std.functional : unaryFun, binaryFun;
 import std.traits : ReturnType;
 import std.format : format;
 
-import std.stdio;
-import std.conv : to;
-
 /**
  * A B-Tree implementation based upon "Introduction to Algorithms" by Cormen, Leiserson, Rivest,
  * and Stein.
@@ -167,6 +164,8 @@ public:
     Node[MAX_DEGREE] _children;
 
     invariant {
+      assert(this is _root || _numValues >= MIN_DEGREE - 1);
+      assert(_numValues <= MAX_DEGREE - 1);
       if (!_isLeaf) {
         foreach (i; 0 .. _numValues + 1) {
           assert(_children[i] !is null);
@@ -261,6 +260,35 @@ public:
       }
     }
 
+    static if (MIN_DEGREE < 16) {
+      // If degree is small, use a simple linear search.
+      size_t findKeyIndex(KeyT k) const {
+        size_t i = 0;
+        while (i < numKeys() && _keyLess(getKey(i), k)) {
+          i++;
+        }
+        return i;
+      }
+    } else {
+      // If degree is higher, use a binary search.
+      size_t findKeyIndex(KeyT k) const {
+        size_t i = 0;
+        size_t j = numKeys();
+        while (i < j) {
+          size_t mid = (i + j) / 2;
+          KeyT midKey = getKey(mid);
+          if (_keyEqual(k, midKey)) {
+            return mid;
+          } else if (_keyLess(k, midKey)) {
+            j = mid - 1;
+          } else {
+            i = mid + 1;
+          }
+        }
+        return numKeys();
+      }
+    }
+
   package:
     bool isLeaf() {
       return _isLeaf;
@@ -279,11 +307,35 @@ public:
       return _isLeaf ? 0 : _numValues + 1;
     }
 
+    ValueT[] getValues() {
+      return _values[0 .. _numValues];
+    }
+
+    void remove(KeyT k) {
+      size_t i = findKeyIndex(k);
+
+      // 1. If the key k is in node x and x is a leaf, delete the key from x.
+      if (_isLeaf && i != _numValues) {
+        foreach (j; i .. _numValues - 1) {
+          _values[j] = _values[j+1];
+        }
+        _numValues--;
+      } else if (i != _numValues) {
+        // 2. If the key k is in node x and x is an internal node:
+        // 2a.
+        // 2b.
+        // 2c.
+      }
+      // 3.
+      // 3a.
+      // 3b.
+    }
+
   public:
 
     override
     string toString() {
-      return format("[L=%d, #V=%d]", _isLeaf, _numValues);
+      return format("[isLeaf=%d, numValues=%d]", _isLeaf, _numValues);
     }
 
     /// Retrieves a key at a given position of a node. The key is derived from the stored value.
@@ -324,10 +376,7 @@ public:
      * was found and what it's value is.
      */
     inout(Result) search(KeyT k) inout {
-      size_t i = 0;
-      while (i < numKeys() && _keyLess(getKey(i), k)) {
-        i++;
-      }
+      size_t i = findKeyIndex(k);
       if (i < numKeys() && _keyEqual(getKey(i), k)) {
         return inout(Result)(this, i);
       }
@@ -406,12 +455,22 @@ unittest {
   // This time use the string _data field, but only the first two characters.
   auto btree2 = new BTree!(
       Structo, 1024, string, "a._data", "a[0..2] > b[0..2]", "a[0..2] == b[0..2]");
-  btree2.insert(Structo(1, "RW-Fish"));
-  btree2.insert(Structo(2, "LG-Sheep"));
-  btree2.insert(Structo(3, "BK-Bunny"));
-  assert(btree2.search("RW").isFound());
-  assert(!btree2.search("ZM").isFound());
-  assert(btree2.search("BK").getValue()._data == "BK-Bunny");
+
+  // Lambdas may also be used.
+  auto btree3 = new BTree!(
+      Structo,  // The type of thing being stored in the BTree.
+      1024,  // The size of a node in bytes.
+      string,  // The key type.
+      a => a._data,  // How to extract the key.
+      (a, b) => a[0..2] > b[0..2],  // Determine if one key is less than another.
+      (a, b) => a[0..2] == b[0..2]);  // Determine if two keys are equal.
+
+  btree3.insert(Structo(1, "RW-Fish"));
+  btree3.insert(Structo(2, "LG-Sheep"));
+  btree3.insert(Structo(3, "BK-Bunny"));
+  assert(btree3.search("RW").isFound());
+  assert(!btree3.search("ZM").isFound());
+  assert(btree3.search("BK").getValue()._data == "BK-Bunny");
 }
 
 /// Use case compatible with class comparing operator overrides:

@@ -5,7 +5,6 @@ import s2.util.container.btree;
 
 import std.stdio;
 
-
 void printTree(T)(T btree) {
   btree.Node[] nodes = [btree.root];
   while (nodes.length > 0) {
@@ -26,7 +25,6 @@ void printTree(T)(T btree) {
   }
 }
 
-
 /**
  * Creates a BTRee representing a standard setup used for testing.
  * MIN_DEGREE should be 3, meaning min keys per node is 2 and max is 5.
@@ -44,6 +42,8 @@ auto createTestBTree() {
   foreach (c; testData) {
     btree.insert(c);
   }
+
+  Assert.equal(btree.MIN_DEGREE, 3);
 
   Assert.equal(btree.root.getValue(0), 'O');
 
@@ -84,8 +84,11 @@ auto createTestBTree() {
   return btree;
 }
 
+@("delete.1")
 unittest {
   auto btree = createTestBTree();
-  assert(btree.MIN_DEGREE == 3);
+  btree.Node node = btree.root.getChild(0).getChild(1);
+  node.remove('E');
+  Assert.equal(node.getValues(), "DF");
 }
 
