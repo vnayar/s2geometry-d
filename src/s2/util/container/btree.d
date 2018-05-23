@@ -262,7 +262,7 @@ public:
 
     static if (MIN_DEGREE < 16) {
       // If degree is small, use a simple linear search.
-      size_t findKeyIndex(KeyT k) const {
+      size_t findFirstGEIndex(KeyT k) const {
         size_t i = 0;
         while (i < numKeys() && _keyLess(getKey(i), k)) {
           i++;
@@ -271,13 +271,13 @@ public:
       }
     } else {
       // If degree is higher, use a binary search.
-      size_t findKeyIndex(KeyT k) const {
+      size_t findFirstGEIndex(KeyT k) const {
         size_t i = 0;
         size_t j = numKeys();
         while (i < j) {
           size_t mid = (i + j) / 2;
           KeyT midKey = getKey(mid);
-          if (_keyEqual(k, midKey)) {
+          if ((mid == 0 || _keyLess(getKey(mid - 1), k)) && !_keyLess(midKey, k)) {
             return mid;
           } else if (_keyLess(k, midKey)) {
             j = mid - 1;
@@ -312,23 +312,71 @@ public:
     }
 
     void remove(KeyT k) {
-      size_t i = findKeyIndex(k);
+      size_t i = findFirstGEIndex(k);
 
-      // 1. If the key k is in node x and x is a leaf, delete the key from x.
-      if (_isLeaf && i != _numValues) {
+      // 1. If the key k is in this node and this is a leaf, delete the key from this.
+      if (_isLeaf && i != _numValues && _keyEqual(k, getKey(i))) {
         foreach (j; i .. _numValues - 1) {
           _values[j] = _values[j+1];
         }
         _numValues--;
-      } else if (i != _numValues) {
-        // 2. If the key k is in node x and x is an internal node:
-        // 2a.
-        // 2b.
-        // 2c.
       }
-      // 3.
-      // 3a.
-      // 3b.
+      // 2. If the key k is in this node and this is an internal node:
+      else if (i != _numValues && _keyEqual(k, getKey(i))) {
+        // 2a. If child y that precedes k in this node has at least t keys, then find the
+        // predecessor k' of k in the subtree rooted at y. Recursively delete k' and replace
+        // k by k' in this.
+        if (_children[i]._numValues >= MIN_DEGREE) {
+          ValueT predecessor = _children[i].getValue(_numValues - 1);
+          _values[i] = predecessor;
+          _children[i].remove(_getKey(predecessor));
+        }
+        // 2b. If child z that follows k in this node has at least t keys, then find the
+        // successor k' of k in the subtree rooted at z.  Recursively delete k', and replace
+        // k by k' in this.
+        else if (_children[i+1]._numValues >= MIN_DEGREE) {
+          ValueT successor = _children[i+1].getValue(0);
+          _values[i] = successor;
+          _children[i+1].remove(_getKey(successor));
+        }
+        // 2c. Otherwise, if both y and z have only t-1 keys, merge k and all of z into y,
+        // so that x loses both k and the pointer to z, and y now contains 2t-1 keys.
+        // Then, free z and recursively delete k from y.
+        else {
+          Node y = _children[i];
+          Node z = _children[i + 1];
+          // Add k and z to y.
+          y._values[y._numValues++] = _values[i];
+          foreach (j; 0 .. z._numValues) {
+            y._values[y._numValues + j] = z._values[j];
+          }
+          foreach (j; 0 .. z._numValues + 1) {
+            y._children[y._numValues + j] = z._children[j];
+          }
+          y._numValues += z._numValues;
+
+          // Remove k and z from this.
+          foreach (j; i .. _numValues - 1) {
+            _values[j] = _values[j + 1];
+          }
+          foreach (j; i + 1 .. _numValues) {
+            _children[j] = _children[j + 1];
+          }
+          _numValues--;
+
+          // Recursively remove k from y.
+          y.remove(k);
+        }
+      }
+      // 3. The internal node does not have the key, but maybe a child does.
+      else if (!_isLeaf) {
+        // Assure that the child to descend to has at least MIN_DEGREE values.
+        if (_children[i]._numValues == MIN_DEGREE - 1) {
+          // 3a.
+          // 3b.
+        }
+        _children[i].remove(k);
+      }
     }
 
   public:
@@ -376,7 +424,7 @@ public:
      * was found and what it's value is.
      */
     inout(Result) search(KeyT k) inout {
-      size_t i = findKeyIndex(k);
+      size_t i = findFirstGEIndex(k);
       if (i < numKeys() && _keyEqual(getKey(i), k)) {
         return inout(Result)(this, i);
       }

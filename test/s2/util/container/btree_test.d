@@ -92,3 +92,25 @@ unittest {
   Assert.equal(node.getValues(), "DF");
 }
 
+@("delete.2a")
+unittest {
+  auto btree = createTestBTree();
+  btree.Node node = btree.root.getChild(0);
+  node.remove('G');
+  Assert.equal(node.getValues(), "CFJ");
+  Assert.equal(node.getChild(1).getValues(), "DE");
+}
+
+@("delete.2b.2c")
+unittest {
+  auto btree = createTestBTree();
+  btree.Node node = btree.root.getChild(0);
+  node.remove('C');
+  Assert.equal(node.getValues(), "DGJ");
+  Assert.equal(node.getChild(1).getValues(), "EF");
+
+  node.remove('G');
+  Assert.equal(node.getValues(), "DJ");
+  Assert.equal(node.getChild(1).getValues(), "EFHI");
+  Assert.equal(node.getChild(2).getValues(), "KLMN");
+}
