@@ -84,7 +84,7 @@ auto createTestBTree() {
   return btree;
 }
 
-@("delete.1")
+@("remove.1")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0).getChild(1);
@@ -92,7 +92,7 @@ unittest {
   Assert.equal(node.getValues(), "DF");
 }
 
-@("delete.2a")
+@("remove.2a")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -101,7 +101,7 @@ unittest {
   Assert.equal(node.getChild(1).getValues(), "DE");
 }
 
-@("delete.2b.2c")
+@("remove.2b.2c")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -115,7 +115,7 @@ unittest {
   Assert.equal(node.getChild(2).getValues(), "KLMN");
 }
 
-@("delete.3a")
+@("remove.3a")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(1);
@@ -130,4 +130,45 @@ unittest {
   Assert.equal(node.getValues(), "SX");
   Assert.equal(node.getChild(0).getValues(), "PQR");
   Assert.equal(node.getChild(1).getValues(), "TW");
+}
+
+@("remove.3b1")
+unittest {
+  auto btree = createTestBTree();
+  btree.Node node = btree.root.getChild(0);
+  node.getChild(1).remove('D');
+  // Node now looks like this:
+  //   [  C      G      J   ]
+  //    /     \     \      \
+  // [ A B ] [ E F ] [H I] [K L M N]
+  node.remove('F');
+  Assert.equal(node.getValues(), "CJ");
+  Assert.equal(node.getChild(1).getValues(), "EGHI");
+  Assert.equal(node.getChild(2).getValues(), "KLMN");
+}
+
+@("remove.3b2")
+unittest {
+  auto btree = createTestBTree();
+  btree.Node node = btree.root.getChild(0);
+  node.getChild(1).remove('D');
+  node.getChild(3).remove('K');
+  node.getChild(3).remove('M');
+  // Node now looks like this:
+  //   [  C     G     J]
+  //    /    \    \    \
+  // [A B] [E F] [H I] [L N]
+  node.remove('N');
+  Assert.equal(node.getValues(), "CG");
+  Assert.equal(node.getChild(2).getValues(), "HIJL");
+}
+
+@("remove.all")
+unittest {
+  auto btree = createTestBTree();
+  foreach (c; 'A' .. cast(char)('Z' + 1)) {
+    btree.remove(c);
+  }
+  Assert.equal(btree.root.isLeaf(), true);
+  Assert.equal(btree.root.numKeys(), 0);
 }

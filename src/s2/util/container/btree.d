@@ -123,6 +123,16 @@ public:
   }
 
   /**
+   * Removes a key and value from the BTree if it exists.
+   */
+  void remove(KeyT k) {
+    _root.remove(k);
+    if (!_root._isLeaf && _root._numValues == 0) {
+      _root = _root._children[0];
+    }
+  }
+
+  /**
    * The result of a search operation.
    *
    * It is a separate structure to account for the fact that the BTree may contain non-nullable
@@ -313,13 +323,15 @@ public:
 
     void remove(KeyT k) {
       size_t i = findFirstGEIndex(k);
-
       // 1. If the key k is in this node and this is a leaf, delete the key from this.
-      if (_isLeaf && i != _numValues && _keyEqual(k, getKey(i))) {
-        foreach (j; i .. _numValues - 1) {
-          _values[j] = _values[j+1];
+      if (_isLeaf) {
+        if (i != _numValues && _keyEqual(k, getKey(i))) {
+          foreach (j; i .. _numValues - 1) {
+            _values[j] = _values[j+1];
+          }
+          _numValues--;
         }
-        _numValues--;
+        // Otherwise the key was not in the BTree.
       }
       // 2. If the key k is in this node and this is an internal node:
       else if (i != _numValues && _keyEqual(k, getKey(i))) {
@@ -375,9 +387,7 @@ public:
           // 3a1. If _children[i] has a sibling with at least MIN_DEGREE keys, move that key
           // into this, and this's key into _children.
           // Handle if the right sibling has an extra key.
-          import std.stdio;
-          if (i < MIN_DEGREE - 1 && _children[i + 1]._numValues >= MIN_DEGREE) {
-            writeln("Grabbing from right sibling.");
+          if (i < _numValues && _children[i + 1]._numValues >= MIN_DEGREE) {
             Node y = _children[i];
             Node z = _children[i + 1];
             y._values[y._numValues] = _values[i];
@@ -387,16 +397,15 @@ public:
             _values[i] = z._values[0];
 
             foreach (j; 0 .. z._numValues - 1) {
-              z._values[j] = z._values[j+1];
+              z._values[j] = z._values[j + 1];
             }
             foreach (j; 0 .. z._numValues) {
-              z._children[j] = z._children[j+1];
+              z._children[j] = z._children[j + 1];
             }
             z._numValues--;
           }
           // 3a2. Handle if the left sibling has an extra key.
           else if (i > 0 && _children[i - 1]._numValues >= MIN_DEGREE) {
-            writeln("Grabbing from left sibling.");
             Node x = _children[i - 1];
             Node y = _children[i];
 
@@ -405,7 +414,7 @@ public:
               y._values[j] = y._values[j - 1];
             }
             for (auto j = y._numValues + 1; j > 0; j--) {
-              y._children[j] = y._children[j-1];
+              y._children[j] = y._children[j - 1];
             }
             y._values[0] = _values[i-1];
             y._children[0] = x._children[x._numValues];
@@ -415,7 +424,64 @@ public:
 
             x._numValues--;
           }
-          // 3b.
+          // 3b. If both siblings of the child that may have the value are of size
+          // MIN_DEGREE - 1, then merge the child with one of those siblings, merging
+          // a key from this which becomes the median node.
+          else if ((i == _numValues || _children[i + 1]._numValues == MIN_DEGREE - 1)
+              && (_children[i]._numValues == MIN_DEGREE - 1)) {
+            // 3b1. First try to merge with the right node.
+            if (i < _numValues) {
+              Node y = _children[i];
+              Node z = _children[i + 1];
+              // Add the key from this into y.
+              y._values[y._numValues] = _values[i];
+              y._numValues++;
+              // Merge the keys and values from z into y also.
+              foreach (j; 0 .. z._numValues) {
+                y._values[y._numValues + j] = z._values[j];
+              }
+              foreach (j; 0 .. z._numValues + 1) {
+                y._children[y._numValues + j] = z._children[j];
+              }
+              y._numValues += z._numValues;
+
+              // Now remove _values[i] and _children[i+1] from this.
+              foreach (j; i .. _numValues - 1) {
+                _values[j] = _values[j + 1];
+              }
+              foreach (j; i + 1 .. _numValues) {
+                _children[j] = _children[j + 1];
+              }
+              _numValues--;
+            }
+            // 3b2. Otherwise merge with the left node.
+            else {
+              Node x = _children[i - 1];
+              Node y = _children[i];
+
+              // Move the key to the left of y into x.
+              x._values[x._numValues] = _values[i - 1];
+              x._numValues++;
+              // Now merge y into x.
+              foreach (j; 0 .. y._numValues) {
+                x._values[x._numValues + j] = y._values[j];
+              }
+              foreach (j; 0 .. y._numValues + 1) {
+                x._children[x._numValues + j] = y._children[j];
+              }
+              x._numValues += y._numValues;
+
+              // Erase the key from this that was merged into x.
+              foreach (j; i - 1 .. _numValues - 1) {
+                _values[j] = _values[j + 1];
+              }
+              foreach (j; i .. _numValues) {
+                _children[j] = _children[j + 1];
+              }
+              _numValues--;
+              i--;
+            }
+          }
         }
         _children[i].remove(k);
       }
