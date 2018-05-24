@@ -372,7 +372,49 @@ public:
       else if (!_isLeaf) {
         // Assure that the child to descend to has at least MIN_DEGREE values.
         if (_children[i]._numValues == MIN_DEGREE - 1) {
-          // 3a.
+          // 3a1. If _children[i] has a sibling with at least MIN_DEGREE keys, move that key
+          // into this, and this's key into _children.
+          // Handle if the right sibling has an extra key.
+          import std.stdio;
+          if (i < MIN_DEGREE - 1 && _children[i + 1]._numValues >= MIN_DEGREE) {
+            writeln("Grabbing from right sibling.");
+            Node y = _children[i];
+            Node z = _children[i + 1];
+            y._values[y._numValues] = _values[i];
+            y._children[y._numValues + 1] = z._children[0];
+            y._numValues++;
+
+            _values[i] = z._values[0];
+
+            foreach (j; 0 .. z._numValues - 1) {
+              z._values[j] = z._values[j+1];
+            }
+            foreach (j; 0 .. z._numValues) {
+              z._children[j] = z._children[j+1];
+            }
+            z._numValues--;
+          }
+          // 3a2. Handle if the left sibling has an extra key.
+          else if (i > 0 && _children[i - 1]._numValues >= MIN_DEGREE) {
+            writeln("Grabbing from left sibling.");
+            Node x = _children[i - 1];
+            Node y = _children[i];
+
+            // Make room for 1 more key at the start of y.
+            for (auto j = y._numValues; j > 0; j--) {
+              y._values[j] = y._values[j - 1];
+            }
+            for (auto j = y._numValues + 1; j > 0; j--) {
+              y._children[j] = y._children[j-1];
+            }
+            y._values[0] = _values[i-1];
+            y._children[0] = x._children[x._numValues];
+            y._numValues++;
+
+            _values[i-1] = x._values[x._numValues - 1];
+
+            x._numValues--;
+          }
           // 3b.
         }
         _children[i].remove(k);

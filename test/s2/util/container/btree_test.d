@@ -114,3 +114,20 @@ unittest {
   Assert.equal(node.getChild(1).getValues(), "EFHI");
   Assert.equal(node.getChild(2).getValues(), "KLMN");
 }
+
+@("delete.3a")
+unittest {
+  auto btree = createTestBTree();
+  btree.Node node = btree.root.getChild(1);
+  // Test having to grab an extra key from the right sibling.
+  node.remove('U');
+  Assert.equal(node.getValues(), "TX");
+  Assert.equal(node.getChild(1).getValues(), "VW");
+  Assert.equal(node.getChild(2).getValues(), "YZ");
+
+  // Test having to grab an extra key from the left sibling.
+  node.remove('V');
+  Assert.equal(node.getValues(), "SX");
+  Assert.equal(node.getChild(0).getValues(), "PQR");
+  Assert.equal(node.getChild(1).getValues(), "TW");
+}
