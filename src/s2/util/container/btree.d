@@ -85,8 +85,6 @@ public:
   this() {
     // TODO: ALLOCATE-NODE() which allocates a disk page in O(1).
     _root = new Node();
-    _root._isLeaf = true;
-    _root._numValues = 0;
     // TODO: DISK-WRITE(_root)
   }
 
@@ -138,7 +136,7 @@ public:
    * It is a separate structure to account for the fact that the BTree may contain non-nullable
    * types, and thus a way of identifying an unsuccessful search is needed.
    */
-  struct Result {
+  static struct Result {
   private:
     Node _node;
     size_t _position;
@@ -164,7 +162,7 @@ public:
    * in the case of value data types, such as integers, floats, static arrays, or structs. In
    * other cases, such as dynamic arrays and classes, on the reference is stored.
    */
-  class Node {
+  static class Node {
   private:
     // The values are stored together with the keys, which are extracted using the KeyF param.
     ValueT[MAX_DEGREE - 1] _values;
@@ -174,7 +172,6 @@ public:
     Node[MAX_DEGREE] _children;
 
     invariant {
-      assert(this is _root || _numValues >= MIN_DEGREE - 1);
       assert(_numValues <= MAX_DEGREE - 1);
       if (!_isLeaf) {
         foreach (i; 0 .. _numValues + 1) {
@@ -270,6 +267,12 @@ public:
       }
     }
 
+  package:
+    this() {
+      _isLeaf = true;
+      _numValues = 0;
+    }
+
     static if (MIN_DEGREE < 16) {
       // If degree is small, use a simple linear search.
       size_t findFirstGEIndex(KeyT k) const {
@@ -289,8 +292,8 @@ public:
           KeyT midKey = getKey(mid);
           if ((mid == 0 || _keyLess(getKey(mid - 1), k)) && !_keyLess(midKey, k)) {
             return mid;
-          } else if (_keyLess(k, midKey)) {
-            j = mid - 1;
+          } else if (!_keyLess(midKey, k)) {
+            j = mid;
           } else {
             i = mid + 1;
           }
@@ -299,7 +302,6 @@ public:
       }
     }
 
-  package:
     bool isLeaf() {
       return _isLeaf;
     }
@@ -546,6 +548,43 @@ public:
 }
 
 unittest {
+  auto btree = new BTree!(char, 200);
+  assert(btree.MIN_DEGREE < 16);
+
+  auto node = new btree.Node();
+  node._values = "ACCDEEG";
+  node._numValues = 7;
+
+  assert(node.findFirstGEIndex('A') == 0);
+  assert(node.findFirstGEIndex('B') == 1);
+  assert(node.findFirstGEIndex('C') == 1);
+  assert(node.findFirstGEIndex('D') == 3);
+  assert(node.findFirstGEIndex('E') == 4);
+  assert(node.findFirstGEIndex('F') == 6);
+  assert(node.findFirstGEIndex('G') == 6);
+  assert(node.findFirstGEIndex('H') == 7);
+}
+
+unittest {
+  import std.stdio;
+  auto btree = new BTree!(char, 2000);
+  assert(btree.MIN_DEGREE >= 16);
+
+  auto node = new btree.Node();
+  node._values = "ACCDEEG";
+  node._numValues = 7;
+
+  assert(node.findFirstGEIndex('A') == 0);
+  assert(node.findFirstGEIndex('B') == 1);
+  assert(node.findFirstGEIndex('C') == 1);
+  assert(node.findFirstGEIndex('D') == 3);
+  assert(node.findFirstGEIndex('E') == 4);
+  assert(node.findFirstGEIndex('F') == 6);
+  assert(node.findFirstGEIndex('G') == 6);
+  assert(node.findFirstGEIndex('H') == 7);
+}
+
+unittest {
   assert(BTree!(int, 256).MIN_DEGREE == 10);
   assert(BTree!(int, 256).MAX_DEGREE == 20);
 
@@ -639,7 +678,7 @@ unittest {
       _b = b;
     }
 
-    int opCmp(Thingy o) const {
+    int opCmp(in Thingy o) const {
       return _a < o._a ? -1
           : _a > o._a ? 1
           : _b < o._b ? -1
@@ -648,7 +687,7 @@ unittest {
     }
 
     override
-    bool opEquals(Object o) const {
+    bool opEquals(in Object o) const {
       Thingy other = cast(Thingy) o;
       if (other is null) return false;
       return _a == other._a && _b == other._b;
