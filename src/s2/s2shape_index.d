@@ -70,7 +70,7 @@ public:
   } body {
     return isInline() ? _inlineEdges[i] : _edges[i];
   }
-/+
+
   /// Returns true if the clipped shape contains the given edge id.
   bool containsEdge(int id) const {
     // Linear search is fast because the number of edges per shape is typically
@@ -80,7 +80,7 @@ public:
     }
     return false;
   }
-+/
+
 private:
 
   // This class may be copied by value, but note that it does *not* own its
@@ -142,7 +142,7 @@ private:
 
 // S2ShapeIndexCell stores the index contents for a particular S2CellId.
 // It consists of a set of clipped shapes.
-struct S2ShapeIndexCell {
+class S2ShapeIndexCell {
 public:
 
   // Returns the number of clipped shapes in this cell.
@@ -199,8 +199,6 @@ private:
 
   S2ClippedShape[] _shapes;
 }
-
-/+
 
 /**
  * S2ShapeIndex is an abstract base class for indexing polygonal geometry in
@@ -304,7 +302,7 @@ public:
 
   // Returns a pointer to the shape with the given id, or nullptr if the shape
   // has been removed from the index.
-  abstract S2Shape* shape(int id) const;
+  abstract S2Shape shape(int id) const;
 
   // Returns the number of bytes currently occupied by the index (including any
   // unused space at the end of vectors, etc).
@@ -341,7 +339,7 @@ public:
    * A random access iterator that provides low-level access to the cells of
    * the index.  Cells are sorted in increasing order of S2CellId.
    */
-  struct Iterator {
+  class Iterator {
   public:
     /**
      * Constructs an iterator positioned as specified.  By default iterators
@@ -369,16 +367,6 @@ public:
       _iter = index.newIterator(pos);
     }
 
-    /// Iterators are copyable and movable.
-    this(this) {
-      _iter = _iter.clone();
-    }
-
-    ref Iterator opAssign(ref in Iterator other) {
-      _iter.copy(other._iter);
-      return this;
-    }
-
     /**
      * Returns the S2CellId of the current index cell.  If done() is true,
      * returns a value larger than any valid S2CellId (S2CellId::Sentinel()).
@@ -396,7 +384,7 @@ public:
     }
 
     /// Returns a reference to the contents of the current index cell.
-    ref const(S2ShapeIndexCell) cell() const
+    const(S2ShapeIndexCell)* cell() const
     in {
       assert(!done());
     } body {
@@ -513,15 +501,15 @@ protected:
     }
 
     /// Returns a reference to the contents of the current index cell.
-    ref const(S2ShapeIndexCell) cell() const
+    const(S2ShapeIndexCell)* cell() const
     in {
       assert(!done());
     } body {
       auto cell = rawCell();
-      if (cell == null) {
-        cell = getCell();
-        setCell(cell);
-      }
+      //if (cell == null) {
+      //  cell = getCell();
+      //  setCell(cell);
+      //}
       return cell;
     }
 
@@ -585,8 +573,11 @@ protected:
      * access the cell contents, the GetCell() method is called and "cell_" is
      * updated in a thread-safe way.
      */
-    void setState(S2CellId id, const(S2ShapeIndexCell)* cell) {
-      id_ = id;
+    void setState(S2CellId id, const(S2ShapeIndexCell)* cell)
+    in {
+      assert(cell != null);
+    } body {
+      _id = id;
       setCell(cell);
     }
 
@@ -601,7 +592,7 @@ protected:
      * if the cell contents have not been decoded yet.
      */
     const(S2ShapeIndexCell)* rawCell() const {
-      return atomicLoad!(MemoryOrder.raw)(_cell);
+      return _cell;
     }
 
     /**
@@ -631,13 +622,13 @@ protected:
      * calls (since subtypes are typically "final") and (2) ensure that the
      * correct versions of non-virtual methods such as cell() are called.
      */
-    static bool locateImpl(IterT)(in S2Point target_point, ref IterT it) {
+    static bool locateImpl(IterT)(in S2Point target_point, IterT it) {
       // Let I = cell_map_->lower_bound(T), where T is the leaf cell containing
       // "target_point".  Then if T is contained by an index cell, then the
       // containing cell is either I or I'.  We test for containment by comparing
       // the ranges of leaf cells spanned by T, I, and I'.
 
-      S2CellId target(target_point);
+      auto target = S2CellId(target_point);
       it.seek(target);
       if (!it.done() && it.id().rangeMin() <= target) return true;
       if (it.prev() && it.id().rangeMax() >= target) return true;
@@ -646,7 +637,7 @@ protected:
 
 
     // The default implementation of Locate(S2CellId) (see comments above).
-    static CellRelation locateImpl(IterT)(in S2CellId target, ref IterT it) {
+    static CellRelation locateImpl(IterT)(in S2CellId target, IterT it) {
       // Let T be the target, let I = cell_map_->lower_bound(T.range_min()), and
       // let I' be the predecessor of I.  If T contains any index cells, then T
       // contains I.  Similarly, if T is contained by an index cell, then the
@@ -664,10 +655,8 @@ protected:
 
   private:
 
-    // This method is "const" because it is used internally by "const" methods
-    // in order to implement decoding on demand.
-    void setCell(const(S2ShapeIndexCell)* cell) const {
-      atomicStore!(MemoryOrder.raw)(_cell, cell);
+    void setCell(const(S2ShapeIndexCell)* cell) {
+      _cell = cell;
     }
 
     S2CellId _id;
@@ -677,7 +666,5 @@ protected:
   }
 
   // Returns a new iterator positioned as specified.
-  abstract IteratorBase* newIterator(InitialPosition pos) const;
+  abstract IteratorBase newIterator(InitialPosition pos) const;
 }
-
-+/
