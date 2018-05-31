@@ -339,7 +339,7 @@ public:
    * A random access iterator that provides low-level access to the cells of
    * the index.  Cells are sorted in increasing order of S2CellId.
    */
-  class Iterator {
+  static class Iterator {
   public:
     /**
      * Constructs an iterator positioned as specified.  By default iterators
@@ -384,7 +384,7 @@ public:
     }
 
     /// Returns a reference to the contents of the current index cell.
-    const(S2ShapeIndexCell)* cell() const
+    const(S2ShapeIndexCell) cell() const
     in {
       assert(!done());
     } body {
@@ -501,16 +501,16 @@ protected:
     }
 
     /// Returns a reference to the contents of the current index cell.
-    const(S2ShapeIndexCell)* cell() const
+    const(S2ShapeIndexCell) cell() const
     in {
       assert(!done());
     } body {
       auto cell = rawCell();
-      //if (cell == null) {
-      //  cell = getCell();
-      //  setCell(cell);
-      //}
-      return cell;
+      // if (cell == null) {
+      //   cell = getCell();
+      //   setCell(cell);
+      // }
+      return *cell;
     }
 
     /// Returns true if the iterator is positioned past the last index cell.

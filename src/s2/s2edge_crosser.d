@@ -387,7 +387,7 @@ public:
     _crosser.init(_a, _b);
   }
 
-  int crossingSign(ref in S2Point c, ref in S2Point d) {
+  int crossingSign(in S2Point c, in S2Point d) {
     if (c != _c || _crosser._c == null) {
       restartAt(c);
     }
@@ -413,7 +413,7 @@ public:
     _crosser.restartAt(_c);
   }
 
-  int crossingSign(ref in S2Point d) {
+  int crossingSign(in S2Point d) {
     int result = _crosser.crossingSign(d);
     _c = d;
     _crosser.setC(_c);

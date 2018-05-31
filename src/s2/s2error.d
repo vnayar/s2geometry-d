@@ -18,6 +18,8 @@
 
 module s2.s2error;
 
+import std.format : format;
+
 // S2Error is a simple class consisting of an error code and a human-readable
 // error message.
 
@@ -116,7 +118,7 @@ public:
   //   error->Init(error->code(), "Loop %d: %s", j, error->text().c_str());
   void init(T...)(Code code, string fmt, T args) {
     _code = code;
-    _text ~= format.format(fmt, args);
+    _text ~= format(fmt, args);
   }
 
   bool ok() const {
