@@ -18,14 +18,15 @@
 module s2.s2shapeutil.visit_crossing_edge_pairs;
 
 import s2.logger;
+import s2.s2cell_id;
 import s2.s2crossing_edge_query : CrossingType;
-import s2.s2crossing_edge_query;
 import s2.s2edge_crosser;
 import s2.s2error;
 import s2.s2point;
 import s2.s2shape;
 import s2.s2shape_index;
-import s2.s2shapeutil.shape_edge;
+import s2.shapeutil.shape_edge;
+import s2.shapeutil.range_iterator;
 import s2.s2wedge_relations : getWedgeRelation, WedgeRelation;
 
 // A function that is called with pairs of crossing edges.  The function may
@@ -37,22 +38,222 @@ import s2.s2wedge_relations : getWedgeRelation, WedgeRelation;
 // information and it is moderately expensive to recompute.)
 alias EdgePairVisitor = bool delegate(in ShapeEdge a, in ShapeEdge b, bool isInterior);
 
+/+
 // Visits all pairs of crossing edges in the given S2ShapeIndex, terminating
 // early if the given EdgePairVisitor function returns false (in which case
 // VisitCrossings returns false as well).  "type" indicates whether all
 // crossings should be visited, or only interior crossings.
 //
 // CAVEAT: Crossings may be visited more than once.
-//bool VisitCrossingEdgePairs(const S2ShapeIndex& index, CrossingType type,
-//                            const EdgePairVisitor& visitor);
+bool visitCrossingEdgePairs(
+    in S2ShapeIndex index, CrossingType type, in EdgePairVisitor visitor) {
+  const bool need_adjacent = (type == CrossingType.ALL);
+  return visitCrossings(index, type, need_adjacent, visitor);
+}
 
 // Like the above, but visits all pairs of crossing edges where one edge comes
 // from each S2ShapeIndex.
 //
 // CAVEAT: Crossings may be visited more than once.
-//bool VisitCrossingEdgePairs(const S2ShapeIndex& a_index,
-//                            const S2ShapeIndex& b_index,
-//                            CrossingType type, const EdgePairVisitor& visitor);
+bool visitCrossingEdgePairs(
+    in S2ShapeIndex a_index, in S2ShapeIndex b_index, CrossingType type,
+    in EdgePairVisitor visitor) {
+  // We look for S2CellId ranges where the indexes of A and B overlap, and
+  // then test those edges for crossings.
+
+  // TODO(ericv): Use brute force if the total number of edges is small enough
+  // (using a larger threshold if the S2ShapeIndex is not constructed yet).
+  auto ai = new RangeIterator(a_index);
+  auto bi = new RangeIterator(b_index);
+  auto ab = new IndexCrosser(a_index, b_index, type, visitor, false);  // Tests A against B
+  auto ba = new IndexCrosser(b_index, a_index, type, visitor, true);   // Tests B against A
+  while (!ai.done() || !bi.done()) {
+    if (ai.range_max() < bi.range_min()) {
+      // The A and B cells don't overlap, and A precedes B.
+      ai.SeekTo(bi);
+    } else if (bi.range_max() < ai.range_min()) {
+      // The A and B cells don't overlap, and B precedes A.
+      bi.SeekTo(ai);
+    } else {
+      // One cell contains the other.  Determine which cell is larger.
+      int64 ab_relation = ai.id().lsb() - bi.id().lsb();
+      if (ab_relation > 0) {
+        // A's index cell is larger.
+        if (!ab.VisitCrossings(&ai, &bi)) return false;
+      } else if (ab_relation < 0) {
+        // B's index cell is larger.
+        if (!ba.VisitCrossings(&bi, &ai)) return false;
+      } else {
+        // The A and B cells are the same.
+        if (ai.cell().num_edges() > 0 && bi.cell().num_edges() > 0) {
+          if (!ab.VisitCellCellCrossings(ai.cell(), bi.cell())) return false;
+        }
+        ai.Next();
+        bi.Next();
+      }
+    }
+  }
+  return true;
+}
+
+// IndexCrosser is a helper class for finding the edge crossings between a
+// pair of S2ShapeIndexes.  It is instantiated twice, once for the index pair
+// (A,B) and once for the index pair (B,A), in order to be able to test edge
+// crossings in the most efficient order.
+class IndexCrosser {
+public:
+  // If "swapped" is true, the loops A and B have been swapped.  This affects
+  // how arguments are passed to the given loop relation, since for example
+  // A.Contains(B) is not the same as B.Contains(A).
+  this(in S2ShapeIndex a_index, in S2ShapeIndex b_index,
+      CrossingType type, in EdgePairVisitor visitor, bool swapped) {
+    _aIndex = a_index;
+    _bIndex = b_index;
+    _visitor = visitor;
+    _minCrossingSign = type == CrossingType.INTERIOR ? 1 : 0;
+    _swapped = swapped;
+    _bQuery = new S2CrossingEdgeQuery(_bIndex);
+  }
+
+  // Given two iterators positioned such that ai->id().Contains(bi->id()),
+  // visits all crossings between edges of A and B that intersect a->id().
+  // Terminates early and returns false if visitor_ returns false.
+  // Advances both iterators past ai->id().
+  bool visitCrossings(RangeIterator ai, RangeIterator bi) {
+    logger.logError(!ai.id().contains(bi.id()), "ai must contain bi");
+    if (ai.cell().numEdges() == 0) {
+      // Skip over the cells of B using binary search.
+      bi.seekBeyond(ai);
+    } else {
+      // If ai->id() intersects many edges of B, then it is faster to use
+      // S2CrossingEdgeQuery to narrow down the candidates.  But if it
+      // intersects only a few edges, it is faster to check all the crossings
+      // directly.  We handle this by advancing "bi" and keeping track of how
+      // many edges we would need to test.
+      static const int kEdgeQueryMinEdges = 23;
+      int b_edges = 0;
+      _bCells.length = 0;
+      do {
+        int cell_edges = bi.cell().numEdges();
+        if (cell_edges > 0) {
+          _bEdges += cell_edges;
+          if (_bEdges >= kEdgeQueryMinEdges) {
+            // There are too many edges, so use an S2CrossingEdgeQuery.
+            if (!visitSubcellCrossings(ai.cell(), ai.id())) return false;
+            bi.seekBeyond(ai);
+            return true;
+          }
+          _bCells ~= bi.cell();
+        }
+        bi.next();
+      } while (bi.id() <= ai.rangeMax());
+      if (_bCells.length != 0) {
+        // Test all the edge crossings directly.
+        getShapeEdges(_aIndex, ai.cell(), _aShapeEdges);
+        getShapeEdges(_bIndex, _bCells, _bShapeEdges);
+        if (!visitEdgesEdgesCrossings(_aShapeEdges, _bShapeEdges)) {
+          return false;
+        }
+      }
+    }
+    ai.next();
+    return true;
+  }
+
+  // Given two index cells, visits all crossings between edges of those cells.
+  // Terminates early and returns false if visitor_ returns false.
+  bool visitCellCellCrossings(
+      in S2ShapeIndexCell a_cell, in S2ShapeIndexCell b_cell) {
+    // Test all edges of "a_cell" against all edges of "b_cell".
+    getShapeEdges(_aIndex, a_cell, _aShapeEdges);
+    getShapeEdges(_bIndex, b_cell, _bShapeEdges);
+    return visitEdgesEdgesCrossings(_aShapeEdges, _bShapeEdges);
+  }
+
+ private:
+  bool visitEdgePair(in ShapeEdge a, in ShapeEdge b, bool is_interior) {
+    if (_swapped) {
+      return _visitor(b, a, is_interior);
+    } else {
+      return _visitor(a, b, is_interior);
+    }
+  }
+
+  // Visits all crossings of the current edge with all edges of the given index
+  // cell of B.  Terminates early and returns false if visitor_ returns false.
+  bool visitEdgeCellCrossings(in ShapeEdge a, in S2ShapeIndexCell b_cell) {
+    // Test the current edge of A against all edges of "b_cell".
+
+    // Note that we need to use a new S2EdgeCrosser (or call Init) whenever we
+    // replace the contents of b_shape_edges_, since S2EdgeCrosser requires that
+    // its S2Point arguments point to values that persist between Init() calls.
+    getShapeEdges(_bIndex, _bCell, _bShapeEdges);
+    auto crosser = S2CopyingEdgeCrosser(a.v0(), a.v1());
+    foreach (const ShapeEdge b ; _bShapeEdges) {
+      if (crosser.c() != b.v0()) {
+        crosser.restartAt(b.v0());
+      }
+      int sign = crosser.crossingSign(b.v1());
+      if (sign >= _minCrossingSign) {
+        if (!visitEdgePair(a, b, sign == 1)) return false;
+      }
+    }
+    return true;
+  }
+
+  // Visits all crossings of any edge in "a_cell" with any index cell of B that
+  // is a descendant of "b_id".  Terminates early and returns false if
+  // visitor_ returns false.
+  bool visitSubcellCrossings(in S2ShapeIndexCell a_cell, S2CellId b_id) {
+    // Test all edges of "a_cell" against the edges contained in B index cells
+    // that are descendants of "b_id".
+    getShapeEdges(_aIndex, _aCell, _aShapeEdges);
+    auto b_root = new S2PaddedCell(b_id, 0);
+    foreach (const ShapeEdge a ; _aShapeEdges) {
+      // Use an S2CrossingEdgeQuery starting at "b_root" to find the index cells
+      // of B that might contain crossing edges.
+      if (!_bQuery.visitCells(
+              a.v0(), a.v1(), b_root,
+              (const S2ShapeIndexCell cell)  => visitEdgeCellCrossings(a, cell))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Visits all crossings of any edge in "a_edges" with any edge in "b_edges".
+  bool visitEdgesEdgesCrossings(
+      in ShapeEdgeVector a_edges, in ShapeEdgeVector b_edges) {
+    // Test all edges of "a_edges" against all edges of "b_edges".
+    foreach (const ShapeEdge a ; a_edges) {
+      auto crosser = new S2EdgeCrosser(a.v0(), a.v1());
+      foreach (const ShapeEdge b ; b_edges) {
+        if (crosser.c() != b.v0()) {
+          crosser.restartAt(b.v0());
+        }
+        int sign = crosser.crossingSign(b.v1());
+        if (sign >= _minCrossingSign) {
+          if (!visitEdgePair(a, b, sign == 1)) return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  const S2ShapeIndex _aIndex;
+  const S2ShapeIndex _bIndex;
+  const EdgePairVisitor _visitor;
+  const int _minCrossingSign;
+  const bool _swapped;
+
+  // Temporary data declared here to avoid repeated memory allocations.
+  S2CrossingEdgeQuery _bQuery;
+  const(S2ShapeIndexCell)*[] _bCells;
+  ShapeEdgeVector _aShapeEdges;
+  ShapeEdgeVector _bShapeEdges;
+}
+
++/
 
 // Given an S2ShapeIndex containing a single polygonal shape (e.g., an
 // S2Polygon or S2Loop), return true if any loop has a self-intersection

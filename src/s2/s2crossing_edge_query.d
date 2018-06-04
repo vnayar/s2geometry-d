@@ -19,6 +19,11 @@ module s2.s2crossing_edge_query;
 
 import s2.r2point;
 import s2.r2rect;
+import s2.shapeutil.shape_edge_id;
+
+import std.algorithm : sort, uniq;
+import std.array : array;
+
 //#include "s2/s2padded_cell.h"
 //#include "s2/s2shape_index.h"
 //#include "s2/s2shapeutil_shape_edge.h"
@@ -34,6 +39,10 @@ import s2.r2rect;
 enum CrossingType { INTERIOR, ALL }
 
 /+
+// For small loops it is faster to use brute force.  The threshold below was
+// determined using the benchmarks in the unit test.
+private enum int MAX_BRUTE_FORCE_EDGES = 27;
+
 // S2CrossingEdgeQuery is used to find edges or shapes that are crossed by
 // an edge.  Here is an example showing how to index a set of polylines,
 // and then find the polylines that are crossed by a given edge AB:
@@ -57,44 +66,85 @@ enum CrossingType { INTERIOR, ALL }
 // If you want to find *all* pairs of crossing edges, use
 // s2shapeutil::VisitCrossingEdgePairs() instead.
 class S2CrossingEdgeQuery {
- public:
-  using CrossingType = s2shapeutil::CrossingType;  // Defined above.
-
+public:
   // Convenience constructor that calls Init().
-  explicit S2CrossingEdgeQuery(const S2ShapeIndex* index);
+  this(in S2ShapeIndex index) {
+    init(index);
+  }
 
   // Default constructor; requires Init() to be called.
-  S2CrossingEdgeQuery();
-  ~S2CrossingEdgeQuery();
+  this() { }
 
-  S2CrossingEdgeQuery(const S2CrossingEdgeQuery&) = delete;
-  void operator=(const S2CrossingEdgeQuery&) = delete;
-
-  const S2ShapeIndex& index() const { return *index_; }
+  const(S2ShapeIndex) index() const {
+    return _index;
+  }
 
   // REQUIRES: "index" is not modified after this method is called.
-  void Init(const S2ShapeIndex* index);
+  void init(in S2ShapeIndex index) {
+    _index = index;
+    _iter.init(index);
+  }
 
   // Returns all edges that intersect the given query edge (a0,a1) and that
   // have the given CrossingType (ALL or INTERIOR).  Edges are sorted and
   // unique.
-  std::vector<s2shapeutil::ShapeEdge> GetCrossingEdges(
-      const S2Point& a0, const S2Point& a1, CrossingType type);
+  ShapeEdge[] getCrossingEdges(in S2Point a0, in S2Point a1, CrossingType type) {
+    ShapeEdge[] edges;
+    getCrossingEdges(a0, a1, type, edges);
+    return edges;
+  }
 
   // A specialized version of GetCrossingEdges() that only returns the edges
   // that belong to a particular S2Shape.
-  std::vector<s2shapeutil::ShapeEdge> GetCrossingEdges(
-      const S2Point& a0, const S2Point& a1,
-      const S2Shape& shape, CrossingType type);
+  ShapeEdge[] getCrossingEdges(
+      in S2Point a0, in S2Point a1, in S2Shape shape, CrossingType type) {
+    ShapeEdge[] edges;
+    getCrossingEdges(a0, a1, shape, type, edges);
+    return edges;
+  }
 
   // These versions can be more efficient when they are called many times,
   // since they do not require allocating a new vector on each call.
-  void GetCrossingEdges(const S2Point& a0, const S2Point& a1, CrossingType type,
-                        std::vector<s2shapeutil::ShapeEdge>* edges);
+  void getCrossingEdges(in S2Point a0, in S2Point a1, CrossingType type, ref ShapeEdge[] edges) {
+    edges.length = 0;
+    getCandidates(a0, a1, _tmpCandidates);
+    int min_sign = (type == CrossingType.ALL) ? 0 : 1;
+    auto crosser = new S2CopyingEdgeCrosser(a0, a1);
+    int shape_id = -1;
+    S2Shape shape = null;
+    foreach (ShapeEdgeId candidate; _tmpCandidates) {
+      if (candidate.shapeId != shape_id) {
+        shape_id = candidate.shapeId;
+        shape = _index.shape(shape_id);
+      }
+      int edge_id = candidate.edgeId;
+      S2Shape.Edge b = shape.edge(edge_id);
+      if (crosser.crossingSign(b.v0, b.v1) >= min_sign) {
+        edges ~= new ShapeEdge(shape_id, edge_id, b);
+      }
+    }
+  }
 
-  void GetCrossingEdges(const S2Point& a0, const S2Point& a1,
-                        const S2Shape& shape, CrossingType type,
-                        std::vector<s2shapeutil::ShapeEdge>* edges);
+  void getCrossingEdges(
+      in S2Point a0, in S2Point a1, in S2Shape shape, CrossingType type, ref ShapeEdge[] edges) {
+    edges.length = 0;
+    getCandidates(a0, a1, _tmpCandidates);
+    int min_sign = (type == CrossingType.ALL) ? 0 : 1;
+    auto crosser = new S2CopyingEdgeCrosser(a0, a1);
+    int shape_id = -1;
+    const(S2Shape)* shape = null;
+    for (ShapeEdgeId candidate : _tmpCandidates) {
+      if (candidate.shapeId != shape_id) {
+        shape_id = candidate.shapeId;
+        shape = _index.shape(shapeId);
+      }
+      int edge_id = candidate.edgeId;
+      S2Shape.Edge b = shape.edge(edge_id);
+      if (crosser.crossingSign(b.v0, b.v1) >= min_sign) {
+        edges ~= new ShapeEdge(shape_id, edge_id, b);
+      }
+    }
+  }
 
 
   /////////////////////////// Low-Level Methods ////////////////////////////
@@ -106,47 +156,116 @@ class S2CrossingEdgeQuery {
   // Returns a superset of the edges that intersect a query edge (a0, a1).
   // This method is useful for clients that want to test intersections in some
   // other way, e.g. using S2::EdgeOrVertexCrossing().
-  std::vector<s2shapeutil::ShapeEdgeId> GetCandidates(const S2Point& a0,
-                                                      const S2Point& a1);
+  ShapeEdgeId[] getCandidates(in S2Point a0, in S2Point a1) {
+    ShapeEdgeId[] edges;
+    getCandidates(a0, a1, edges);
+    return edges;
+  }
+
 
   // A specialized version of GetCandidates() that only returns the edges that
   // belong to a particular S2Shape.
-  std::vector<s2shapeutil::ShapeEdgeId> GetCandidates(const S2Point& a0,
-                                                      const S2Point& a1,
-                                                      const S2Shape& shape);
+  ShapeEdgeId[] getCandidates(in S2Point a0, in S2Point a1, in S2Shape shape) {
+    ShapeEdgeId[] edges;
+    getCandidates(a0, a1, shape, edges);
+    return edges;
+  }
 
   // These versions can be more efficient when they are called many times,
   // since they do not require allocating a new vector on each call.
-  void GetCandidates(const S2Point& a0, const S2Point& a1,
-                     std::vector<s2shapeutil::ShapeEdgeId>* edges);
+  void getCandidates(in S2Point a0, in S2Point a1, ref ShapeEdgeId[] edges) {
+    edges.length = 0;
+    int num_edges = countEdgesUpTo(_index, MAX_BRUTE_FORCE_EDGES + 1);
+    if (num_edges <= MAX_BRUTE_FORCE_EDGES) {
+      edges.reserve(num_edges);
+    }
+    visitRawCandidates(a0, a1, (ShapeEdgeId id) {
+          edges ~= id;
+          return true;
+        });
+    if (edges.length > 1) {
+      edges = edges.sort().uniq().array();
+    }
+  }
 
-  void GetCandidates(const S2Point& a0, const S2Point& a1, const S2Shape& shape,
-                     std::vector<s2shapeutil::ShapeEdgeId>* edges);
+  void getCandidates(in S2Point a0, in S2Point a1, in S2Shape shape, out ShapeEdgeId[] edges) {
+    edges.length = 0;
+    getCandidates(a0, a1, shape, _tmpCandidates);
+    int min_sign = (type == CrossingType.ALL) ? 0 : 1;
+    auto crosser = new S2CopyingEdgeCrosser(a0, a1);
+    foreach (ShapeEdgeId candidate; _tmpCandidates) {
+      int edge_id = candidate.edgeId;
+      S2Shape.Edge b = shape.edge(edge_id);
+      if (crosser.crossingSign(b.v0, b.v1) >= min_sign) {
+        edges ~= new ShapeEdge(shape.id(), edge_id, b);
+      }
+    }
+  }
 
   // A function that is called with each candidate intersecting edge.  The
   // function may return false in order to request that the algorithm should
   // be terminated, i.e. no further crossings are needed.
-  using ShapeEdgeIdVisitor =
-      std::function<bool (const s2shapeutil::ShapeEdgeId& id)>;
+  using ShapeEdgeIdVisitor = bool delegate(in ShapeEdgeId id);
 
   // Visits a superset of the edges that intersect the query edge (a0, a1),
   // terminating early if the given ShapeEdgeIdVisitor returns false (in which
   // case this function returns false as well).
   //
   // CAVEAT: Edges may be visited more than once.
-  bool VisitRawCandidates(const S2Point& a0, const S2Point& a1,
-                          const ShapeEdgeIdVisitor& visitor);
+  bool visitRawCandidates(in S2Point a0, in S2Point a1, ShapeEdgeIdVisitor visitor) {
+    int num_edges = countEdgesUpTo(_index, MAX_BRUTE_FORCE_EDGES + 1);
+    if (num_edges <= MAX_BRUTE_FORCE_EDGES) {
+      int num_shape_ids = _index.numShapeIds();
+      for (int s = 0; s < num_shape_ids; ++s) {
+        const(S2Shape) shape = _index.shape(s);
+        if (shape is null) continue;
+        int num_shape_edges = shape.numEdges();
+        for (int e = 0; e < num_shape_edges; ++e) {
+          if (!visitor(ShapeEdgeId(s, e))) return false;
+        }
+      }
+      return true;
+    }
+    return visitCells(a0, a1, (in S2ShapeIndexCell cell) {
+          for (int s = 0; s < cell.numClipped(); ++s) {
+            const(S2ClippedShape) clipped = cell.clipped(s);
+            for (int j = 0; j < clipped.numEdges(); ++j) {
+              if (!visitor(ShapeEdgeId(clipped.shapeId(), clipped.edge(j)))) {
+                return false;
+              }
+            }
+          }
+          return true;
+        });
+  }
 
-  bool VisitRawCandidates(const S2Point& a0, const S2Point& a1,
-                          const S2Shape& shape,
-                          const ShapeEdgeIdVisitor& visitor);
+  bool visitRawCandidates(
+      in S2Point a0, in S2Point a1, in S2Shape shape, ShapeEdgeIdVisitor visitor) {
+    int num_edges = shape.numEdges();
+    if (num_edges <= MAX_BRUTE_FORCE_EDGES) {
+      for (int e = 0; e < num_edges; ++e) {
+        if (!visitor(ShapeEdgeId(shape.id(), e))) return false;
+      }
+      return true;
+    }
+    return visitCells(a0, a1, (in S2ShapeIndexCell cell) {
+          const(S2ClippedShape) clipped = cell.findClipped(shape.id());
+          if (clipped is null) return true;
+          for (int j = 0; j < clipped.numEdges(); ++j) {
+            if (!visitor(ShapeEdgeId(shape.id(), clipped.edge(j)))) return false;
+          }
+          return true;
+        });
+  }
 
   // A function that is called with each S2ShapeIndexCell that might contain
   // edges intersecting the given query edge.  The function may return false
   // in order to request that the algorithm should be terminated, i.e. no
   // further crossings are needed.
-  using CellVisitor = std::function<bool (const S2ShapeIndexCell& cell)>;
+  using CellVisitor = bool delegate(in S2ShapeIndexCell);
 
+  // TODO: Resume here.
+  
   // Visits all S2ShapeIndexCells that might contain edges intersecting the
   // given query edge (a0, a1), terminating early if the given CellVisitor
   // returns false (in which case this function returns false as well).
@@ -219,15 +338,5 @@ class S2CrossingEdgeQuery {
 
   // Avoids repeated allocation when methods are called many times.
   std::vector<s2shapeutil::ShapeEdgeId> tmp_candidates_;
-};
-
-
-//////////////////   Implementation details follow   ////////////////////
-
-
-inline S2CrossingEdgeQuery::S2CrossingEdgeQuery(const S2ShapeIndex* index) {
-  Init(index);
 }
-
-#endif  // S2_S2CROSSING_EDGE_QUERY_H_
 +/

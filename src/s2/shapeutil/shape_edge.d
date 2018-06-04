@@ -16,7 +16,7 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2shapeutil.shape_edge;
+module s2.shapeutil.shape_edge;
 
 import s2.s2point;
 import s2.s2shape;
