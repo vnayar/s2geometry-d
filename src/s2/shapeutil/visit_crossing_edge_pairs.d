@@ -15,7 +15,7 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2shapeutil.visit_crossing_edge_pairs;
+module s2.shapeutil.visit_crossing_edge_pairs;
 
 import s2.logger;
 import s2.s2cell_id;
