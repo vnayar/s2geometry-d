@@ -272,13 +272,12 @@ public:
       return norm2().sqrt();
     }
 
-    ThisT normalize() {
+    ThisT normalize() const {
       ElemT n = norm();
       if (n != cast(ElemT) 0.0) {
         n = cast(ElemT) 1.0 / n;
       }
-      _data[] = _data[] * n;
-      return cast(ThisT) this;
+      return ThisT(algorithm.map!(a => a * n)(_data[]));
     }
 
     // Compose a vector from the sqrt of each component.

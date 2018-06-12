@@ -38,11 +38,11 @@ import std.array : array;
 //    intersect only because they share a common vertex.
 enum CrossingType { INTERIOR, ALL }
 
-/+
 // For small loops it is faster to use brute force.  The threshold below was
 // determined using the benchmarks in the unit test.
 private enum int MAX_BRUTE_FORCE_EDGES = 27;
 
+/+
 // S2CrossingEdgeQuery is used to find edges or shapes that are crossed by
 // an edge.  Here is an example showing how to index a set of polylines,
 // and then find the polylines that are crossed by a given edge AB:
@@ -264,15 +264,51 @@ public:
   // further crossings are needed.
   using CellVisitor = bool delegate(in S2ShapeIndexCell);
 
-  // TODO: Resume here.
-  
   // Visits all S2ShapeIndexCells that might contain edges intersecting the
   // given query edge (a0, a1), terminating early if the given CellVisitor
   // returns false (in which case this function returns false as well).
   //
   // NOTE: Each candidate cell is visited exactly once.
-  bool VisitCells(const S2Point& a0, const S2Point& a1,
-                  const CellVisitor& visitor);
+  bool visitCells(in S2Point a0, in S2Point a1, CellVisitor visitor) {
+    _visitor = visitor;
+    S2::FaceSegmentVector segments;
+    S2::GetFaceSegments(a0, a1, &segments);
+    for (const auto& segment : segments) {
+      a0_ = segment.a;
+      a1_ = segment.b;
+
+      // Optimization: rather than always starting the recursive subdivision at
+      // the top level face cell, instead we start at the smallest S2CellId that
+      // contains the edge (the "edge root cell").  This typically lets us skip
+      // quite a few levels of recursion since most edges are short.
+      R2Rect edge_bound = R2Rect::FromPointPair(a0_, a1_);
+      S2PaddedCell pcell(S2CellId::FromFace(segment.face), 0);
+      S2CellId edge_root = pcell.ShrinkToFit(edge_bound);
+
+      // Now we need to determine how the edge root cell is related to the cells
+      // in the spatial index (cell_map_).  There are three cases:
+      //
+      //  1. edge_root is an index cell or is contained within an index cell.
+      //     In this case we only need to look at the contents of that cell.
+      //  2. edge_root is subdivided into one or more index cells.  In this case
+      //     we recursively subdivide to find the cells intersected by a0a1.
+      //  3. edge_root does not intersect any index cells.  In this case there
+      //     is nothing to do.
+      S2ShapeIndex::CellRelation relation = iter_.Locate(edge_root);
+      if (relation == S2ShapeIndex::INDEXED) {
+        // edge_root is an index cell or is contained by an index cell (case 1).
+        DCHECK(iter_.id().contains(edge_root));
+        if (!visitor(iter_.cell())) return false;
+      } else if (relation == S2ShapeIndex::SUBDIVIDED) {
+        // edge_root is subdivided into one or more index cells (case 2).  We
+        // find the cells intersected by a0a1 using recursive subdivision.
+        if (!edge_root.is_face()) pcell = S2PaddedCell(edge_root, 0);
+        if (!VisitCells(pcell, edge_bound)) return false;
+      }
+    }
+    return true;
+  }
+
 
   // Visits all S2ShapeIndexCells within "root" that might contain edges
   // intersecting the given query edge (a0, a1), terminating early if the
