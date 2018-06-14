@@ -314,7 +314,7 @@ public:
 
   // Return a uniformly distributed "double" in the range [min, limit).
   double uniformDouble(double min, double limit) {
-    return random.uniform(min, limit, _rnd);
+    return min + random.uniform01(_rnd) * (limit - min);
   }
 
   // A functor-style version of Uniform, so that this class can be used with
