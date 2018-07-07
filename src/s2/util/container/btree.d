@@ -73,8 +73,18 @@ private:
   //   [children]  + 2*t * (size of pointer to a node)
   //   = NodeSize
   static size_t getMinDegree() @nogc @safe pure nothrow {
-    return (NodeSizeV - bool.sizeof - size_t.sizeof + ValueT.sizeof)
-        / (2 * (ValueT.sizeof + (Node).sizeof));
+    size_t nodeSizeBase = bool.sizeof + size_t.sizeof + Node.sizeof;
+    size_t nodeExtraSizePerChild = ValueT.sizeof + Node.sizeof;
+
+    if (NodeSizeV < nodeSizeBase) {
+      return 1;
+    }
+    size_t maxChildren = (NodeSizeV - nodeSizeBase) / nodeExtraSizePerChild;
+    if (maxChildren < 2) {
+      return 1;
+    } else {
+      return maxChildren / 2;
+    }
   }
 
 public:
@@ -97,7 +107,7 @@ public:
    * Recursively search for a given key and produce a result indicating whether a match
    * was found and what it's value is.
    */
-  inout(Result) search(KeyT k) inout {
+  inout(Iterator) search(KeyT k) inout {
     return _root.search(k);
   }
 
@@ -109,12 +119,13 @@ public:
     Node curRoot = _root;
     if (curRoot.isFull()) {
       Node newRoot = new Node();
-      _root = newRoot;
       newRoot._isLeaf = false;
       newRoot._numValues = 0;
       newRoot._children[0] = curRoot;
       newRoot.splitChild(0);
       newRoot.insertNonFull(v);
+      _root._parent = newRoot;
+      _root = newRoot;
     } else {
       curRoot.insertNonFull(v);
     }
@@ -136,7 +147,7 @@ public:
    * It is a separate structure to account for the fact that the BTree may contain non-nullable
    * types, and thus a way of identifying an unsuccessful search is needed.
    */
-  static struct Result {
+  static struct Iterator {
   private:
     Node _node;
     size_t _position;
@@ -163,11 +174,13 @@ public:
    * other cases, such as dynamic arrays and classes, on the reference is stored.
    */
   static class Node {
-  private:
+  package:
+    bool _isLeaf = true;
+    Node _parent = null;
+
+    size_t _numValues;
     // The values are stored together with the keys, which are extracted using the KeyF param.
     ValueT[MAX_DEGREE - 1] _values;
-    size_t _numValues;
-    bool _isLeaf = true;
     // Only non-leaf (internal) nodes have children.
     Node[MAX_DEGREE] _children;
 
@@ -181,9 +194,8 @@ public:
     }
 
     /**
-     * Given that this node is non-full, but a child child node that is, split the child node
-     * into two separate nodes that are half full, and insert a new key into this node between
-     * them.
+     * Given that this node is non-full, but a child node that is, split the child node into two
+     * separate nodes that are half full, and insert a new key into this node between them.
      */
     void splitChild(size_t i)
     in {
@@ -198,6 +210,7 @@ public:
       // Prepare a new node containig the right half of the node at _children[i].
       // TODO: ALLOCATE-NODE(newNode)
       Node newNode = new Node();
+      newNode._parent = this;
       newNode._isLeaf = toSplitNode._isLeaf;
       newNode._numValues = MIN_DEGREE - 1;
       foreach (j; 0 .. MIN_DEGREE - 1) {
@@ -300,6 +313,10 @@ public:
         }
         return numKeys();
       }
+    }
+
+    bool isRoot() {
+      return _parent is null;
     }
 
     bool isLeaf() {
@@ -533,13 +550,13 @@ public:
      * Recursively search for a given key and produce a result indicating whether a match
      * was found and what it's value is.
      */
-    inout(Result) search(KeyT k) inout {
+    inout(Iterator) search(KeyT k) inout {
       size_t i = findFirstGEIndex(k);
       if (i < numKeys() && _keyEqual(getKey(i), k)) {
-        return inout(Result)(this, i);
+        return inout(Iterator)(this, i);
       }
       if (_isLeaf) {
-        return inout(Result)(null, -1);
+        return inout(Iterator)(null, -1);
       } else {
         return _children[i].search(k);
       }
@@ -549,7 +566,7 @@ public:
 
 unittest {
   auto btree = new BTree!(char, 200);
-  assert(btree.MIN_DEGREE < 16);
+  static assert(btree.MIN_DEGREE < 16);
 
   auto node = new btree.Node();
   node._values = "ACCDEEG";
@@ -585,26 +602,26 @@ unittest {
 }
 
 unittest {
-  assert(BTree!(int, 256).MIN_DEGREE == 10);
-  assert(BTree!(int, 256).MAX_DEGREE == 20);
+  static assert(BTree!(int, 256).MIN_DEGREE == 9);
+  static assert(BTree!(int, 256).MAX_DEGREE == 18);
 
-  assert(BTree!(int, 4096).MIN_DEGREE == 170);
-  assert(BTree!(int, 4096).MAX_DEGREE == 340);
+  static assert(BTree!(int, 4096).MIN_DEGREE == 169);
+  static assert(BTree!(int, 4096).MAX_DEGREE == 338);
 
   // Structs are passed by value, so each value needs 6*4 = 24 bytes.
   struct S {
     int a, b, c, d, e, f;
   }
-  assert(BTree!(S, 1024, int, "a.a").MIN_DEGREE == 16);
-  assert(BTree!(S, 1024, int, "a.a").MAX_DEGREE == 32);
+  static assert(BTree!(S, 1024, int, "a.a").MIN_DEGREE == 15);
+  static assert(BTree!(S, 1024, int, "a.a").MAX_DEGREE == 30);
 
   // Classes are passed by reference, and thus the value needs only 8 bytes.
   class C {
     int a, b, c, d, e, f;
     int getVal() const { return d; }
   }
-  assert(BTree!(C, 1024, int, "a.getVal()").MIN_DEGREE == 31);
-  assert(BTree!(C, 1024, int, "a.getVal()").MAX_DEGREE == 62);
+  static assert(BTree!(C, 1024, int, "a.getVal()").MIN_DEGREE == 31);
+  static assert(BTree!(C, 1024, int, "a.getVal()").MAX_DEGREE == 62);
 }
 
 /// Simple use case with primitive types.

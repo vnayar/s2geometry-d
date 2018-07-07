@@ -5,6 +5,59 @@ import s2.util.container.btree;
 
 import std.stdio;
 
+////
+// BTree.Node tests
+////
+
+@("splitChild")
+unittest {
+  alias BTreeType = BTree!(char, 1);
+  static assert(BTreeType.MIN_DEGREE == 1);
+
+  alias NodeType = BTreeType.Node;
+  NodeType root = new NodeType();
+  NodeType child = new NodeType();
+  NodeType grandChild1 = new NodeType();
+  NodeType grandChild2 = new NodeType();
+
+  root._isLeaf = false;
+  root._numValues = 0;
+  root._children[0] = child;
+
+  child._isLeaf = false;
+  child._parent = root;
+  child._values[0] = 'b';
+  child._numValues = 1;
+  child._children = [grandChild1, grandChild2];
+
+  grandChild1._isLeaf = true;
+  grandChild1._parent = child;
+  grandChild1._numValues = 1;
+  grandChild1._values[0] = 'a';
+
+  grandChild1._isLeaf = true;
+  grandChild1._parent = child;
+  grandChild1._numValues = 1;
+  grandChild1._values[0] = 'c';
+
+  root.splitChild(0);
+
+  Assert.equal(root._numValues, 1);
+  Assert.equal(root._values[0], 'b');
+
+  Assert.equal(root._children[0]._numValues, 0);
+  Assert.equal(root._children[0]._parent, root);
+  Assert.equal(root._children[0]._children[0], grandChild1);
+
+  Assert.equal(root._children[1]._numValues, 0);
+  Assert.equal(root._children[1]._parent, root);
+  Assert.equal(root._children[1]._children[0], grandChild2);
+}
+
+////
+// BTree tests
+////
+
 void printTree(T)(T btree) {
   btree.Node[] nodes = [btree.root];
   while (nodes.length > 0) {
@@ -37,13 +90,14 @@ void printTree(T)(T btree) {
  *  [A B] [D E F] [H I] [K L M N]  [P Q R S] [U V] [X Y Z]
  */
 auto createTestBTree() {
-  auto btree = new BTree!(char, 62)();
+  auto btree = new BTree!(char, 75)();
+
+  static assert(btree.MIN_DEGREE == 3);
+
   string testData = "YBZIOQPKTJUMLWHVAXGSNFCRDE";
   foreach (c; testData) {
     btree.insert(c);
   }
-
-  Assert.equal(btree.MIN_DEGREE, 3);
 
   Assert.equal(btree.root.getValue(0), 'O');
 
