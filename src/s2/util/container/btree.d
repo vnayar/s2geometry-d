@@ -21,11 +21,6 @@ import std.format : format;
  * Because nodes contain both node pointers and values, a BTree will not have good performance
  * when used with large types that are passed by value, such as large structs.
  *
- * This implementation chooses to keep the data inside the B-Tree itself rather than only storing
- * references to the data. However, if a solution that only stores a struct id is desired,
- * simply use the BTree with the object id (and an appropriate KeyF if the key is not the object
- * id).
- *
  * As always, using the BTree with class objects, which are passed by reference, also avoids
  * storage in the BTree itself.
  *
@@ -35,36 +30,27 @@ import std.format : format;
  *     performance depending on usage. For example, a value of 4096 bytes may be useful when
  *     retrieving items from disk, or the value 256 bytes to assure good use of CPU caches.
  *     The default value is 256 bytes.
- *   KeyT = The key used to compare elements. Defaults to T.
- *   KeyF = An element type to key conversion function, either a function or a string
- *     representing a function as described by
- *     $(LINK2 https://dlang.org/phobos/std_functional.html#unaryFun, std.functional.unaryFun).
- *     When working with class types, this method must be $(D_INLINECODE const) or
- *     $(D_INLINECODE inout).
- *   KeyLessF = A less-than comparison function for keys, either a function or a string
+ *   ValueLessF = A less-than comparison function for values, either a function or a string
  *     representing a function as described by
  *     $(LINK2 https://dlang.org/phobos/std_functional.html#binaryFun, std.functional.binaryFun).
- *   KeyEqualF = An equality function.
  */
-final class BTree(
-    ValueT, size_t NodeSizeV = 256, KeyT = ValueT,
-    alias KeyF = "a", alias KeyLessF = "a < b", alias KeyEqualF = "a == b")
-if (is(typeof(binaryFun!KeyLessF(KeyT.init, KeyT.init)) : bool)
-    && is(typeof(binaryFun!KeyEqualF(KeyT.init, KeyT.init)) : bool)
-    && is(typeof(unaryFun!KeyF(ValueT.init)) : KeyT)) {
+final class BTree(ValueT, size_t NodeSizeV = 256, alias ValueLessF = "a < b")
+if (is(typeof(binaryFun!ValueLessF(ValueT.init, ValueT.init)) : bool)) {
 
 private:
   Node _root;
 
   // TODO: Determine how to enforce const functions are passed in, which is
   // currently preventing the use of const with reference types.
-  alias _getKey = unaryFun!KeyF;
-  alias _keyLess = binaryFun!KeyLessF;
-  alias _keyEqual = binaryFun!KeyEqualF;
+  alias _isValueLess = binaryFun!ValueLessF;
+
+  static bool _isValueEqual(in ValueT v1, in ValueT v2) {
+    return !_isValueLess(v1, v2) && !_isValueLess(v2, v1);
+  }
 
   // The B-Tree is defined by a minimum degree "t".
-  // Each node other than the root must have at least t-1 keys.
-  // Each node may have up to 2t - 1 keys, and thus an internal node may have up to 2*t children.
+  // Each node other than the root must have at least t-1 values.
+  // Each node may have up to 2t - 1 values, thus an internal node may have up to 2*t children.
   //
   // Thus, the maximum size of a non-leaf node is:
   //   [values]    (2t-1) * (size of a value)
@@ -104,16 +90,15 @@ public:
   }
 
   /**
-   * Recursively search for a given key and produce a result indicating whether a match
+   * Recursively search for a given value and produce a result indicating whether a match
    * was found and what it's value is.
    */
-  inout(Iterator) search(KeyT k) inout {
-    return _root.search(k);
+  inout(Iterator) search(ValueT v) inout {
+    return _root.search(v);
   }
 
   /**
-   * Inserts a new value into the BTree, whose key is extracted using the $(D_INLINECODE KeyF)
-   * template parameter.
+   * Inserts a new value into the BTree.
    */
   void insert(ValueT v) {
     Node curRoot = _root;
@@ -132,12 +117,13 @@ public:
   }
 
   /**
-   * Removes a key and value from the BTree if it exists.
+   * Removes a value and value from the BTree if it exists.
    */
-  void remove(KeyT k) {
-    _root.remove(k);
+  void remove(ValueT v) {
+    _root.remove(v);
     if (!_root._isLeaf && _root._numValues == 0) {
       _root = _root._children[0];
+      _root._parent = null;
     }
   }
 
@@ -155,10 +141,6 @@ public:
 
     bool isFound() {
       return _node !is null;
-    }
-
-    inout(KeyT) getKey() inout {
-      return _node.getKey(_position);
     }
 
     inout(ValueT) getValue() inout {
@@ -179,8 +161,8 @@ public:
     Node _parent = null;
 
     size_t _numValues;
-    // The values are stored together with the keys, which are extracted using the KeyF param.
     ValueT[MAX_DEGREE - 1] _values;
+
     // Only non-leaf (internal) nodes have children.
     Node[MAX_DEGREE] _children;
 
@@ -195,7 +177,7 @@ public:
 
     /**
      * Given that this node is non-full, but a child node that is, split the child node into two
-     * separate nodes that are half full, and insert a new key into this node between them.
+     * separate nodes that are half full, and insert a value into this node between them.
      */
     void splitChild(size_t i)
     in {
@@ -236,7 +218,7 @@ public:
       _values[i] = toSplitNode._values[MIN_DEGREE - 1];
       _numValues++;
 
-      // Reduce the size of key/values in the node being split, cutting it in half.
+      // Reduce the size of values in the node being split, cutting it in half.
       toSplitNode._numValues = MIN_DEGREE - 1;
 
       // TODO: DISK-WRITE(toSplitNode)
@@ -245,34 +227,33 @@ public:
     }
 
     /**
-     * Inserts a new value/key into the BTree, provided that this node is not already full.
+     * Inserts a new value into the BTree, provided that this node is not already full.
      */
     void insertNonFull(ValueT v)
     in {
       assert(!isFull());
     } body {
       int i = cast(int) _numValues - 1;
-      KeyT k = _getKey(v);
       if (_isLeaf) {
-        // Shift over the keys to make room.
-        for (; i >= 0 && _keyLess(k, getKey(i)); i--) {
+        // Shift over the values to make room.
+        for (; i >= 0 && _isValueLess(v, _values[i]); i--) {
           _values[i + 1] = _values[i];
         }
         _values[i + 1] = v;
         _numValues++;
         // TODO: DISK-WRITE(this)
       } else {
-        // Find the index of the first key less than the inserted value.
-        for (; i >= 0 && _keyLess(k, getKey(i)); i--) {}
-        // The child to insert into is one past the key's index, which may be -1.
-        //     k[0]    k[1]    k[2]
+        // Find the index of the first value less than the inserted value.
+        for (; i >= 0 && _isValueLess(v, _values[i]); i--) {}
+        // The child to insert into is one past the value's index, which may be -1.
+        //     v[0]    v[1]    v[2]
         // c[0]    c[1]    c[2]    c[3]
         i++;
         // TODO: DISK-READ(_children[i])
         if (_children[i].isFull()) {
           splitChild(i);
           // After splitting, the median value of the child is not in this node at index i.
-          if (_keyLess(getKey(i), k)) {
+          if (_isValueLess(_values[i], v)) {
             i++;
           }
         }
@@ -280,7 +261,7 @@ public:
       }
     }
 
-  package:
+  public:
     this() {
       _isLeaf = true;
       _numValues = 0;
@@ -288,30 +269,30 @@ public:
 
     static if (MIN_DEGREE < 16) {
       // If degree is small, use a simple linear search.
-      size_t findFirstGEIndex(KeyT k) const {
+      size_t findFirstGEIndex(ValueT v) const {
         size_t i = 0;
-        while (i < numKeys() && _keyLess(getKey(i), k)) {
+        while (i < _numValues && _isValueLess(_values[i], v)) {
           i++;
         }
         return i;
       }
     } else {
       // If degree is higher, use a binary search.
-      size_t findFirstGEIndex(KeyT k) const {
+      size_t findFirstGEIndex(ValueT v) const {
         size_t i = 0;
-        size_t j = numKeys();
+        size_t j = _numValues;
         while (i < j) {
           size_t mid = (i + j) / 2;
-          KeyT midKey = getKey(mid);
-          if ((mid == 0 || _keyLess(getKey(mid - 1), k)) && !_keyLess(midKey, k)) {
+          const(ValueT) midValue = _values[mid];
+          if ((mid == 0 || _isValueLess(_values[mid - 1], v)) && !_isValueLess(midValue, v)) {
             return mid;
-          } else if (!_keyLess(midKey, k)) {
+          } else if (!_isValueLess(midValue, v)) {
             j = mid;
           } else {
             i = mid + 1;
           }
         }
-        return numKeys();
+        return _numValues;
       }
     }
 
@@ -340,43 +321,43 @@ public:
       return _values[0 .. _numValues];
     }
 
-    void remove(KeyT k) {
-      size_t i = findFirstGEIndex(k);
-      // 1. If the key k is in this node and this is a leaf, delete the key from this.
+    void remove(ValueT v) {
+      size_t i = findFirstGEIndex(v);
+      // 1. If the value v is in this node and this is a leaf, delete the value from this.
       if (_isLeaf) {
-        if (i != _numValues && _keyEqual(k, getKey(i))) {
+        if (i != _numValues && _isValueEqual(v, _values[i])) {
           foreach (j; i .. _numValues - 1) {
             _values[j] = _values[j+1];
           }
           _numValues--;
         }
-        // Otherwise the key was not in the BTree.
+        // Otherwise the value was not in the BTree.
       }
-      // 2. If the key k is in this node and this is an internal node:
-      else if (i != _numValues && _keyEqual(k, getKey(i))) {
-        // 2a. If child y that precedes k in this node has at least t keys, then find the
-        // predecessor k' of k in the subtree rooted at y. Recursively delete k' and replace
-        // k by k' in this.
+      // 2. If the value v is in this node and this is an internal node:
+      else if (i != _numValues && _isValueEqual(v, _values[i])) {
+        // 2a. If child y that precedes v in this node has at least t values, then find the
+        // predecessor v' of v in the subtree rooted at y. Recursively delete v' and replace
+        // v by v' in this.
         if (_children[i]._numValues >= MIN_DEGREE) {
-          ValueT predecessor = _children[i].getValue(_numValues - 1);
+          ValueT predecessor = _children[i]._values[_numValues - 1];
           _values[i] = predecessor;
-          _children[i].remove(_getKey(predecessor));
+          _children[i].remove(predecessor);
         }
-        // 2b. If child z that follows k in this node has at least t keys, then find the
-        // successor k' of k in the subtree rooted at z.  Recursively delete k', and replace
-        // k by k' in this.
+        // 2b. If child z that follows v in this node has at least t values, then find the
+        // successor v' of v in the subtree rooted at z.  Recursively delete v', and replace
+        // v by v' in this.
         else if (_children[i+1]._numValues >= MIN_DEGREE) {
           ValueT successor = _children[i+1].getValue(0);
           _values[i] = successor;
-          _children[i+1].remove(_getKey(successor));
+          _children[i+1].remove(successor);
         }
-        // 2c. Otherwise, if both y and z have only t-1 keys, merge k and all of z into y,
-        // so that x loses both k and the pointer to z, and y now contains 2t-1 keys.
-        // Then, free z and recursively delete k from y.
+        // 2c. Otherwise, if both y and z have only t-1 values, merge v and all of z into y,
+        // so that x loses both v and the pointer to z, and y now contains 2t-1 values.
+        // Then, free z and recursively delete v from y.
         else {
           Node y = _children[i];
           Node z = _children[i + 1];
-          // Add k and z to y.
+          // Add v and z to y.
           y._values[y._numValues++] = _values[i];
           foreach (j; 0 .. z._numValues) {
             y._values[y._numValues + j] = z._values[j];
@@ -386,7 +367,7 @@ public:
           }
           y._numValues += z._numValues;
 
-          // Remove k and z from this.
+          // Remove v and z from this.
           foreach (j; i .. _numValues - 1) {
             _values[j] = _values[j + 1];
           }
@@ -395,17 +376,17 @@ public:
           }
           _numValues--;
 
-          // Recursively remove k from y.
-          y.remove(k);
+          // Recursively remove v from y.
+          y.remove(v);
         }
       }
-      // 3. The internal node does not have the key, but maybe a child does.
+      // 3. The internal node does not have the value, but maybe a child does.
       else if (!_isLeaf) {
         // Assure that the child to descend to has at least MIN_DEGREE values.
         if (_children[i]._numValues == MIN_DEGREE - 1) {
-          // 3a1. If _children[i] has a sibling with at least MIN_DEGREE keys, move that key
-          // into this, and this's key into _children.
-          // Handle if the right sibling has an extra key.
+          // 3a1. If _children[i] has a sibling with at least MIN_DEGREE values, move that value
+          // into this, and this's value into _children.
+          // Handle if the right sibling has an extra value.
           if (i < _numValues && _children[i + 1]._numValues >= MIN_DEGREE) {
             Node y = _children[i];
             Node z = _children[i + 1];
@@ -423,12 +404,12 @@ public:
             }
             z._numValues--;
           }
-          // 3a2. Handle if the left sibling has an extra key.
+          // 3a2. Handle if the left sibling has an extra value.
           else if (i > 0 && _children[i - 1]._numValues >= MIN_DEGREE) {
             Node x = _children[i - 1];
             Node y = _children[i];
 
-            // Make room for 1 more key at the start of y.
+            // Make room for 1 more value at the start of y.
             for (auto j = y._numValues; j > 0; j--) {
               y._values[j] = y._values[j - 1];
             }
@@ -445,17 +426,17 @@ public:
           }
           // 3b. If both siblings of the child that may have the value are of size
           // MIN_DEGREE - 1, then merge the child with one of those siblings, merging
-          // a key from this which becomes the median node.
+          // a value from this which becomes the median node.
           else if ((i == _numValues || _children[i + 1]._numValues == MIN_DEGREE - 1)
               && (_children[i]._numValues == MIN_DEGREE - 1)) {
             // 3b1. First try to merge with the right node.
             if (i < _numValues) {
               Node y = _children[i];
               Node z = _children[i + 1];
-              // Add the key from this into y.
+              // Add the value from this into y.
               y._values[y._numValues] = _values[i];
               y._numValues++;
-              // Merge the keys and values from z into y also.
+              // Merge the values and values from z into y also.
               foreach (j; 0 .. z._numValues) {
                 y._values[y._numValues + j] = z._values[j];
               }
@@ -478,7 +459,7 @@ public:
               Node x = _children[i - 1];
               Node y = _children[i];
 
-              // Move the key to the left of y into x.
+              // Move the value to the left of y into x.
               x._values[x._numValues] = _values[i - 1];
               x._numValues++;
               // Now merge y into x.
@@ -490,7 +471,7 @@ public:
               }
               x._numValues += y._numValues;
 
-              // Erase the key from this that was merged into x.
+              // Erase the value from this that was merged into x.
               foreach (j; i - 1 .. _numValues - 1) {
                 _values[j] = _values[j + 1];
               }
@@ -502,7 +483,7 @@ public:
             }
           }
         }
-        _children[i].remove(k);
+        _children[i].remove(v);
       }
     }
 
@@ -513,17 +494,8 @@ public:
       return format("[isLeaf=%d, numValues=%d]", _isLeaf, _numValues);
     }
 
-    /// Retrieves a key at a given position of a node. The key is derived from the stored value.
-    inout(KeyT) getKey(size_t i) inout
-    in {
-      assert(i >= 0);
-      assert(i < _numValues);
-    } body {
-      return _getKey(getValue(i));
-    }
-
-    /// Indicates how many keys are in this node.
-    size_t numKeys() const {
+    /// Indicates how many values are in this node.
+    size_t numValues() const {
       return _numValues;
     }
 
@@ -541,24 +513,19 @@ public:
       return _values[i];
     }
 
-    /// Indicates how many values are in this node.
-    size_t numValues() const {
-      return _numValues;
-    }
-
     /**
-     * Recursively search for a given key and produce a result indicating whether a match
+     * Recursively search for a given value and produce a result indicating whether a match
      * was found and what it's value is.
      */
-    inout(Iterator) search(KeyT k) inout {
-      size_t i = findFirstGEIndex(k);
-      if (i < numKeys() && _keyEqual(getKey(i), k)) {
+    inout(Iterator) search(ValueT v) inout {
+      size_t i = findFirstGEIndex(v);
+      if (i < _numValues && _isValueEqual(_values[i], v)) {
         return inout(Iterator)(this, i);
       }
       if (_isLeaf) {
         return inout(Iterator)(null, -1);
       } else {
-        return _children[i].search(k);
+        return _children[i].search(v);
       }
     }
   }
@@ -612,16 +579,16 @@ unittest {
   struct S {
     int a, b, c, d, e, f;
   }
-  static assert(BTree!(S, 1024, int, "a.a").MIN_DEGREE == 15);
-  static assert(BTree!(S, 1024, int, "a.a").MAX_DEGREE == 30);
+  static assert(BTree!(S, 1024, "a.a < b.a").MIN_DEGREE == 15);
+  static assert(BTree!(S, 1024, "a.a < b.a").MAX_DEGREE == 30);
 
   // Classes are passed by reference, and thus the value needs only 8 bytes.
   class C {
     int a, b, c, d, e, f;
     int getVal() const { return d; }
   }
-  static assert(BTree!(C, 1024, int, "a.getVal()").MIN_DEGREE == 31);
-  static assert(BTree!(C, 1024, int, "a.getVal()").MAX_DEGREE == 62);
+  static assert(BTree!(C, 1024, "a.getVal() < b.getVal()").MIN_DEGREE == 31);
+  static assert(BTree!(C, 1024, "a.getVal() < b.getVal()").MAX_DEGREE == 62);
 }
 
 /// Simple use case with primitive types.
@@ -647,14 +614,14 @@ unittest {
     string _data;
   }
 
-  // Organize the BTree using the _id field as the key used for comparison.
-  auto btree = new BTree!(Structo, 1024, int, "a._id");
+  // Organize the BTree using the _id field as the value used for comparison.
+  auto btree = new BTree!(Structo, 1024, "a._id < b._id");
   btree.insert(Structo(1, "Good Day"));
   btree.insert(Structo(2, "Guten Tag"));
   btree.insert(Structo(3, "G'Day Mate"));
-  assert(btree.search(2).isFound());
-  assert(!btree.search(4).isFound());
-  assert(btree.search(3).getValue()._data == "G'Day Mate");
+  assert(btree.search(Structo(2)).isFound());
+  assert(!btree.search(Structo(4)).isFound());
+  assert(btree.search(Structo(3)).getValue()._data == "G'Day Mate");
 }
 
 /// Use case using comparison by a specific value.
@@ -665,24 +632,20 @@ unittest {
   }
 
   // This time use the string _data field, but only the first two characters.
-  auto btree2 = new BTree!(
-      Structo, 1024, string, "a._data", "a[0..2] > b[0..2]", "a[0..2] == b[0..2]");
+  auto btree2 = new BTree!(Structo, 1024, "a._data[0..2] > b._data[0..2]");
 
   // Lambdas may also be used.
   auto btree3 = new BTree!(
       Structo,  // The type of thing being stored in the BTree.
       1024,  // The size of a node in bytes.
-      string,  // The key type.
-      a => a._data,  // How to extract the key.
-      (a, b) => a[0..2] > b[0..2],  // Determine if one key is less than another.
-      (a, b) => a[0..2] == b[0..2]);  // Determine if two keys are equal.
+      (a, b) => a._data[0..2] > b._data[0..2]);  // Determine if one value is less than another.
 
   btree3.insert(Structo(1, "RW-Fish"));
   btree3.insert(Structo(2, "LG-Sheep"));
   btree3.insert(Structo(3, "BK-Bunny"));
-  assert(btree3.search("RW").isFound());
-  assert(!btree3.search("ZM").isFound());
-  assert(btree3.search("BK").getValue()._data == "BK-Bunny");
+  assert(btree3.search(Structo(0, "RW")).isFound());
+  assert(!btree3.search(Structo(0, "ZM")).isFound());
+  assert(btree3.search(Structo(0, "BK")).getValue()._data == "BK-Bunny");
 }
 
 /// Use case compatible with class comparing operator overrides:

@@ -224,5 +224,5 @@ unittest {
     btree.remove(c);
   }
   Assert.equal(btree.root.isLeaf(), true);
-  Assert.equal(btree.root.numKeys(), 0);
+  Assert.equal(btree.root.numValues(), 0);
 }
