@@ -54,6 +54,36 @@ unittest {
   Assert.equal(root._children[1]._children[0], grandChild2);
 }
 
+@("insertNonFull.leaf")
+unittest {
+  alias BTreeType = BTree!(char, 75);
+  static assert(BTreeType.MIN_DEGREE == 2);
+
+  BTreeType.Node node = new BTreeType.Node();
+  node._isLeaf = true;
+  node._numValues = 1;
+  node._values = "b";
+
+  node.insertNonFull('a');
+  Assert.equal(node.getValues(), "ab");
+  Assert.equal(node._numValues, 2);
+
+  node.insertNonFull('c');
+  Assert.equal(node.getValues(), "abc");
+  Assert.equal(node._numValues, 3);
+}
+
+@("insertNonFull.nonLeaf")
+unittest {
+  alias BTreeType = BTree!(char, 75);
+  static assert(BTreeType.MIN_DEGREE == 2);
+
+  BTreeType.Node node = new BTreeType.Node();
+  node._isLeaf = false;
+
+  // TODO: Resume here.
+}
+
 ////
 // BTree tests
 ////
@@ -90,7 +120,7 @@ void printTree(T)(T btree) {
  *  [A B] [D E F] [H I] [K L M N]  [P Q R S] [U V] [X Y Z]
  */
 auto createTestBTree() {
-  auto btree = new BTree!(char, 75)();
+  auto btree = new BTree!(char, 90)();
 
   static assert(btree.MIN_DEGREE == 3);
 

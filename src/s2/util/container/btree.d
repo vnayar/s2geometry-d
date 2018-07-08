@@ -5,6 +5,7 @@ import std.functional : unaryFun, binaryFun;
 import std.traits : ReturnType;
 import std.format : format;
 
+
 /**
  * A B-Tree implementation based upon "Introduction to Algorithms" by Cormen, Leiserson, Rivest,
  * and Stein.
@@ -59,7 +60,7 @@ private:
   //   [children]  + 2*t * (size of pointer to a node)
   //   = NodeSize
   static size_t getMinDegree() @nogc @safe pure nothrow {
-    size_t nodeSizeBase = bool.sizeof + size_t.sizeof + Node.sizeof;
+    size_t nodeSizeBase = bool.sizeof + Node.sizeof + size_t.sizeof + size_t.sizeof;
     size_t nodeExtraSizePerChild = ValueT.sizeof + Node.sizeof;
 
     if (NodeSizeV < nodeSizeBase) {
@@ -93,7 +94,7 @@ public:
    * Recursively search for a given value and produce a result indicating whether a match
    * was found and what it's value is.
    */
-  inout(Iterator) search(ValueT v) inout {
+  inout(BTRange) search(ValueT v) inout {
     return _root.search(v);
   }
 
@@ -106,14 +107,12 @@ public:
       Node newRoot = new Node();
       newRoot._isLeaf = false;
       newRoot._numValues = 0;
-      newRoot._children[0] = curRoot;
-      newRoot.splitChild(0);
-      newRoot.insertNonFull(v);
-      _root._parent = newRoot;
+      newRoot._parent = null;
+      newRoot.setChild(0, _root);
       _root = newRoot;
-    } else {
-      curRoot.insertNonFull(v);
+      _root.splitChild(0);
     }
+    _root.insertNonFull(v);
   }
 
   /**
@@ -127,13 +126,14 @@ public:
     }
   }
 
+
   /**
    * The result of a search operation.
    *
    * It is a separate structure to account for the fact that the BTree may contain non-nullable
    * types, and thus a way of identifying an unsuccessful search is needed.
    */
-  static struct Iterator {
+  static struct BTRange {
   private:
     Node _node;
     size_t _position;
@@ -146,6 +146,25 @@ public:
     inout(ValueT) getValue() inout {
       return _node.getValue(_position);
     }
+
+    ////
+    // Iterator oriented methods.
+    ////
+
+    void increment() {
+      if (_node.isLeaf() && ++_position < _node.numValues()) {
+        return;
+      }
+      // We've gone past the last position.
+      if (_node.isLeaf()) {
+        BTRange save = this;
+        while (_position == _node.numValues() && _node.isRoot()) {
+        }
+      }
+    }
+
+    void decrement() {
+    }
   }
 
   /**
@@ -156,23 +175,76 @@ public:
    * other cases, such as dynamic arrays and classes, on the reference is stored.
    */
   static class Node {
+  private:
+    /// Indicates if the node has reached the size limit specified in $(D_INLINECODE NodeSizeV).
+    bool isFull() {
+      return _numValues >= MAX_DEGREE - 1;
+    }
+
+    void setChild(size_t i, Node child)
+    in {
+      assert(!_isLeaf);
+      assert(i >= 0);
+    } body {
+      _children[i] = child;
+      _children[i]._position = i;
+      _children[i]._parent = this;
+    }
+
   package:
+    // A flag indicating whether the node is a leaf node or not.
     bool _isLeaf = true;
+
+    // A reference to the node's parent.
     Node _parent = null;
 
-    size_t _numValues;
+    // The position of the node in the node's parent.
+    size_t _position = 0;
+
+    // A count of the number of values in the node.
+    size_t _numValues = 0;
     ValueT[MAX_DEGREE - 1] _values;
 
     // Only non-leaf (internal) nodes have children.
     Node[MAX_DEGREE] _children;
 
     invariant {
+      // Assure that the number of values stays within the bounds of the MAX_DEGREE.
       assert(_numValues <= MAX_DEGREE - 1);
+
+      // Assure that values remain in a consistent order.
+      foreach (i; 1 .. _numValues) {
+        assert(_isValueLess(_values[i - 1], _values[i]));
+      }
+
+      // Assure that no child that should be present is null.
       if (!_isLeaf) {
         foreach (i; 0 .. _numValues + 1) {
           assert(_children[i] !is null);
+          assert(_children[i]._parent is this);
+          assert(
+              _children[i]._position == i,
+              format("Found position %d, expected %d in child with values %s. _numValues=%d",
+                  _children[i]._position, i, _children[i]._values, _numValues));
         }
       }
+    }
+
+  public:
+    ValueT front() {
+      Node seek = this;
+      while (!seek._isLeaf) {
+        seek = seek._children[0];
+      }
+      return seek._values[0];
+    }
+
+    ValueT back() {
+      Node seek = this;
+      while (!seek._isLeaf) {
+        seek = seek._children[_numValues];
+      }
+      return seek._values[_numValues - 1];
     }
 
     /**
@@ -189,7 +261,7 @@ public:
     } body {
       Node toSplitNode = _children[i];
 
-      // Prepare a new node containig the right half of the node at _children[i].
+      // Prepare a new node containing the right half of the node at _children[i].
       // TODO: ALLOCATE-NODE(newNode)
       Node newNode = new Node();
       newNode._parent = this;
@@ -200,16 +272,9 @@ public:
       }
       if (!toSplitNode._isLeaf) {
         foreach (j; 0 .. MIN_DEGREE) {
-          newNode._children[j] = toSplitNode._children[j + MIN_DEGREE];
+          newNode.setChild(j, toSplitNode._children[j + MIN_DEGREE]);
         }
       }
-
-      // Make way for a newNode to be added at position i + 1.
-      // There can be up to _numValues + 1 children.
-      for (auto j = _numValues + 1; j >= i + 1; j--) {
-        _children[j] = _children[j - 1];
-      }
-      _children[i + 1] = newNode;
 
       // Make way for the new value added at position i.
       for (auto j = _numValues; j > i; j--) {
@@ -217,6 +282,13 @@ public:
       }
       _values[i] = toSplitNode._values[MIN_DEGREE - 1];
       _numValues++;
+
+      // Make way for a newNode to be added at position i + 1.
+      // There can be up to _numValues + 1 children.
+      for (auto j = _numValues; j > i + 1; j--) {
+        setChild(j, _children[j - 1]);
+      }
+      setChild(i + 1, newNode);
 
       // Reduce the size of values in the node being split, cutting it in half.
       toSplitNode._numValues = MIN_DEGREE - 1;
@@ -259,12 +331,6 @@ public:
         }
         _children[i].insertNonFull(v);
       }
-    }
-
-  public:
-    this() {
-      _isLeaf = true;
-      _numValues = 0;
     }
 
     static if (MIN_DEGREE < 16) {
@@ -339,7 +405,7 @@ public:
         // predecessor v' of v in the subtree rooted at y. Recursively delete v' and replace
         // v by v' in this.
         if (_children[i]._numValues >= MIN_DEGREE) {
-          ValueT predecessor = _children[i]._values[_numValues - 1];
+          ValueT predecessor = _children[i].back();
           _values[i] = predecessor;
           _children[i].remove(predecessor);
         }
@@ -347,7 +413,7 @@ public:
         // successor v' of v in the subtree rooted at z.  Recursively delete v', and replace
         // v by v' in this.
         else if (_children[i+1]._numValues >= MIN_DEGREE) {
-          ValueT successor = _children[i+1].getValue(0);
+          ValueT successor = _children[i+1].front();
           _values[i] = successor;
           _children[i+1].remove(successor);
         }
@@ -362,8 +428,12 @@ public:
           foreach (j; 0 .. z._numValues) {
             y._values[y._numValues + j] = z._values[j];
           }
-          foreach (j; 0 .. z._numValues + 1) {
-            y._children[y._numValues + j] = z._children[j];
+          // Note: All leaves have the same depth in a BTree.
+          assert(y._isLeaf == z._isLeaf);
+          if (!y._isLeaf) {
+            foreach (j; 0 .. z._numValues + 1) {
+              y.setChild(y._numValues + j, z._children[j]);
+            }
           }
           y._numValues += z._numValues;
 
@@ -372,7 +442,7 @@ public:
             _values[j] = _values[j + 1];
           }
           foreach (j; i + 1 .. _numValues) {
-            _children[j] = _children[j + 1];
+            setChild(j, _children[j + 1]);
           }
           _numValues--;
 
@@ -383,24 +453,27 @@ public:
       // 3. The internal node does not have the value, but maybe a child does.
       else if (!_isLeaf) {
         // Assure that the child to descend to has at least MIN_DEGREE values.
+        // If not, it needs to be adjusted.
         if (_children[i]._numValues == MIN_DEGREE - 1) {
-          // 3a1. If _children[i] has a sibling with at least MIN_DEGREE values, move that value
-          // into this, and this's value into _children.
+          // 3a1. If _children[i] has a sibling with at least MIN_DEGREE values, move one value
+          // into this, and one one of this's values into _children.
           // Handle if the right sibling has an extra value.
           if (i < _numValues && _children[i + 1]._numValues >= MIN_DEGREE) {
             Node y = _children[i];
             Node z = _children[i + 1];
             y._values[y._numValues] = _values[i];
-            y._children[y._numValues + 1] = z._children[0];
             y._numValues++;
 
             _values[i] = z._values[0];
-
             foreach (j; 0 .. z._numValues - 1) {
               z._values[j] = z._values[j + 1];
             }
-            foreach (j; 0 .. z._numValues) {
-              z._children[j] = z._children[j + 1];
+
+            if (!y._isLeaf) {
+              y.setChild(y._numValues, z._children[0]);
+              foreach (j; 0 .. z._numValues) {
+                z.setChild(j, z._children[j + 1]);
+              }
             }
             z._numValues--;
           }
@@ -413,15 +486,17 @@ public:
             for (auto j = y._numValues; j > 0; j--) {
               y._values[j] = y._values[j - 1];
             }
-            for (auto j = y._numValues + 1; j > 0; j--) {
-              y._children[j] = y._children[j - 1];
+            y._values[0] = _values[i - 1];
+            _values[i - 1] = x._values[x._numValues - 1];
+
+            if (!x._isLeaf) {
+              for (auto j = y._numValues + 1; j > 0; j--) {
+                y.setChild(j, y._children[j - 1]);
+              }
+              y.setChild(0, x._children[x._numValues]);
             }
-            y._values[0] = _values[i-1];
-            y._children[0] = x._children[x._numValues];
+
             y._numValues++;
-
-            _values[i-1] = x._values[x._numValues - 1];
-
             x._numValues--;
           }
           // 3b. If both siblings of the child that may have the value are of size
@@ -440,8 +515,10 @@ public:
               foreach (j; 0 .. z._numValues) {
                 y._values[y._numValues + j] = z._values[j];
               }
-              foreach (j; 0 .. z._numValues + 1) {
-                y._children[y._numValues + j] = z._children[j];
+              if (!y._isLeaf) {
+                foreach (j; 0 .. z._numValues + 1) {
+                  y.setChild(y._numValues + j, z._children[j]);
+                }
               }
               y._numValues += z._numValues;
 
@@ -450,7 +527,7 @@ public:
                 _values[j] = _values[j + 1];
               }
               foreach (j; i + 1 .. _numValues) {
-                _children[j] = _children[j + 1];
+                setChild(j, _children[j + 1]);
               }
               _numValues--;
             }
@@ -466,8 +543,10 @@ public:
               foreach (j; 0 .. y._numValues) {
                 x._values[x._numValues + j] = y._values[j];
               }
-              foreach (j; 0 .. y._numValues + 1) {
-                x._children[x._numValues + j] = y._children[j];
+              if (!x._isLeaf) {
+                foreach (j; 0 .. y._numValues + 1) {
+                  x.setChild(x._numValues + j, y._children[j]);
+                }
               }
               x._numValues += y._numValues;
 
@@ -476,7 +555,7 @@ public:
                 _values[j] = _values[j + 1];
               }
               foreach (j; i .. _numValues) {
-                _children[j] = _children[j + 1];
+                setChild(j, _children[j + 1]);
               }
               _numValues--;
               i--;
@@ -487,21 +566,14 @@ public:
       }
     }
 
-  public:
-
     override
     string toString() {
-      return format("[isLeaf=%d, numValues=%d]", _isLeaf, _numValues);
+      return format("[isLeaf=%d, numValues=%d, position=%d]", _isLeaf, _numValues, _position);
     }
 
     /// Indicates how many values are in this node.
     size_t numValues() const {
       return _numValues;
-    }
-
-    /// Indicates if the node has reached the size limit specified in $(D_INLINECODE NodeSizeV).
-    bool isFull() {
-      return _numValues >= MAX_DEGREE - 1;
     }
 
     /// Retrieves a values stored in this node.
@@ -517,13 +589,13 @@ public:
      * Recursively search for a given value and produce a result indicating whether a match
      * was found and what it's value is.
      */
-    inout(Iterator) search(ValueT v) inout {
+    inout(BTRange) search(ValueT v) inout {
       size_t i = findFirstGEIndex(v);
       if (i < _numValues && _isValueEqual(_values[i], v)) {
-        return inout(Iterator)(this, i);
+        return inout(BTRange)(this, i);
       }
       if (_isLeaf) {
-        return inout(Iterator)(null, -1);
+        return inout(BTRange)(null, -1);
       } else {
         return _children[i].search(v);
       }
