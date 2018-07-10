@@ -158,14 +158,58 @@ public:
       // We've gone past the last position.
       if (_node.isLeaf()) {
         BTRange save = this;
-        while (_position == _node.numValues() && _node.isRoot()) {
+        while (_position == _node.numValues() && !_node.isRoot()) {
+          _position = _node._position;
+          _node = _node._parent;
         }
+        if (_position == _node.numValues()) {
+          this = save;
+        }
+      } else {
+        _node = _node._children[_position + 1];
+        while (!_node.isLeaf()) {
+          _node = _node._children[0];
+        }
+        _position = 0;
       }
     }
 
+    void opUnary(string op)()
+    if (op == "++") {
+      increment();
+    }
+
     void decrement() {
+      if (_node.isLeaf() && _position > 0) {
+        _position--;
+        return;
+      }
+      if (_node.isLeaf()) {
+        BTRange save = this;
+        while (_position == 0 && !_node.isRoot()) {
+          _position = _node._position;
+          _node = _node._parent;
+        }
+        _position--;
+        if (_position < 0) {
+          this = save;
+        }
+      } else {
+        _node = _node._children[_position];
+        while (!_node.isLeaf()) {
+          _node = _node._children[_node._numValues];
+        }
+        _position = _node._numValues - 1;
+      }
+    }
+
+    void opUnary(string op)()
+    if (op == "--") {
+      decrement();
     }
   }
+
+  alias Range = BTRange;
 
   /**
    * A node in the BTree.
@@ -189,6 +233,22 @@ public:
       _children[i] = child;
       _children[i]._position = i;
       _children[i]._parent = this;
+    }
+
+    Node leftmost() {
+      Node seek = this;
+      while (!seek._isLeaf) {
+        seek = seek._children[0];
+      }
+      return seek;
+    }
+
+    Node rightmost() {
+      Node seek = this;
+      while (!seek._isLeaf) {
+        seek = seek._children[seek._numValues];
+      }
+      return seek;
     }
 
   package:
@@ -231,22 +291,6 @@ public:
     }
 
   public:
-    ValueT front() {
-      Node seek = this;
-      while (!seek._isLeaf) {
-        seek = seek._children[0];
-      }
-      return seek._values[0];
-    }
-
-    ValueT back() {
-      Node seek = this;
-      while (!seek._isLeaf) {
-        seek = seek._children[_numValues];
-      }
-      return seek._values[_numValues - 1];
-    }
-
     /**
      * Given that this node is non-full, but a child node that is, split the child node into two
      * separate nodes that are half full, and insert a value into this node between them.
@@ -405,7 +449,8 @@ public:
         // predecessor v' of v in the subtree rooted at y. Recursively delete v' and replace
         // v by v' in this.
         if (_children[i]._numValues >= MIN_DEGREE) {
-          ValueT predecessor = _children[i].back();
+          Node predecessorNode = _children[i].rightmost();
+          ValueT predecessor = predecessorNode._values[predecessorNode._numValues - 1];
           _values[i] = predecessor;
           _children[i].remove(predecessor);
         }
@@ -413,7 +458,7 @@ public:
         // successor v' of v in the subtree rooted at z.  Recursively delete v', and replace
         // v by v' in this.
         else if (_children[i+1]._numValues >= MIN_DEGREE) {
-          ValueT successor = _children[i+1].front();
+          ValueT successor = _children[i+1].leftmost()._values[0];
           _values[i] = successor;
           _children[i+1].remove(successor);
         }
@@ -580,7 +625,7 @@ public:
     inout(ValueT) getValue(size_t i) inout
     in {
       assert(i >= 0);
-      assert(i < _numValues);
+      assert(i < _numValues, format("Value at %d is beyond numValues %d.", i, _numValues));
     } body {
       return _values[i];
     }
@@ -600,6 +645,19 @@ public:
         return _children[i].search(v);
       }
     }
+  }
+
+  ////
+  // Iterator Methods
+  ////
+
+  BTRange begin() {
+    return BTRange(_root.leftmost(), 0);
+  }
+
+  BTRange end() {
+    Node right = _root.rightmost();
+    return BTRange(right, right.numValues() - 1);
   }
 }
 

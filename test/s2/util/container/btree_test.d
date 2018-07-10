@@ -256,3 +256,30 @@ unittest {
   Assert.equal(btree.root.isLeaf(), true);
   Assert.equal(btree.root.numValues(), 0);
 }
+
+@("begin,end")
+unittest {
+  auto btree = createTestBTree();
+  Assert.equal(btree.begin().getValue(), 'A');
+  Assert.equal(btree.end().getValue(), 'Z');
+}
+
+@("RBRange.increment")
+unittest {
+  auto btree = createTestBTree();
+  char expected = 'A';
+  for (auto iterator = btree.begin(); iterator != btree.end(); iterator++) {
+    Assert.equal(iterator.getValue(), expected);
+    expected++;
+  }
+}
+
+@("RBRange.decrement")
+unittest {
+  auto btree = createTestBTree();
+  char expected = 'Z';
+  for (auto iterator = btree.end(); iterator != btree.begin(); iterator--) {
+    Assert.equal(iterator.getValue(), expected);
+    expected--;
+  }
+}
