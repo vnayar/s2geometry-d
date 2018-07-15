@@ -5,6 +5,30 @@ import s2.util.container.btree;
 
 import std.stdio;
 
+@("BTree.MIN_DEGREE,MAX_DEGREE")
+unittest {
+  static assert(BTree!(int, 256).MIN_DEGREE == 9);
+  static assert(BTree!(int, 256).MAX_DEGREE == 18);
+
+  static assert(BTree!(int, 4096).MIN_DEGREE == 169);
+  static assert(BTree!(int, 4096).MAX_DEGREE == 338);
+
+  // Structs are passed by value, so each value needs 6*4 = 24 bytes.
+  struct S {
+    int a, b, c, d, e, f;
+  }
+  static assert(BTree!(S, 1024, "a.a < b.a").MIN_DEGREE == 15);
+  static assert(BTree!(S, 1024, "a.a < b.a").MAX_DEGREE == 30);
+
+  // Classes are passed by reference, and thus the value needs only 8 bytes.
+  class C {
+    int a, b, c, d, e, f;
+    int getVal() const { return d; }
+  }
+  static assert(BTree!(C, 1024, "a.getVal() < b.getVal()").MIN_DEGREE == 31);
+  static assert(BTree!(C, 1024, "a.getVal() < b.getVal()").MAX_DEGREE == 62);
+}
+
 ////
 // BTree.Node tests
 ////
@@ -250,7 +274,7 @@ auto createTestBTree() {
   return btree;
 }
 
-@("remove.1")
+@("BTree.remove.1")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0).getChild(1);
@@ -258,7 +282,7 @@ unittest {
   Assert.equal(node.getValues(), "DF");
 }
 
-@("remove.2a")
+@("BTree.remove.2a")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -267,7 +291,7 @@ unittest {
   Assert.equal(node.getChild(1).getValues(), "DE");
 }
 
-@("remove.2b.2c")
+@("BTree.remove.2b.2c")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -281,7 +305,7 @@ unittest {
   Assert.equal(node.getChild(2).getValues(), "KLMN");
 }
 
-@("remove.3a")
+@("BTree.remove.3a")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(1);
@@ -298,7 +322,7 @@ unittest {
   Assert.equal(node.getChild(1).getValues(), "TW");
 }
 
-@("remove.3b1")
+@("BTree.remove.3b1")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -313,7 +337,7 @@ unittest {
   Assert.equal(node.getChild(2).getValues(), "KLMN");
 }
 
-@("remove.3b2")
+@("BTree.remove.3b2")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -329,7 +353,7 @@ unittest {
   Assert.equal(node.getChild(2).getValues(), "HIJL");
 }
 
-@("remove.all")
+@("BTree.remove.all")
 unittest {
   auto btree = createTestBTree();
   foreach (c; 'A' .. cast(char)('Z' + 1)) {
@@ -372,4 +396,71 @@ unittest {
     Assert.equal(iterator.getValue(), expected);
     expected--;
   } while (iterator != btree.begin());
+}
+
+////
+// Range related tests, which assume previous tests are passing.
+////
+
+@("Range.equalRange")
+unittest {
+  import std.array;
+
+  auto btree = createTestBTree();
+  // Remove the ends so we can test ranges at the start and end of the BTree.
+  btree.remove('A');
+  btree.remove('Z');
+  // Add a few duplicates for testing purposes.
+  btree.insert('U');
+  btree.insert('U');
+  btree.insert('U');
+  btree.insert('B');
+  btree.insert('B');
+  btree.insert('Y');
+
+  Assert.equal(btree.equalRange('A').empty(), true);
+  Assert.equal(btree.equalRange('Z').empty(), true);
+
+  // Check the size of various matches.
+  Assert.equal(array(btree.equalRange('B')).length, 3);
+  Assert.equal(array(btree.equalRange('O')).length, 1);
+  Assert.equal(array(btree.equalRange('U')).length, 4);
+  Assert.equal(array(btree.equalRange('Y')).length, 2);
+}
+
+@("Range.lowerRange")
+unittest {
+  import std.array;
+
+  auto btree = createTestBTree();
+  // Make some gaps for testing purposes.
+  btree.remove('E');
+  // Add a few duplicates for testing purposes.
+  btree.insert('D');
+  btree.insert('D');
+
+  // Check the size of various matches.
+  Assert.equal(btree.lowerRange('A').empty(), true);
+  Assert.equal(array(btree.lowerRange('D')), "ABC");
+  Assert.equal(array(btree.lowerRange('E')), "ABCDDD");
+  Assert.equal(array(btree.lowerRange('F')), "ABCDDD");
+  Assert.equal(array(btree.lowerRange('G')), "ABCDDDF");
+}
+
+@("Range.upperRange")
+unittest {
+  import std.array;
+
+  auto btree = createTestBTree();
+  // Make some gaps for testing purposes.
+  btree.remove('X');
+  // Add a few duplicates for testing purposes.
+  btree.insert('Z');
+
+  // Check the size of various matches.
+  Assert.equal(array(btree.upperRange('V')), "WYZZ");
+  Assert.equal(array(btree.upperRange('W')), "YZZ");
+  Assert.equal(array(btree.upperRange('X')), "YZZ");
+  Assert.equal(array(btree.upperRange('Y')), "ZZ");
+  Assert.equal(btree.upperRange('Z').empty(), true);
 }

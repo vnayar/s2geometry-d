@@ -94,6 +94,19 @@ public:
   }
 
   ////
+  // Iterator Style Methods
+  ////
+
+  Iterator begin() {
+    return Iterator(_root.leftmost(), 0);
+  }
+
+  Iterator end() {
+    Node right = _root.rightmost();
+    return Iterator(right, right.numValues());
+  }
+
+  ////
   // Range Style Methods
   ////
 
@@ -111,30 +124,19 @@ public:
    * Returns a range of all elements strictly less than 'v'.
    */
   Range lowerRange(ValueT v) {
-    // TODO
-    return Range();
+    return Range(begin(), _root.findFirstGE(v));
   }
 
   /**
    * Returns a range of all elements strictly greater than 'v'.
    */
-  inout(Range) upperRange(ValueT v) inout {
-    // TODO
-    return Range();
+  Range upperRange(ValueT v) {
+    return Range(_root.findFirstGT(v), end());
   }
 
   ////
-  // Iterator Style Methods
+  // Core BTree algorithms
   ////
-
-  Iterator begin() {
-    return Iterator(_root.leftmost(), 0);
-  }
-
-  Iterator end() {
-    Node right = _root.rightmost();
-    return Iterator(right, right.numValues());
-  }
 
   /**
    * Inserts a new value into the BTree.
@@ -756,29 +758,6 @@ public:
       }
     }
   }
-}
-
-unittest {
-  static assert(BTree!(int, 256).MIN_DEGREE == 9);
-  static assert(BTree!(int, 256).MAX_DEGREE == 18);
-
-  static assert(BTree!(int, 4096).MIN_DEGREE == 169);
-  static assert(BTree!(int, 4096).MAX_DEGREE == 338);
-
-  // Structs are passed by value, so each value needs 6*4 = 24 bytes.
-  struct S {
-    int a, b, c, d, e, f;
-  }
-  static assert(BTree!(S, 1024, "a.a < b.a").MIN_DEGREE == 15);
-  static assert(BTree!(S, 1024, "a.a < b.a").MAX_DEGREE == 30);
-
-  // Classes are passed by reference, and thus the value needs only 8 bytes.
-  class C {
-    int a, b, c, d, e, f;
-    int getVal() const { return d; }
-  }
-  static assert(BTree!(C, 1024, "a.getVal() < b.getVal()").MIN_DEGREE == 31);
-  static assert(BTree!(C, 1024, "a.getVal() < b.getVal()").MAX_DEGREE == 62);
 }
 
 /// Simple use case with primitive types.
