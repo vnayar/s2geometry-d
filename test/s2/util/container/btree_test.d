@@ -9,7 +9,89 @@ import std.stdio;
 // BTree.Node tests
 ////
 
-@("splitChild")
+@("Node.findFirstGEIndex<16")
+unittest {
+  auto btree = new BTree!(char, 200);
+  static assert(btree.MIN_DEGREE < 16);
+
+  auto node = new btree.Node();
+  node._values = "BBDDEFHH";
+  node._numValues = 8;
+
+  Assert.equal(node.findFirstGEIndex('A'), 0);
+  Assert.equal(node.findFirstGEIndex('B'), 0);
+  Assert.equal(node.findFirstGEIndex('C'), 2);
+  Assert.equal(node.findFirstGEIndex('D'), 2);
+  Assert.equal(node.findFirstGEIndex('E'), 4);
+  Assert.equal(node.findFirstGEIndex('F'), 5);
+  Assert.equal(node.findFirstGEIndex('G'), 6);
+  Assert.equal(node.findFirstGEIndex('H'), 6);
+  Assert.equal(node.findFirstGEIndex('I'), 8);
+}
+
+@("Node.findFirstGTIndex<16")
+unittest {
+  auto btree = new BTree!(char, 200);
+  static assert(btree.MIN_DEGREE < 16);
+
+  auto node = new btree.Node();
+  node._values = "BBDDEFHH";
+  node._numValues = 8;
+
+  Assert.equal(node.findFirstGTIndex('A'), 0);
+  Assert.equal(node.findFirstGTIndex('B'), 2);
+  Assert.equal(node.findFirstGTIndex('C'), 2);
+  Assert.equal(node.findFirstGTIndex('D'), 4);
+  Assert.equal(node.findFirstGTIndex('E'), 5);
+  Assert.equal(node.findFirstGTIndex('F'), 6);
+  Assert.equal(node.findFirstGTIndex('G'), 6);
+  Assert.equal(node.findFirstGTIndex('H'), 8);
+  Assert.equal(node.findFirstGTIndex('I'), 8);
+}
+
+@("Node.findFirstGEIndex>=16")
+unittest {
+  import std.stdio;
+  auto btree = new BTree!(char, 2000);
+  assert(btree.MIN_DEGREE >= 16);
+
+  auto node = new btree.Node();
+  node._values = "BBDDEFHH";
+  node._numValues = 8;
+
+  Assert.equal(node.findFirstGEIndex('A'), 0);
+  Assert.equal(node.findFirstGEIndex('B'), 0);
+  Assert.equal(node.findFirstGEIndex('C'), 2);
+  Assert.equal(node.findFirstGEIndex('D'), 2);
+  Assert.equal(node.findFirstGEIndex('E'), 4);
+  Assert.equal(node.findFirstGEIndex('F'), 5);
+  Assert.equal(node.findFirstGEIndex('G'), 6);
+  Assert.equal(node.findFirstGEIndex('H'), 6);
+  Assert.equal(node.findFirstGEIndex('I'), 8);
+}
+
+@("Node.findFirstGTIndex>=16")
+unittest {
+  import std.stdio;
+  auto btree = new BTree!(char, 2000);
+  assert(btree.MIN_DEGREE >= 16);
+
+  auto node = new btree.Node();
+  node._values = "BBDDEFHH";
+  node._numValues = 8;
+
+  Assert.equal(node.findFirstGTIndex('A'), 0);
+  Assert.equal(node.findFirstGTIndex('B'), 2);
+  Assert.equal(node.findFirstGTIndex('C'), 2);
+  Assert.equal(node.findFirstGTIndex('D'), 4);
+  Assert.equal(node.findFirstGTIndex('E'), 5);
+  Assert.equal(node.findFirstGTIndex('F'), 6);
+  Assert.equal(node.findFirstGTIndex('G'), 6);
+  Assert.equal(node.findFirstGTIndex('H'), 8);
+  Assert.equal(node.findFirstGTIndex('I'), 8);
+}
+
+@("Node.splitChild")
 unittest {
   alias BTreeType = BTree!(char, 1);
   static assert(BTreeType.MIN_DEGREE == 1);
@@ -54,7 +136,7 @@ unittest {
   Assert.equal(root._children[1]._children[0], grandChild2);
 }
 
-@("insertNonFull.leaf")
+@("Node.insertNonFull.leaf")
 unittest {
   alias BTreeType = BTree!(char, 75);
   static assert(BTreeType.MIN_DEGREE == 2);
@@ -73,7 +155,7 @@ unittest {
   Assert.equal(node._numValues, 3);
 }
 
-@("insertNonFull.nonLeaf")
+@("Node.insertNonFull.nonLeaf")
 unittest {
   alias BTreeType = BTree!(char, 75);
   static assert(BTreeType.MIN_DEGREE == 2);
@@ -257,14 +339,20 @@ unittest {
   Assert.equal(btree.root.numValues(), 0);
 }
 
-@("begin,end")
+@("Iterator.begin,end")
 unittest {
   auto btree = createTestBTree();
+  auto first = btree.begin();
+
   Assert.equal(btree.begin().getValue(), 'A');
-  Assert.equal(btree.end().getValue(), 'Z');
+
+  // Note that "end" is one past the last value.
+  auto last = btree.end();
+  last--;
+  Assert.equal(last.getValue(), 'Z');
 }
 
-@("RBRange.increment")
+@("Iterator.increment")
 unittest {
   auto btree = createTestBTree();
   char expected = 'A';
@@ -274,12 +362,14 @@ unittest {
   }
 }
 
-@("RBRange.decrement")
+@("Iterator.decrement")
 unittest {
   auto btree = createTestBTree();
   char expected = 'Z';
-  for (auto iterator = btree.end(); iterator != btree.begin(); iterator--) {
+  auto iterator = btree.end();
+  do {
+    iterator--;
     Assert.equal(iterator.getValue(), expected);
     expected--;
-  }
+  } while (iterator != btree.begin());
 }

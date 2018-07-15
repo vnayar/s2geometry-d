@@ -85,17 +85,55 @@ public:
     // TODO: DISK-WRITE(_root)
   }
 
+  /**
+   * The root Node of the B-Tree.
+   */
   @property
   inout(Node) root() inout {
     return _root;
   }
 
+  ////
+  // Range Style Methods
+  ////
+
   /**
-   * Recursively search for a given value and produce a result indicating whether a match
-   * was found and what it's value is.
+   * Find a range of elements whose value is equal to 'v'.
+   *
+   * If no elements are found, the result will be an empty range. If there is more than one
+   * element with the same value, the range will have more than 1 element.
    */
-  inout(BTRange) search(ValueT v) inout {
-    return _root.search(v);
+  Range equalRange(ValueT v) {
+    return Range(_root.findFirstGE(v), _root.findFirstGT(v));
+  }
+
+  /**
+   * Returns a range of all elements strictly less than 'v'.
+   */
+  Range lowerRange(ValueT v) {
+    // TODO
+    return Range();
+  }
+
+  /**
+   * Returns a range of all elements strictly greater than 'v'.
+   */
+  inout(Range) upperRange(ValueT v) inout {
+    // TODO
+    return Range();
+  }
+
+  ////
+  // Iterator Style Methods
+  ////
+
+  Iterator begin() {
+    return Iterator(_root.leftmost(), 0);
+  }
+
+  Iterator end() {
+    Node right = _root.rightmost();
+    return Iterator(right, right.numValues());
   }
 
   /**
@@ -126,14 +164,13 @@ public:
     }
   }
 
-
   /**
-   * The result of a search operation.
+   * Lower level iterators on the tree.
    *
-   * It is a separate structure to account for the fact that the BTree may contain non-nullable
-   * types, and thus a way of identifying an unsuccessful search is needed.
+   * While not in the D-style, these methods may be used for easier compatibility when working
+   * with code bases not in the D Language which are based on iterators.
    */
-  static struct BTRange {
+  static struct Iterator {
   private:
     Node _node;
     size_t _position;
@@ -147,17 +184,13 @@ public:
       return _node.getValue(_position);
     }
 
-    ////
-    // Iterator oriented methods.
-    ////
-
     void increment() {
       if (_node.isLeaf() && ++_position < _node.numValues()) {
         return;
       }
       // We've gone past the last position.
       if (_node.isLeaf()) {
-        BTRange save = this;
+        Iterator save = this;
         while (_position == _node.numValues() && !_node.isRoot()) {
           _position = _node._position;
           _node = _node._parent;
@@ -185,7 +218,7 @@ public:
         return;
       }
       if (_node.isLeaf()) {
-        BTRange save = this;
+        Iterator save = this;
         while (_position == 0 && !_node.isRoot()) {
           _position = _node._position;
           _node = _node._parent;
@@ -209,7 +242,34 @@ public:
     }
   }
 
-  alias Range = BTRange;
+  /**
+   * D-style Ranges
+   */
+  static struct Range {
+  private:
+    Iterator _begin;
+    Iterator _end;
+
+  public:
+    bool empty() {
+      return _begin == _end;
+    }
+
+    inout(ValueT) front() inout {
+      return _begin.getValue();
+    }
+
+    void popFront()
+    in {
+      assert(!empty());
+    } body {
+      _begin.increment();
+    }
+
+    Iterator toIterator() {
+      return _begin;
+    }
+  }
 
   /**
    * A node in the BTree.
@@ -219,7 +279,7 @@ public:
    * other cases, such as dynamic arrays and classes, on the reference is stored.
    */
   static class Node {
-  private:
+  package:
     /// Indicates if the node has reached the size limit specified in $(D_INLINECODE NodeSizeV).
     bool isFull() {
       return _numValues >= MAX_DEGREE - 1;
@@ -274,7 +334,7 @@ public:
 
       // Assure that values remain in a consistent order.
       foreach (i; 1 .. _numValues) {
-        assert(_isValueLess(_values[i - 1], _values[i]));
+        assert(!_isValueLess(_values[i], _values[i - 1]));
       }
 
       // Assure that no child that should be present is null.
@@ -386,6 +446,14 @@ public:
         }
         return i;
       }
+
+      size_t findFirstGTIndex(ValueT v) const {
+        size_t i = 0;
+        while (i < _numValues && !_isValueLess(v, _values[i])) {
+          i++;
+        }
+        return i;
+      }
     } else {
       // If degree is higher, use a binary search.
       size_t findFirstGEIndex(ValueT v) const {
@@ -397,6 +465,23 @@ public:
           if ((mid == 0 || _isValueLess(_values[mid - 1], v)) && !_isValueLess(midValue, v)) {
             return mid;
           } else if (!_isValueLess(midValue, v)) {
+            j = mid;
+          } else {
+            i = mid + 1;
+          }
+        }
+        return _numValues;
+      }
+
+      size_t findFirstGTIndex(ValueT v) const {
+        size_t i = 0;
+        size_t j = _numValues;
+        while (i < j) {
+          size_t mid = (i + j) / 2;
+          const(ValueT) midValue = _values[mid];
+          if ((mid == 0 || !_isValueLess(v, _values[mid - 1])) && _isValueLess(v, midValue)) {
+            return mid;
+          } else if (_isValueLess(v, midValue)) {
             j = mid;
           } else {
             i = mid + 1;
@@ -634,68 +719,43 @@ public:
      * Recursively search for a given value and produce a result indicating whether a match
      * was found and what it's value is.
      */
-    inout(BTRange) search(ValueT v) inout {
+    Iterator findFirstGE(ValueT v) {
       size_t i = findFirstGEIndex(v);
       if (i < _numValues && _isValueEqual(_values[i], v)) {
-        return inout(BTRange)(this, i);
+        return Iterator(this, i);
       }
       if (_isLeaf) {
-        return inout(BTRange)(null, -1);
+        // The index 'i' is one past the end.
+        return Iterator(this, i);
       } else {
-        return _children[i].search(v);
+        return _children[i].findFirstGE(v);
+      }
+    }
+
+    /**
+     * Recursively search for a given value and produce a result indicating whether a match
+     * was found and what it's value is.
+     */
+    Iterator findFirstGT(ValueT v) {
+      size_t i = findFirstGTIndex(v);
+
+      // As a leaf, no further processing is possible.
+      if (_isLeaf) {
+        return Iterator(this, i);
+      }
+
+      // We have an index with the first greater-than value, but was there a lower value in
+      // one of the node's children?
+      Iterator childIterator = _children[i].findFirstGT(v);
+      if (i < _numValues &&
+          childIterator._position == childIterator._node.numValues()) {
+        // The value found in this node was less than what could be found in a child node.
+        return Iterator(this, i);
+      } else {
+        return childIterator;
       }
     }
   }
-
-  ////
-  // Iterator Methods
-  ////
-
-  BTRange begin() {
-    return BTRange(_root.leftmost(), 0);
-  }
-
-  BTRange end() {
-    Node right = _root.rightmost();
-    return BTRange(right, right.numValues() - 1);
-  }
-}
-
-unittest {
-  auto btree = new BTree!(char, 200);
-  static assert(btree.MIN_DEGREE < 16);
-
-  auto node = new btree.Node();
-  node._values = "ACCDEEG";
-  node._numValues = 7;
-
-  assert(node.findFirstGEIndex('A') == 0);
-  assert(node.findFirstGEIndex('B') == 1);
-  assert(node.findFirstGEIndex('C') == 1);
-  assert(node.findFirstGEIndex('D') == 3);
-  assert(node.findFirstGEIndex('E') == 4);
-  assert(node.findFirstGEIndex('F') == 6);
-  assert(node.findFirstGEIndex('G') == 6);
-  assert(node.findFirstGEIndex('H') == 7);
-}
-
-unittest {
-  import std.stdio;
-  auto btree = new BTree!(char, 2000);
-  assert(btree.MIN_DEGREE >= 16);
-
-  auto node = new btree.Node();
-  node._values = "ACCDEEG";
-  node._numValues = 7;
-
-  assert(node.findFirstGEIndex('A') == 0);
-  assert(node.findFirstGEIndex('B') == 1);
-  assert(node.findFirstGEIndex('C') == 1);
-  assert(node.findFirstGEIndex('D') == 3);
-  assert(node.findFirstGEIndex('E') == 4);
-  assert(node.findFirstGEIndex('F') == 6);
-  assert(node.findFirstGEIndex('G') == 6);
-  assert(node.findFirstGEIndex('H') == 7);
 }
 
 unittest {
@@ -728,13 +788,24 @@ unittest {
   btree.insert(3);
   btree.insert(4);
   btree.insert(1);
+  btree.insert(4);
 
-  auto r = btree.search(2);
-  assert(r.isFound());
-  assert(r.getValue() == 2);
+  // equalRange() provides a range used to get the tree values equal to the given search value.
+  auto r = btree.equalRange(2);
+  assert(!r.empty());
+  assert(r.front() == 2);
 
-  r = btree.search(-3);
-  assert(!r.isFound());
+  // There can be more than one match.
+  r = btree.equalRange(4);
+  assert(!r.empty());
+  assert(r.front() == 4);
+  r.popFront();
+  assert(!r.empty());
+  assert(r.front() == 4);
+
+  // If there is not match, an empty range is returned.
+  r = btree.equalRange(-3);
+  assert(r.empty());
 }
 
 /// Use case using comparison by a specific value.
@@ -749,9 +820,9 @@ unittest {
   btree.insert(Structo(1, "Good Day"));
   btree.insert(Structo(2, "Guten Tag"));
   btree.insert(Structo(3, "G'Day Mate"));
-  assert(btree.search(Structo(2)).isFound());
-  assert(!btree.search(Structo(4)).isFound());
-  assert(btree.search(Structo(3)).getValue()._data == "G'Day Mate");
+  assert(!btree.equalRange(Structo(2)).empty());
+  assert(btree.equalRange(Structo(4)).empty());
+  assert(btree.equalRange(Structo(3)).front()._data == "G'Day Mate");
 }
 
 /// Use case using comparison by a specific value.
@@ -773,9 +844,9 @@ unittest {
   btree3.insert(Structo(1, "RW-Fish"));
   btree3.insert(Structo(2, "LG-Sheep"));
   btree3.insert(Structo(3, "BK-Bunny"));
-  assert(btree3.search(Structo(0, "RW")).isFound());
-  assert(!btree3.search(Structo(0, "ZM")).isFound());
-  assert(btree3.search(Structo(0, "BK")).getValue()._data == "BK-Bunny");
+  assert(!btree3.equalRange(Structo(0, "RW")).empty());
+  assert(btree3.equalRange(Structo(0, "ZM")).empty());
+  assert(btree3.equalRange(Structo(0, "BK")).front()._data == "BK-Bunny");
 }
 
 /// Use case compatible with class comparing operator overrides:
@@ -810,6 +881,6 @@ unittest {
   btree.insert(new Thingy(2, 1));
   btree.insert(new Thingy(1, 2));
 
-  assert(btree.search(new Thingy(2, 1)).isFound());
-  assert(!btree.search(new Thingy(2, 2)).isFound());
+  assert(!btree.equalRange(new Thingy(2, 1)).empty());
+  assert(btree.equalRange(new Thingy(2, 2)).empty());
 }
