@@ -1,7 +1,7 @@
 module s2.util.container.btree;
 
 import std.algorithm : max;
-import std.functional : unaryFun, binaryFun;
+import std.functional : binaryFun;
 import std.traits : ReturnType;
 import std.format : format;
 
@@ -109,6 +109,24 @@ public:
   ////
   // Range Style Methods
   ////
+
+  /**
+   * A full slice for expressions of the form: myBTree[]
+   */
+  Range opIndex() {
+    return Range(begin(), end());
+  }
+
+  /**
+   * Defines the structure of a slice for slice expression of the form: myBTree[a..b]
+   */
+  ValueT[2] opSlice(size_t dim)(ValueT a, ValueT b) {
+    return [a, b];
+  }
+
+  Range opIndex(ValueT[2] slice) {
+    return Range(_root.findFirstGE(slice[0]), _root.findFirstGE(slice[1]));
+  }
 
   /**
    * Find a range of elements whose value is equal to 'v'.

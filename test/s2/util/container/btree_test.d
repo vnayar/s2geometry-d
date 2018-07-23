@@ -402,6 +402,23 @@ unittest {
 // Range related tests, which assume previous tests are passing.
 ////
 
+@("Range.opIndex")
+unittest {
+  import std.array;
+
+  auto btree  = createTestBTree();
+  Assert.equal(array(btree[]), "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+}
+
+@("Range.opSlice")
+unittest {
+  import std.array;
+
+  auto btree  = createTestBTree();
+  Assert.equal(array(btree['A' .. 'L']), "ABCDEFGHIJK");
+  Assert.equal(array(btree['L' .. 'Z'+1]), "LMNOPQRSTUVWXYZ");
+}
+
 @("Range.equalRange")
 unittest {
   import std.array;
