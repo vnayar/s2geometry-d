@@ -605,7 +605,7 @@ protected:
      * REQUIRES: This method is thread-safe.
      * REQUIRES: Multiple calls to this method return the same value.
      */
-    abstract const(S2ShapeIndexCell)* getCell() const;
+    abstract const(S2ShapeIndexCell) getCell() const;
 
     /// Returns an exact copy of this iterator.
     abstract IteratorBase clone() const;
