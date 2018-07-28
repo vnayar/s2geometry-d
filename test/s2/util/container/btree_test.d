@@ -231,7 +231,8 @@ auto createTestBTree() {
   static assert(btree.MIN_DEGREE == 3);
 
   string testData = "YBZIOQPKTJUMLWHVAXGSNFCRDE";
-  foreach (c; testData) {
+  foreach (i, c; testData) {
+    Assert.equal(btree.length, i);
     btree.insert(c);
   }
 
@@ -274,7 +275,7 @@ auto createTestBTree() {
   return btree;
 }
 
-@("BTree.remove.1")
+@("Node.remove.1")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0).getChild(1);
@@ -282,7 +283,7 @@ unittest {
   Assert.equal(node.getValues(), "DF");
 }
 
-@("BTree.remove.2a")
+@("Node.remove.2a")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -291,7 +292,7 @@ unittest {
   Assert.equal(node.getChild(1).getValues(), "DE");
 }
 
-@("BTree.remove.2b.2c")
+@("Node.remove.2b.2c")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -305,7 +306,7 @@ unittest {
   Assert.equal(node.getChild(2).getValues(), "KLMN");
 }
 
-@("BTree.remove.3a")
+@("Node.remove.3a")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(1);
@@ -322,7 +323,7 @@ unittest {
   Assert.equal(node.getChild(1).getValues(), "TW");
 }
 
-@("BTree.remove.3b1")
+@("Node.remove.3b1")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -337,7 +338,7 @@ unittest {
   Assert.equal(node.getChild(2).getValues(), "KLMN");
 }
 
-@("BTree.remove.3b2")
+@("Node.remove.3b2")
 unittest {
   auto btree = createTestBTree();
   btree.Node node = btree.root.getChild(0);
@@ -353,11 +354,30 @@ unittest {
   Assert.equal(node.getChild(2).getValues(), "HIJL");
 }
 
+@("BTree.remove.duplicate")
+unittest {
+  auto btree = createTestBTree();
+  btree.insert('N');
+
+  // Currently there are 2 'N' values.
+  Assert.equal(btree.length, 27);
+  btree.remove('N');
+  Assert.equal(btree.length, 26);
+  btree.remove('N');
+  Assert.equal(btree.length, 25);
+  // No more left, so this should do nothing.
+  btree.remove('N');
+  Assert.equal(btree.length, 25);
+
+}
+
 @("BTree.remove.all")
 unittest {
   auto btree = createTestBTree();
+  size_t expectedLength = btree.length;
   foreach (c; 'A' .. cast(char)('Z' + 1)) {
     btree.remove(c);
+    Assert.equal(btree.length, --expectedLength);
   }
   Assert.equal(btree.root.isLeaf(), true);
   Assert.equal(btree.root.numValues(), 0);

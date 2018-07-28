@@ -40,6 +40,7 @@ if (is(typeof(binaryFun!ValueLessF(ValueT.init, ValueT.init)) : bool)) {
 
 private:
   Node _root;
+  size_t _length;
 
   // TODO: Determine how to enforce const functions are passed in, which is
   // currently preventing the use of const with reference types.
@@ -91,6 +92,11 @@ public:
   @property
   inout(Node) root() inout {
     return _root;
+  }
+
+  @property
+  size_t length() const {
+    return _length;
   }
 
   ////
@@ -160,6 +166,7 @@ public:
    * Inserts a new value into the BTree.
    */
   void insert(ValueT v) {
+    _length++;
     Node curRoot = _root;
     if (curRoot.isFull()) {
       Node newRoot = new Node();
@@ -177,7 +184,10 @@ public:
    * Removes a value and value from the BTree if it exists.
    */
   void remove(ValueT v) {
-    _root.remove(v);
+    bool isFound = _root.remove(v);
+    if (isFound) {
+      _length--;
+    }
     if (!_root._isLeaf && _root._numValues == 0) {
       _root = _root._children[0];
       _root._parent = null;
@@ -536,7 +546,7 @@ public:
       return _values[0 .. _numValues];
     }
 
-    void remove(ValueT v) {
+    bool remove(ValueT v) {
       size_t i = findFirstGEIndex(v);
       // 1. If the value v is in this node and this is a leaf, delete the value from this.
       if (_isLeaf) {
@@ -545,6 +555,7 @@ public:
             _values[j] = _values[j+1];
           }
           _numValues--;
+          return true;
         }
         // Otherwise the value was not in the BTree.
       }
@@ -599,6 +610,7 @@ public:
           // Recursively remove v from y.
           y.remove(v);
         }
+        return true;
       }
       // 3. The internal node does not have the value, but maybe a child does.
       else if (!_isLeaf) {
@@ -712,8 +724,9 @@ public:
             }
           }
         }
-        _children[i].remove(v);
+        return _children[i].remove(v);
       }
+      return false;
     }
 
     override

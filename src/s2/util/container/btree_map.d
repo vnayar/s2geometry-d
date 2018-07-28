@@ -2,12 +2,16 @@ module s2.util.container.btree_map;
 
 import s2.util.container.btree;
 
+import std.algorithm : map;
 import std.functional : binaryFun;
+import std.meta : allSatisfy;
+import std.range : ElementType, isInputRange;
+import std.traits : isDynamicArray, isImplicitlyConvertible;
 
 /**
  * An associative-array or map implementation based upon a B-Tree.
  */
-final class BTreeMap(KeyT, ValueT, alias KeyLessF = "a < b") {
+final class BTreeMap(KeyT, ValueT, size_t NodeSizeV = 256, alias KeyLessF = "a < b") {
 public:
   static struct Pair {
     KeyT key;
@@ -16,7 +20,7 @@ public:
 
   alias _isKeyLess = binaryFun!KeyLessF;
 
-  alias BTreeT = BTree!(Pair, (pair1, pair2) => _isKeyLess(pair1.key, pair2.key));
+  alias BTreeT = BTree!(Pair, NodeSizeV, (pair1, pair2) => _isKeyLess(pair1.key, pair2.key));
 
   BTreeT bTree;
 
@@ -24,7 +28,7 @@ public:
   alias bTree this;
 
   this() {
-    bTree = new BTree();
+    bTree = new BTreeT();
   }
 
   /// Insertion
@@ -45,35 +49,13 @@ public:
   }
 
   /// Removal
-  size_t remove(K...)(K keys)
-  if (allSatisfy!(isImplicitlyConvertibleToKey, K)) {
-    KeyT[K.length] toRemove = [keys];
-    return remove(toRemove[]);
-  }
-
-  //Helper for removeKey.
-  private template isImplicitlyConvertibleToKey(K)
-  {
-    enum isImplicitlyConvertibleToKey = isImplicitlyConvertible!(K, KeyT);
-  }
-
-  size_t remove(K)(K[] keys)
-  if (isImplicitlyConvertible!(K, KeyT)) {
-    auto keyPairs = keys.map!(key => Pair(key));
-    return bTree.remove(keyPairs);
-  }
-
-  size_t remove(KeyRange)(KeyRange keyRange)
-  if (isInputRange!KeyRange
-      && isImplicitlyConvertible!(ElementType!KeyRange, KeyT)
-      && !isDynamicArray!KeyRange) {
-    auto keyPairs = keys.map(key => Pair(key));
-    return bTree.remove(keyPairs);
+  void remove(KeyT key) {
+    bTree.remove(Pair(key));
   }
 
   /// Ranges
   BTreeT.Range upperRange(KeyT key) {
-    return bTree.upperBound(Pair(key));
+    return bTree.upperRange(Pair(key));
   }
 
   BTreeT.Range lowerRange(KeyT key) {
