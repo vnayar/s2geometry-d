@@ -50,6 +50,13 @@ unittest {
   Assert.equal(btreeMap.length, 6);
 }
 
+@("BTreeMap.in")
+unittest {
+  auto btreeMap = createTestBTreeMap();
+  Assert.equal("Echo" in btreeMap, true);
+  Assert.equal("Elephant" !in btreeMap, true);
+}
+
 @("BTreeMap.upperRange")
 unittest {
   import std.array;

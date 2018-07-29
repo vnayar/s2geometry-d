@@ -83,6 +83,7 @@ public:
   this() {
     // TODO: ALLOCATE-NODE() which allocates a disk page in O(1).
     _root = new Node();
+    _length = 0;
     // TODO: DISK-WRITE(_root)
   }
 
@@ -162,6 +163,11 @@ public:
   // Core BTree algorithms
   ////
 
+  void clear() {
+    _root = new Node();
+    _length = 0;
+  }
+
   /**
    * Inserts a new value into the BTree.
    */
@@ -178,6 +184,14 @@ public:
       _root.splitChild(0);
     }
     _root.insertNonFull(v);
+  }
+
+  /**
+   * Membership
+   */
+  bool opBinaryRight(string op)(ValueT value)
+  if (op == "in") {
+    return !equalRange(value).empty();
   }
 
   /**

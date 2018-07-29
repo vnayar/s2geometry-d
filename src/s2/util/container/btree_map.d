@@ -43,9 +43,9 @@ public:
   }
 
   /// Membership
-  bool opBinaryRight(string op)(KeyT key) const
+  bool opBinaryRight(string op)(KeyT key)
   if (op == "in") {
-    return !bTree.equalRange(Pair(key)).empty();
+    return Pair(key) in bTree;
   }
 
   /// Removal

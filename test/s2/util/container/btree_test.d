@@ -383,6 +383,17 @@ unittest {
   Assert.equal(btree.root.numValues(), 0);
 }
 
+@("BTree.in")
+unittest {
+  auto btree = createTestBTree();
+  Assert.equal('R' in btree, true);
+  Assert.equal('r' !in btree, true);
+}
+
+////
+// Iterator method tests.
+////
+
 @("Iterator.begin,end")
 unittest {
   auto btree = createTestBTree();
