@@ -390,6 +390,14 @@ unittest {
   Assert.equal('r' !in btree, true);
 }
 
+@("BTree.clear")
+unittest {
+  auto btree = createTestBTree();
+  btree.clear();
+  Assert.equal(btree.length, 0);
+  Assert.equal(btree.root.numValues(), 0);
+}
+
 ////
 // Iterator method tests.
 ////
