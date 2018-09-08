@@ -273,7 +273,7 @@ public:
   }
 
   /// Direct access to the underlying vector for STL algorithms.
-  const(S2CellId[]) cellIds() const {
+  inout(S2CellId[]) cellIds() inout {
     return _cellIds;
   }
 
