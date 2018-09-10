@@ -430,7 +430,7 @@ public:
   }
 
   // Returns the intersection of the two given cell unions.
-  S2CellUnion intersection(in S2CellUnion y) const
+  S2CellUnion intersect(in S2CellUnion y) const
   out (result) {
     // The output is normalized as long as at least one input is normalized.
     assert(result.isNormalized() || (!isNormalized() && !y.isNormalized()));
@@ -443,7 +443,7 @@ public:
   // Specialized version of GetIntersection() that returns the intersection of
   // a cell union with an S2CellId.  This can be useful for splitting a cell
   // union into pieces.
-  S2CellUnion intersection(S2CellId id) const
+  S2CellUnion intersect(S2CellId id) const
   out (result) {
     assert(result.isNormalized() || !isNormalized());
   } body {
@@ -610,7 +610,10 @@ public:
   }
 
   /// Return true if two cell unions are identical.
-  bool opEquals(in S2CellUnion y) {
+  override
+  bool opEquals(Object o) {
+    S2CellUnion y = cast(S2CellUnion) o;
+    if (y is null) return false;
     return cellIds() == y.cellIds();
   }
 
@@ -747,7 +750,7 @@ public:
     assert(min_level <=  S2CellId.MAX_LEVEL);
     assert(level_mod >= 1);
     assert(level_mod <= 3);
-    assert(output !is input);
+    assert(input.length == 0 || output !is input);
   } body {
     output.length = input.length;
     foreach (S2CellId id; input) {
@@ -781,11 +784,10 @@ public:
    * all have the same parent.  (In a normalized S2CellUnion, such groups are
    * always replaced by the parent cell.)
    */
-  static void getIntersection(
-      in S2CellId[] x, in S2CellId[] y, out S2CellId[] output)
+  static void getIntersection(in S2CellId[] x, in S2CellId[] y, out S2CellId[] output)
   in {
-    assert(output !is x);
-    assert(output !is y);
+    assert(output.length == 0 || output !is x);
+    assert(output.length == 0 || output !is y);
     assert(isSorted(x));
     assert(isSorted(y));
   } out {
@@ -795,23 +797,28 @@ public:
     // This is a fairly efficient calculation that uses binary search to skip
     // over sections of both input vectors.  It takes logarithmic time if all the
     // cells of "x" come before or after all the cells of "y" in S2CellId order.
-
-    // TODO: Resume here.
     size_t xPos = 0;
     size_t yPos = 0;
     while (xPos < x.length && yPos < y.length) {
       S2CellId xPosMin = x[xPos].rangeMin();
       S2CellId yPosMin = y[yPos].rangeMin();
       if (xPosMin > yPosMin) {
-        // Either j->contains(*i) or the two cells are disjoint.
+        // Either x[xPos].contains(*i) or the two cells are disjoint.
         if (x[xPos] <= y[yPos].rangeMax()) {
           output ~= x[xPos++];
         } else {
           // Advance "j" to the first cell possibly contained by *i.
           yPos++;
-          yPos += countUntil!(a => a >= xPosMin)(y[yPos .. $]);
+          long skipAmount = countUntil!(a => a >= xPosMin)(y[yPos .. $]);
+          if (skipAmount == -1) {
+            yPos = y.length;
+          } else {
+            yPos += skipAmount;
+          }
           // The previous cell *(j-1) may now contain *i.
-          if (x[xPos] <= y[yPos - 1].rangeMax()) yPos--;
+          if (x[xPos] <= y[yPos - 1].rangeMax()) {
+            yPos--;
+          }
         }
       } else if (yPosMin > xPosMin) {
         // Identical to the code above with "i" and "j" reversed.
@@ -819,8 +826,15 @@ public:
           output ~= y[yPos++];
         } else {
           xPos++;
-          xPos += countUntil!(a => a >= yPosMin)(x[xPos .. $]);
-          if (y[yPos] <= x[xPos - 1].rangeMax()) --xPos;
+          long skipAmount = countUntil!(a => a >= yPosMin)(x[xPos .. $]);
+          if (skipAmount == -1) {
+            xPos = x.length;
+          } else {
+            xPos += skipAmount;
+          }
+          if (y[yPos] <= x[xPos - 1].rangeMax()) {
+            --xPos;
+          }
         }
       } else {
         // "i" and "j" have the same range_min(), so one contains the other.
@@ -832,18 +846,18 @@ public:
     }
   }
 
-private:
+package:
+  // Internal constructor that does not check "cell_ids" for validity.
+  this(in S2CellId[] cell_ids, VerbatimFlag verbatim) {
+    _cellIds = cell_ids.dup;
+  }
 
   // Internal constructor that does not check "cell_ids" for validity.
   enum VerbatimFlag {
     VERBATIM
   }
 
-  // Internal constructor that does not check "cell_ids" for validity.
-  this(in S2CellId[] cell_ids, VerbatimFlag verbatim) {
-    _cellIds = cell_ids.dup;
-  }
-
+private:
   // Converts a vector of uint64 to a vector of S2CellIds.
   static S2CellId[] toS2CellIds(in ulong[] ids) {
     S2CellId[] cell_ids;
