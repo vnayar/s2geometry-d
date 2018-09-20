@@ -404,7 +404,7 @@ public:
   // Return true if the given cell is contained within this one.
   bool contains(S2CellId other) const
   in {
-    assert(isValid());
+    assert(isValid(), "Invalid cell: " ~ toString());
     assert(other.isValid());
   } body {
     return other >= rangeMin() && other <= rangeMax();

@@ -17,14 +17,18 @@
 
 module s2.s2testing;
 
+import fluent.asserts;
 import math = std.math;
 import random = std.random;
 import s2.r2point;
 import s2.s1angle;
 import s2.s2cap;
+import s2.s2cell;
 import s2.s2cell_id;
+import s2.s2cell_union;
 import s2.s2point;
 import s2.s2pointutil;
+import s2.s2region;
 import s2.util.math.matrix3x3;
 
 // You can optionally call S2Testing::rnd.Reset(FLAGS_s2_random_seed) at the
@@ -203,7 +207,14 @@ public:
   // Return a cap with a random axis such that the log of its area is
   // uniformly distributed between the logs of the two given values.
   // (The log of the cap angle is also approximately uniformly distributed.)
-  //static S2Cap GetRandomCap(double min_area, double max_area);
+  static S2Cap getRandomCap(double min_area, double max_area) {
+    double cap_area = max_area * math.pow(min_area / max_area, rnd.randDouble());
+    Assert.notLessThan(cap_area, min_area);
+    Assert.notGreaterThan(cap_area, max_area);
+
+    // The surface area of a cap is 2*Pi times its height.
+    return S2Cap.fromCenterArea(randomPoint(), cap_area);
+  }
 
   // Return a point chosen uniformly at random (with respect to area)
   // from the given cap.
@@ -226,10 +237,6 @@ public:
     // well make it accurate as possible.
     return fromFrame(m, S2Point(math.cos(theta) * r, math.sin(theta) * r, 1 - h)).normalize();
   }
-
-  // Return a point chosen uniformly at random (with respect to area on the
-  // sphere) from the given latitude-longitude rectangle.
-  //static S2Point SamplePoint(const S2LatLngRect& rect);
 
   // Return a random cell id at the given level or at a randomly chosen
   // level.  The distribution is uniform over the space of cell ids,
@@ -254,10 +261,32 @@ public:
   // Checks that "covering" completely covers the given region.  If
   // "check_tight" is true, also checks that it does not contain any cells
   // that do not intersect the given region.  ("id" is only used internally.)
-  // // static void CheckCovering(const S2Region& region,
-  // //                           const S2CellUnion& covering,
-  // //                           bool check_tight,
-  // //                           S2CellId id = S2CellId());
+  static void checkCovering(
+      in S2Region region, in S2CellUnion covering, bool check_tight, S2CellId id = S2CellId()) {
+    if (!id.isValid()) {
+      for (int face = 0; face < 6; ++face) {
+        checkCovering(region, covering, check_tight, S2CellId.fromFace(face));
+      }
+      return;
+    }
+
+    if (!region.mayIntersect(new S2Cell(id))) {
+      // If region does not intersect id, then neither should the covering.
+      if (check_tight) Assert.equal(covering.intersects(id), false);
+
+    } else if (!covering.contains(id)) {
+      // The region may intersect id, but we can't assert that the covering
+      // intersects id because we may discover that the region does not actually
+      // intersect upon further subdivision.  (MayIntersect is not exact.)
+      Assert.equal(region.contains(new S2Cell(id)), false);
+      Assert.equal(id.isLeaf(), false);
+      S2CellId end = id.childEnd();
+      S2CellId child;
+      for (child = id.childBegin(); child != end; child = child.next()) {
+        checkCovering(region, covering, check_tight, child);
+      }
+    }
+  }
 
   // // Returns the user time consumed by this process, in seconds.
   // static double GetCpuTime();

@@ -28,7 +28,7 @@ import s2.s2region;
 import std.algorithm : isSorted, min, max;
 import std.array : array;
 import std.container : BinaryHeap, heapify;
-import std.range : assumeSorted, chain, SortedRange;
+import std.range : assumeSorted, chain, SortedRange, takeOne;
 
 /**
  * An S2RegionCoverer is a class that allows arbitrary regions to be
@@ -197,6 +197,14 @@ public:
       return _maxLevel - (_maxLevel - _minLevel) % _levelMod;
     }
 
+    override
+    string toString() const {
+      import std.format : format;
+      return format(
+          "[maxCells=%d, minLevel=%d, maxLevel=%d, levelMod=%d, trueMaxLevel=%d]",
+          _maxCells, _minLevel, _maxLevel, _levelMod, trueMaxLevel());
+    }
+
   protected:
     int _maxCells = DEFAULT_MAX_CELLS;
     int _minLevel = 0;
@@ -207,6 +215,7 @@ public:
   this() {
     QueueEntry[] queueEntries;
     _pq = heapify(queueEntries);
+    _options = new Options();
   }
 
   // Constructs an S2RegionCoverer with the given options.
@@ -235,13 +244,17 @@ public:
   S2CellUnion getCovering(in S2Region region) {
     _interiorCovering = false;
     getCoveringInternal(region);
-    return S2CellUnion.fromVerbatim(_result);
+    auto r = S2CellUnion.fromVerbatim(_result);
+    _result = null;
+    return r;
   }
 
   S2CellUnion getInteriorCovering(in S2Region region) {
     _interiorCovering = true;
     getCoveringInternal(region);
-    return S2CellUnion.fromVerbatim(_result);
+    auto r = S2CellUnion.fromVerbatim(_result);
+    _result = null;
+    return r;
   }
 
   /**
@@ -253,12 +266,14 @@ public:
     _interiorCovering = false;
     getCoveringInternal(region);
     covering = _result;
+    _result = null;
   }
 
   void getInteriorCovering(in S2Region region, ref S2CellId[] interior) {
     _interiorCovering = true;
     getCoveringInternal(region);
     interior = _result;
+    _result = null;
   }
 
   /**
@@ -287,7 +302,7 @@ public:
    * such as polylines, but this may change in the future, in which case this
    * method will most likely be removed.
    */
-  static void GetSimpleCovering(
+  static void getSimpleCovering(
       in S2Region region, in S2Point start, int level, ref S2CellId[] output) {
     return floodFill(region, S2CellId(start).parent(level), output);
   }
@@ -348,16 +363,24 @@ public:
     int same_parent_count = 1;
     S2CellId prev_id = S2CellId.none();
     foreach (const S2CellId id; covering) {
-      if (!id.isValid()) return false;
+      if (!id.isValid()) {
+        return false;
+      }
 
       // Check that the S2CellId level is acceptable.
       const int level = id.level();
-      if (level < min_level || level > max_level) return false;
-      if (level_mod > 1 && (level - min_level) % level_mod != 0) return false;
+      if (level < min_level || level > max_level) {
+        return false;
+      }
+      if (level_mod > 1 && (level - min_level) % level_mod != 0) {
+        return false;
+      }
 
       if (prev_id != S2CellId.none()) {
         // Check that cells are sorted and non-overlapping.
-        if (prev_id.rangeMax() >= id.rangeMin()) return false;
+        if (prev_id.rangeMax() >= id.rangeMin()) {
+          return false;
+        }
 
         // If there are too many cells, check that no pair of adjacent cells
         // could be replaced by an ancestor.
@@ -368,8 +391,8 @@ public:
         // Check that there are no sequences of (4 ** level_mod) cells that all
         // have the same parent (considering only multiples of "level_mod").
         int plevel = level - level_mod;
-        if (plevel < min_level || level != prev_id.level() ||
-            id.parent(plevel) != prev_id.parent(plevel)) {
+        if (plevel < min_level || level != prev_id.level()
+            || id.parent(plevel) != prev_id.parent(plevel)) {
           same_parent_count = 1;
         } else if (++same_parent_count == (1 << (2 * level_mod))) {
           return false;
@@ -420,6 +443,7 @@ public:
     if (_options.minLevel() > 0 || _options.levelMod() > 1) {
       S2CellUnion.denormalize(covering, _options.minLevel(), _options.levelMod(), _result);
       covering = _result;
+      _result = null;
     }
 
     // If there are too many cells and the covering is very large, use the
@@ -469,6 +493,13 @@ public:
     bool isTerminal;        // Cell should not be expanded further.
     int numChildren;        // Number of children that intersect the region.
     Candidate[] children;  // Actual size may be 0, 4, 16, or 64 elements.
+
+    override
+    string toString() const {
+      import std.format : format;
+      return format("Candidate[cell=%s, isTerminal=%s, numChildren=%d]",
+          cell, isTerminal, numChildren);
+    }
   }
 
   /**
@@ -570,7 +601,8 @@ public:
       }
       Candidate child = newCandidate(child_cells[i]);
       if (child) {
-        candidate.children[candidate.numChildren++] = child;
+        candidate.children ~= child;
+        candidate.numChildren++;
         if (child.isTerminal) ++num_terminals;
       }
     }
@@ -631,7 +663,8 @@ public:
       // takes care of the situation when we already have more than max_cells()
       // in results (min_level is too high).  Subdividing the candidate with one
       // child does no harm in this case.
-      if (_interiorCovering || candidate.cell.level() < _options.minLevel()
+      if (_interiorCovering
+          || candidate.cell.level() < _options.minLevel()
           || candidate.numChildren == 1
           || (_result.length + _pq.length + candidate.numChildren <= _options.maxCells())) {
         // Expand this candidate into its children.
@@ -648,7 +681,7 @@ public:
     logger.logDebug("Created ", _result.length, " cells, ",
         _candidatesCreatedCounter, " candidates created, ",
         _pq.length, " left");
-    while (_pq.length != 0) {
+    while (!_pq.empty()) {
       _pq.popFront();
     }
     _region = null;
@@ -662,8 +695,7 @@ public:
     S2CellUnion.normalize(_result);
     if (_options.minLevel() > 0 || _options.levelMod() > 1) {
       auto result_copy = _result;
-      S2CellUnion.denormalize(result_copy, _options.minLevel(),
-          _options.levelMod(), _result);
+      S2CellUnion.denormalize(result_copy, _options.minLevel(), _options.levelMod(), _result);
     }
   }
 
@@ -683,7 +715,7 @@ public:
   // by replacing them with an ancestor if necessary.  Cell levels smaller
   // than min_level() are not modified (see AdjustLevel).  The output is
   // then normalized to ensure that no redundant cells are present.
-  void adjustCellLevels(S2CellId[] cells) const
+  void adjustCellLevels(ref S2CellId[] cells) const
   in {
     assert(isSorted(cells));
   } body {
@@ -715,13 +747,12 @@ public:
     return true;
   }
 
-  // TODO: Resume here.
-
   // Replaces all descendants of "id" in "covering" with "id".
   // REQUIRES: "covering" contains at least one descendant of "id".
   void replaceCellsWithAncestor(ref S2CellId[] covering, S2CellId id) const {
-    auto ranges = assumeSorted(covering).trisect(id.rangeMin());
-    auto cutRange = chain(ranges[0], [ranges[1].front()], ranges[2]);
+    auto ltRange = assumeSorted(covering).lowerBound(id.rangeMin());
+    auto gtRange = assumeSorted(covering).upperBound(id.rangeMax());
+    auto cutRange = chain(ltRange, [id], gtRange);
     covering = array(cutRange);
   }
 

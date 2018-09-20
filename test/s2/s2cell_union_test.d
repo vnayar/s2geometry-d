@@ -27,6 +27,7 @@ import s2.s2edge_distances;
 import s2.s2metrics;
 import s2.s2point;
 import s2.s2testing;
+import s2.s2region_coverer;
 
 import fluent.asserts;
 import std.stdio;
@@ -308,57 +309,55 @@ static double getRadius(in S2CellUnion covering, in S2Point axis) {
   return max_dist;
 }
 
-/+  TODO(vnayar): Add when S2RegionCoverer is added.
-TEST(S2CellUnion, Expand) {
+@("S2CellUnion.Expand") unittest {
   // This test generates coverings for caps of random sizes, expands
   // the coverings by a random radius, and then make sure that the new
   // covering covers the expanded cap.  It also makes sure that the
   // new covering is not too much larger than expected.
 
-  S2RegionCoverer coverer;
+  auto coverer = new S2RegionCoverer();
   for (int i = 0; i < 1000; ++i) {
-    SCOPED_TRACE(StrCat("Iteration ", i));
-    S2Cap cap = S2Testing::GetRandomCap(
-        S2Cell::AverageArea(S2CellId::kMaxLevel), 4 * M_PI);
+    //SCOPED_TRACE(StrCat("Iteration ", i));
+    S2Cap cap = S2Testing.getRandomCap(
+        S2Cell.averageArea(S2CellId.MAX_LEVEL), 4 * math.PI);
 
     // Expand the cap area by a random factor whose log is uniformly
     // distributed between 0 and log(1e2).
-    S2Cap expanded_cap = S2Cap::FromCenterHeight(
-        cap.center(), min(2.0, pow(1e2, rnd.RandDouble()) * cap.height()));
+    S2Cap expanded_cap = S2Cap.fromCenterHeight(
+        cap.center(), min(2.0, math.pow(1e2, rnd.randDouble()) * cap.height()));
 
-    double radius = (expanded_cap.GetRadius() - cap.GetRadius()).radians();
-    int max_level_diff = rnd.Uniform(8);
+    double radius = (expanded_cap.getRadius() - cap.getRadius()).radians();
+    int max_level_diff = rnd.uniform(8);
 
     // Generate a covering for the original cap, and measure the maximum
     // distance from the cap center to any point in the covering.
-    coverer.mutable_options()->set_max_cells(1 + rnd.Skewed(10));
-    S2CellUnion covering = coverer.GetCovering(cap);
-    S2Testing::CheckCovering(cap, covering, true);
-    double covering_radius = GetRadius(covering, cap.center());
+    coverer.mutableOptions().setMaxCells(1 + rnd.skewed(10));
+    S2CellUnion covering = coverer.getCovering(cap);
+    S2Testing.checkCovering(cap, covering, true);
+    double covering_radius = getRadius(covering, cap.center());
 
     // This code duplicates the logic in Expand(min_radius, max_level_diff)
     // that figures out an appropriate cell level to use for the expansion.
-    int min_level = S2CellId::kMaxLevel;
-    for (S2CellId id : covering) {
+    int min_level = S2CellId.MAX_LEVEL;
+    foreach (S2CellId id; covering.cellIds()) {
       min_level = min(min_level, id.level());
     }
     int expand_level = min(min_level + max_level_diff,
-                           S2::kMinWidth.GetLevelForMinValue(radius));
+        MIN_WIDTH.getLevelForMinValue(radius));
 
     // Generate a covering for the expanded cap, and measure the new maximum
     // distance from the cap center to any point in the covering.
-    covering.Expand(S1Angle::Radians(radius), max_level_diff);
-    S2Testing::CheckCovering(expanded_cap, covering, false);
-    double expanded_covering_radius = GetRadius(covering, cap.center());
+    covering.expand(S1Angle.fromRadians(radius), max_level_diff);
+    S2Testing.checkCovering(expanded_cap, covering, false);
+    double expanded_covering_radius = getRadius(covering, cap.center());
 
     // If the covering includes a tiny cell along the boundary, in theory the
     // maximum angle of the covering from the cap center can increase by up to
     // twice the maximum length of a cell diagonal.
-    EXPECT_LE(expanded_covering_radius - covering_radius,
-              2 * S2::kMaxDiag.GetValue(expand_level));
+    Assert.notGreaterThan(expanded_covering_radius - covering_radius,
+        2 * MAX_DIAG.getValue(expand_level));
   }
 }
-+/
 
 /+ TODO: Add when encode/decode is implemented.
 TEST(S2CellUnion, EncodeDecode) {

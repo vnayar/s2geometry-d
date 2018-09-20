@@ -557,7 +557,7 @@ public:
 
   override
   void getCellUnionBound(out S2CellId[] cellIds) const {
-    return getCapBound().getCellUnionBound(cellIds);
+    cellIds ~= id();
   }
 
   override

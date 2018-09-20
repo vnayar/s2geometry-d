@@ -716,7 +716,6 @@ public:
   static bool normalize(ref S2CellId[] ids) {
     // Optimize the representation by discarding cells contained by other cells,
     // and looking for cases where all subcells of a parent cell are present.
-
     ids = array(sort(ids));
     int output = 0;
     foreach (id; ids) {
@@ -752,7 +751,7 @@ public:
     assert(level_mod <= 3);
     assert(input.length == 0 || output !is input);
   } body {
-    output.length = input.length;
+    output.reserve(input.length);
     foreach (S2CellId id; input) {
       int level = id.level();
       int new_level = max(min_level, level);
