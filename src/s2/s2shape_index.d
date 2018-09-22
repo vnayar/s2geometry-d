@@ -81,20 +81,19 @@ public:
     return false;
   }
 
-private:
-
-  // This class may be copied by value, but note that it does *not* own its
-  // underlying data.  (It is owned by the containing S2ShapeIndexCell.)
-
+package:
   // Initialize an S2ClippedShape to hold the given number of edges.
   void initialize(int shape_id, int num_edges) {
     _shapeId = shape_id;
-    _numEdges = num_edges;
+    _numEdges = cast(uint) num_edges;
     _containsCenter = false;
     if (!isInline()) {
       _edges = new int[_numEdges];
     }
   }
+
+  // This class may be copied by value, but note that it does *not* own its
+  // underlying data.  (It is owned by the containing S2ShapeIndexCell.)
 
   // Free any memory allocated by this S2ClippedShape.  We don't do this in
   // the destructor because S2ClippedShapes are copied by STL code, and we
@@ -124,6 +123,7 @@ private:
     }
   }
 
+private:
   // All fields are packed into 16 bytes (assuming 64-bit pointers).  Up to
   // two edge ids are stored inline; this is an important optimization for
   // clients that use S2Shapes consisting of a single edge.
@@ -186,7 +186,7 @@ public:
     return n;
   }
 
-private:
+package:
 
   // Allocate room for "n" additional clipped shapes in the cell, and return a
   // pointer to the first new clipped shape.  Expects that all new clipped
@@ -197,6 +197,7 @@ private:
     return appender(&_shapes);
   }
 
+private:
   S2ClippedShape[] _shapes;
 }
 
@@ -302,7 +303,7 @@ public:
 
   // Returns a pointer to the shape with the given id, or nullptr if the shape
   // has been removed from the index.
-  abstract S2Shape shape(int id) const;
+  abstract const(S2Shape) shape(int id) const;
 
   // Returns the number of bytes currently occupied by the index (including any
   // unused space at the end of vectors, etc).
@@ -352,7 +353,7 @@ public:
      *   for (auto it = S2ShapeIndex.Iterator(&index, S2ShapeIndex.InitialPosition.BEGIN);
      *        !it.done(); it.Next()) { ... }
      */
-    this(in S2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
+    this(S2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
       _iter = index.newIterator(pos);
     }
 
@@ -363,7 +364,7 @@ public:
      * just to declare a new iterator whenever required, since iterator
      * construction is cheap).
      */
-    void initialize(in S2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
+    void initialize(S2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
       _iter = index.newIterator(pos);
     }
 
@@ -388,7 +389,7 @@ public:
     in {
       assert(!done());
     } body {
-      return _iter.cell();
+      return *_iter.cell();
     }
 
     /// Returns true if the iterator is positioned past the last index cell.
@@ -476,7 +477,7 @@ protected:
    * Each subtype of S2ShapeIndex should define an Iterator type derived
    * from the following base class.
    */
-  abstract class IteratorBase {
+  abstract static class IteratorBase {
   public:
     this(in IteratorBase other) {
       _id = other._id;
@@ -501,7 +502,7 @@ protected:
     }
 
     /// Returns a reference to the contents of the current index cell.
-    const(S2ShapeIndexCell) cell() const
+    const(S2ShapeIndexCell)* cell() const
     in {
       assert(!done());
     } body {
@@ -510,7 +511,7 @@ protected:
       //   cell = getCell();
       //   setCell(cell);
       // }
-      return *cell;
+      return cell;
     }
 
     /// Returns true if the iterator is positioned past the last index cell.
@@ -573,9 +574,9 @@ protected:
      * access the cell contents, the GetCell() method is called and "cell_" is
      * updated in a thread-safe way.
      */
-    void setState(S2CellId id, const(S2ShapeIndexCell)* cell)
+    void setState(S2CellId id, in S2ShapeIndexCell cell)
     in {
-      assert(cell != null);
+      assert(cell !is null);
     } body {
       _id = id;
       setCell(cell);
@@ -608,13 +609,13 @@ protected:
     abstract const(S2ShapeIndexCell) getCell() const;
 
     /// Returns an exact copy of this iterator.
-    abstract IteratorBase clone() const;
+    abstract IteratorBase clone();
 
     /**
      * Makes a copy of the given source iterator.
      * REQUIRES: "other" has the same concrete type as "this".
      */
-    abstract void copy(in IteratorBase other);
+    abstract void copy(IteratorBase other);
 
     /**
      * The default implementation of Locate(S2Point).  It is instantiated by
@@ -655,8 +656,8 @@ protected:
 
   private:
 
-    void setCell(const(S2ShapeIndexCell)* cell) {
-      _cell = cell;
+    void setCell(in S2ShapeIndexCell cell) {
+      _cell = &cell;
     }
 
     S2CellId _id;
@@ -666,5 +667,5 @@ protected:
   }
 
   // Returns a new iterator positioned as specified.
-  abstract IteratorBase newIterator(InitialPosition pos) const;
+  abstract IteratorBase newIterator(InitialPosition pos);
 }

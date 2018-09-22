@@ -266,10 +266,10 @@ public:
 //
 // TODO(ericv): Add an option to support S2LaxPolygonShape rules (i.e.,
 // duplicate vertices and edges are allowed, but loop crossings are not).
-bool findSelfIntersection(in S2ShapeIndex index, out S2Error error) {
+bool findSelfIntersection(S2ShapeIndex index, out S2Error error) {
   if (index.numShapeIds() == 0) return false;
   if (index.numShapeIds() != 1) logger.logError("index.numShapeIds() != 1");
-  S2Shape shape = index.shape(0);
+  const(S2Shape) shape = index.shape(0);
 
   // Visit all crossing pairs except possibly for ones of the form (AB, BC),
   // since such pairs are very common and FindCrossingError() only needs pairs
@@ -326,7 +326,7 @@ private bool visitCrossings(in ShapeEdgeVector shape_edges,
 // chains).  This option exists for the benefit of FindSelfIntersection(),
 // which does not need such edge pairs (see below).
 static bool visitCrossings(
-    in S2ShapeIndex index, CrossingType type, bool need_adjacent, in EdgePairVisitor visitor) {
+    S2ShapeIndex index, CrossingType type, bool need_adjacent, in EdgePairVisitor visitor) {
   // TODO(ericv): Use brute force if the total number of edges is small enough
   // (using a larger threshold if the S2ShapeIndex is not constructed yet).
   ShapeEdgeVector shape_edges;

@@ -36,7 +36,7 @@ import std.math : log2, floor;
 class S2PaddedCell {
 public:
   // Construct an S2PaddedCell for the given cell id and padding.
-  this(S2CellId id, double padding) {
+  this(in S2CellId id, double padding) {
     _id = id;
     _padding = padding;
 
@@ -82,7 +82,7 @@ public:
     _bound[1][1 - j] = middle[1][1 - j];
   }
 
-  S2CellId id() const {
+  const(S2CellId) id() const {
     return _id;
   }
 
@@ -221,7 +221,7 @@ public:
 
 
  private:
-  S2CellId _id;
+  const(S2CellId) _id;
   double _padding;
   R2Rect _bound;     // Bound in (u,v)-space
 
