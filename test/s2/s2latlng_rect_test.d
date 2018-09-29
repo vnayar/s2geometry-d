@@ -650,7 +650,7 @@ static void testCentroidSplitting(in S2LatLngRect r, int splits_left) {
     child0 = new S2LatLngRect(R1Interval(r.lat().lo(), lat), r.lng());
     child1 = new S2LatLngRect(R1Interval(lat, r.lat().hi()), r.lng());
   } else {
-    if (r.lng().lo() <= r.lng().hi()) logger.logError("lng.lo() should be <= lng.hi()");
+    if (r.lng().lo() > r.lng().hi()) logger.logError("lng.lo() should be <= lng.hi()");
     double lng = S2Testing.rnd.uniformDouble(r.lng().lo(), r.lng().hi());
     child0 = new S2LatLngRect(r.lat(), S1Interval(r.lng().lo(), lng));
     child1 = new S2LatLngRect(r.lat(), S1Interval(lng, r.lng().hi()));

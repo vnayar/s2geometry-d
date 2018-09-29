@@ -40,6 +40,8 @@ import s2.util.math.matrix3x3;
 // S2Testing::rnd.  TODO(user): Fix this.
 package int s2RandomSeed = 1;
 
+enum double DOUBLE_ERR = 0.0001;
+
 // This class defines various static functions that are useful for writing
 // unit tests.
 struct S2Testing {
