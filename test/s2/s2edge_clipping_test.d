@@ -182,7 +182,6 @@ unittest {
   auto biunit = R2Rect(R1Interval(-1, 1), R1Interval(-1, 1));
   const int kIters = 1000;  // Test passes with 1e6 iterations
   for (int iter = 0; iter < kIters; ++iter) {
-    writeln("Iteration ", iter);
     // Choose two adjacent cube corners P and Q.
     int face = rnd.uniform(6);
     int i = rnd.uniform(4);
@@ -305,7 +304,6 @@ R2Point chooseEndpoint(in R2Rect clip) {
 void testEdgeClipping(in R2Rect clip) {
   const int kIters = 1000;  // Test passes with 1e6 iterations
   for (int iter = 0; iter < kIters; ++iter) {
-    writeln("Iteration ", iter);
     testClipEdge(chooseEndpoint(clip), chooseEndpoint(clip), clip);
   }
 }

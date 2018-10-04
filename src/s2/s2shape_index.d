@@ -166,6 +166,7 @@ public:
   const(S2ClippedShape)* findClipped(in S2Shape shape) const {
     return findClipped(shape.id());
   }
+
   const(S2ClippedShape)* findClipped(int shape_id) const {
     // Linear search is fine because the number of shapes per cell is typically
     // very small (most often 1), and is large only for pathological inputs
@@ -184,6 +185,12 @@ public:
       n += clipped(i).numEdges();
     }
     return n;
+  }
+
+  override
+  string toString() const {
+    import std.format : format;
+    return format("S2ShapeIndexCell[shapes.length = %d]", _shapes.length);
   }
 
 package:
@@ -389,7 +396,7 @@ public:
     in {
       assert(!done());
     } body {
-      return *_iter.cell();
+      return _iter.cell();
     }
 
     /// Returns true if the iterator is positioned past the last index cell.
@@ -479,7 +486,7 @@ protected:
    */
   abstract static class IteratorBase {
   public:
-    this(in IteratorBase other) {
+    this(IteratorBase other) {
       _id = other._id;
       _cell = other.rawCell();
     }
@@ -502,11 +509,11 @@ protected:
     }
 
     /// Returns a reference to the contents of the current index cell.
-    const(S2ShapeIndexCell)* cell() const
+    const(S2ShapeIndexCell) cell() const
     in {
       assert(!done());
     } body {
-      auto cell = rawCell();
+      auto cell = _cell;
       // if (cell == null) {
       //   cell = getCell();
       //   setCell(cell);
@@ -561,6 +568,12 @@ protected:
      */
     abstract CellRelation locate(in S2CellId target);
 
+    /**
+     * Makes a copy of the given source iterator.
+     * REQUIRES: "other" has the same concrete type as "this".
+     */
+    abstract void copy(IteratorBase other);
+
   protected:
     this() {
       _id = S2CellId.sentinel();
@@ -574,7 +587,7 @@ protected:
      * access the cell contents, the GetCell() method is called and "cell_" is
      * updated in a thread-safe way.
      */
-    void setState(S2CellId id, in S2ShapeIndexCell cell)
+    void setState(S2CellId id, S2ShapeIndexCell cell)
     in {
       assert(cell !is null);
     } body {
@@ -592,7 +605,7 @@ protected:
      * Returns the current contents of the "cell_" field, which may be null
      * if the cell contents have not been decoded yet.
      */
-    const(S2ShapeIndexCell)* rawCell() const {
+    S2ShapeIndexCell rawCell() {
       return _cell;
     }
 
@@ -610,12 +623,6 @@ protected:
 
     /// Returns an exact copy of this iterator.
     abstract IteratorBase clone();
-
-    /**
-     * Makes a copy of the given source iterator.
-     * REQUIRES: "other" has the same concrete type as "this".
-     */
-    abstract void copy(IteratorBase other);
 
     /**
      * The default implementation of Locate(S2Point).  It is instantiated by
@@ -656,14 +663,14 @@ protected:
 
   private:
 
-    void setCell(in S2ShapeIndexCell cell) {
-      _cell = &cell;
+    void setCell(S2ShapeIndexCell cell) {
+      _cell = cell;
     }
 
     S2CellId _id;
 
     // Must be accessed atomically using atomicLoad and atomicStore.
-    const(S2ShapeIndexCell)* _cell;
+    S2ShapeIndexCell _cell;
   }
 
   // Returns a new iterator positioned as specified.

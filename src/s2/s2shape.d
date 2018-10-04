@@ -232,7 +232,7 @@ public:
   //    subclass of some existing S2Shape type (such as S2Polyline::Shape) and
   //    add your own methods and fields.  You can access this data by
   //    downcasting the S2Shape pointers returned by S2ShapeIndex methods.
-  const(void)* userData() const {
+  const(void*) userData() const {
     return null;
   }
   void* mutableUserData() {

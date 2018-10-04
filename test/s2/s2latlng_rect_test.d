@@ -678,7 +678,7 @@ unittest {
     double lat2 = rnd.uniformDouble(-math.PI_2, math.PI_2);
     S2LatLngRect r = new S2LatLngRect(R1Interval.fromPointPair(lat1, lat2), S1Interval.full());
     S2Point centroid = r.getCentroid();
-    Assert.approximately(0.5 * (math.sin(lat1) + math.sin(lat2)) * r.area(), centroid.z(), 1e-15);
+    Assert.approximately(0.5 * (math.sin(lat1) + math.sin(lat2)) * r.area(), centroid.z(), 1e-14);
     Assert.notGreaterThan(Vector2_d(centroid.x(), centroid.y()).norm(), 1e-15);
   }
 

@@ -275,14 +275,12 @@ unittest {
 
 @("S2Cap.GetCellUnionBoundLevel1Radius")
 unittest {
-  import std.stdio;
   // Check that a cap whose radius is approximately the width of a level 1
   // S2Cell can be covered by only 3 faces.
   S2Cap cap = new S2Cap(
       S2Point(1, 1, 1).normalize(), S1Angle.fromRadians(s2metrics.MIN_WIDTH.getValue(1)));
   S2CellId[] covering;
   cap.getCellUnionBound(covering);
-  writeln("covering = ", covering);
   Assert.equal(covering.length, 3);
 }
 

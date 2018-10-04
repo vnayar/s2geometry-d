@@ -40,7 +40,6 @@ import std.algorithm : swap;
 import std.array;
 import std.exception : enforce;
 
-
 // The default maximum number of edges per cell (not counting "long" edges).
 // If a cell has more than this many edges, and it is not a leaf cell, then it
 // is subdivided.  This flag can be overridden via MutableS2ShapeIndex::Options.
@@ -157,13 +156,8 @@ private:
 
 public:
   // Options that affect construction of the MutableS2ShapeIndex.
-  class Options {
+  static struct Options {
   public:
-    this() {
-      _lock = new SpinLock();
-      _maxEdgesPerCell = S2SHAPE_INDEX_DEFAULT_MAX_EDGES_PER_CELL;
-    }
-
     // The maximum number of edges per cell.  If a cell has more than this
     // many edges that are not considered "long" relative to the cell size,
     // then it is subdivided.  (Whether an edge is considered "long" is
@@ -192,23 +186,25 @@ public:
     }
 
   private:
-    int _maxEdgesPerCell;
+    int _maxEdgesPerCell = S2SHAPE_INDEX_DEFAULT_MAX_EDGES_PER_CELL;
   }
 
   // Creates a MutableS2ShapeIndex that uses the default option settings.
   // Option values may be changed by calling Init().
   this() {
+    _cellMap = new CellMap();
+    _lock = new SpinLock();
     _indexStatus = IndexStatus.FRESH;
   }
 
   // Create a MutableS2ShapeIndex with the given options.
   this(Options options) {
+    this();
     _options = options;
-    _indexStatus = IndexStatus.FRESH;
   }
 
   ~this() {
-    clear();
+    //clear();
   }
 
   // Initialize a MutableS2ShapeIndex with the given options.  This method may
@@ -251,7 +247,7 @@ public:
   }
 
   final static class Iterator : IteratorBase {
-   public:
+  public:
     // Default constructor; must be followed by a call to Init().
     this() {
       _index = null;
@@ -284,9 +280,9 @@ public:
     // Initialize an iterator for the given MutableS2ShapeIndex without
     // applying any pending updates.  This can be used to observe the actual
     // current state of the index without modifying it in any way.
-    void initStale(
-        MutableS2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
+    void initStale(MutableS2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
       _index = index;
+      _end = _index._cellMap.end();
       if (pos == InitialPosition.BEGIN) {
         _iter = _index._cellMap.begin();
       } else {
@@ -300,10 +296,10 @@ public:
     //   bool done() const;
     //   S2Point center() const;
     override
-    const(S2ShapeIndexCell)* cell() const {
+    const(S2ShapeIndexCell) cell() const {
       // Since MutableS2ShapeIndex always sets the "cell_" field, we can skip the
       // logic in the base class that conditionally calls GetCell().
-      return rawCell();
+      return super.cell();
     }
 
     // IteratorBase API:
@@ -345,7 +341,11 @@ public:
 
     override
     void seek(S2CellId target) {
-      _iter = _index._cellMap.upperRange(target).toIterator();
+      if (!_index._cellMap.equalRange(target).empty()) {
+        _iter = _index._cellMap.equalRange(target).toIterator();
+      } else {
+        _iter = _index._cellMap.upperRange(target).toIterator();
+      }
       refresh();
     }
 
@@ -359,7 +359,16 @@ public:
       return IteratorBase.locateImpl(target, this);
     }
 
-   protected:
+    override
+    void copy(IteratorBase other) {
+      Iterator iter = cast(Iterator) other;
+      enforce(iter !is null, "Only the same concrete Iterator type may be copied.");
+      _index = iter._index;
+      _iter = iter._iter;
+      _end = iter._end;
+    }
+
+  protected:
     override
     const(S2ShapeIndexCell) getCell() const {
       enforce(false, "Should never be called");
@@ -375,16 +384,7 @@ public:
       return iterator;
     }
 
-    override
-    void copy(IteratorBase other) {
-      Iterator iter = cast(Iterator) other;
-      enforce(iter !is null, "Only the same concrete Iterator type may be copied.");
-      _index = iter._index;
-      _iter = iter._iter;
-      _end = iter._end;
-    }
-
-   private:
+  private:
     // Updates the IteratorBase fields.
     void refresh() {
       if (_iter == _end) {
@@ -572,7 +572,6 @@ public:
    *    the data is separated, because it often only needs to access the data in
    *    ClippedEdge and this data is cached more successfully.
    */
-
   struct FaceEdge {
     int shapeId;        // The shape that this edge belongs to
     int edgeId;         // Edge id within that shape
@@ -1069,7 +1068,7 @@ public:
   // needed during index construction.  Furthermore, if the arrays are grown via
   // push_back() then up to 10% of the total run time consists of copying data
   // as these arrays grow, so it is worthwhile to preallocate space for them.
-  void reserveSpace(BatchDescriptor batch, FaceEdge[][6] all_edges) const {
+  void reserveSpace(BatchDescriptor batch, ref FaceEdge[][6] all_edges) const {
     import std.algorithm : max;
     // If the number of edges is relatively small, then the fastest approach is
     // to simply reserve space on every face for the maximum possible number of
@@ -1153,7 +1152,7 @@ public:
 
   // Clip all edges of the given shape to the six cube faces, add the clipped
   // edges to "all_edges", and start tracking its interior if necessary.
-  void addShape(int id, FaceEdge[][6] all_edges, InteriorTracker tracker) const {
+  void addShape(int id, ref FaceEdge[][6] all_edges, InteriorTracker tracker) const {
     const S2Shape shape = this.shape(id);
     if (shape is null) {
       return;  // This shape has already been removed.
@@ -1175,7 +1174,7 @@ public:
   }
 
   void removeShape(
-      in RemovedShape removed, FaceEdge[][6] all_edges, InteriorTracker tracker) const {
+      in RemovedShape removed, ref FaceEdge[][6] all_edges, InteriorTracker tracker) const {
     FaceEdge edge;
     edge.edgeId = -1;  // Not used or needed for removed edges.
     edge.shapeId = removed.shapeId;
@@ -1190,7 +1189,7 @@ public:
     }
   }
 
-  void addFaceEdge(ref FaceEdge edge, FaceEdge[][6] all_edges) const {
+  void addFaceEdge(ref FaceEdge edge, ref FaceEdge[][6] all_edges) const {
     import s2.s2edge_clipping : clipToPaddedFace;
     import std.math : fabs;
     // Fast path: both endpoints are on the same face, and are far enough from
@@ -1218,7 +1217,7 @@ public:
   // Given a face and a vector of edges that intersect that face, add or remove
   // all the edges from the index.  (An edge is added if shapes_[id] is not
   // nullptr, and removed otherwise.)
-  void updateFaceEdges(int face, FaceEdge[] face_edges, InteriorTracker tracker) {
+  void updateFaceEdges(int face, in FaceEdge[] face_edges, InteriorTracker tracker) {
     int num_edges = cast(int) face_edges.length;
     if (num_edges == 0 && tracker.shapeIds.length == 0) return;
 
@@ -1275,7 +1274,7 @@ public:
       // Don't shrink any smaller than the existing index cells, since we need
       // to combine the new edges with those cells.
       // Use InitStale() to avoid applying updated recursively.
-      Iterator iter;
+      Iterator iter = new Iterator();
       iter.initStale(this);
       CellRelation r = iter.locate(shrunk_id);
       if (r == CellRelation.INDEXED) { shrunk_id = iter.id(); }
@@ -1490,7 +1489,7 @@ public:
     FaceEdge[]* face_edges = alloc.mutableFaceEdges();
     face_edges.length = 0;
     bool tracker_moved = false;
-    const S2ShapeIndexCell cell = *iter.cell();
+    const S2ShapeIndexCell cell = iter.cell();
     for (int s = 0; s < cell.numClipped(); ++s) {
       const S2ClippedShape clipped = cell.clipped(s);
       int shape_id = clipped.shapeId();
@@ -1558,7 +1557,7 @@ public:
 
   // Return the first level at which the edge will *not* contribute towards
   // the decision to subdivide.
-  int getEdgeMaxLevel(in S2Shape.Edge edge) const {
+  package int getEdgeMaxLevel(in S2Shape.Edge edge) const {
     import s2.s2metrics : AVG_EDGE;
     // Compute the maximum cell size for which this edge is considered "long".
     // The calculation does not need to be perfectly accurate, so we use Norm()
@@ -1607,8 +1606,9 @@ public:
     int count = 0;
     foreach (const ClippedEdge edge; edges) {
       count += (pcell.level() < edge.faceEdge.maxLevel);
-      if (count > _options.maxEdgesPerCell())
+      if (count > _options.maxEdgesPerCell()) {
         return false;
+      }
     }
 
     // Possible optimization: Continue subdividing as long as exactly one child
@@ -1808,18 +1808,18 @@ public:
   // Finally, since we encounter the same errors when clipping query edges, we
   // double the total error so that we only need to pad edges during indexing
   // and not at query time.
-  enum double CELL_PADDING = 2 * (FACE_CLIP_ERROR_UV_COORD + EDGE_CLIP_ERROR_UV_COORD);
+  package enum double CELL_PADDING = 2 * (FACE_CLIP_ERROR_UV_COORD + EDGE_CLIP_ERROR_UV_COORD);
 
   // The shapes in the index, accessed by their shape id.  Removed shapes are
   // replaced by nullptr pointers.
-  S2Shape[] _shapes;
+  /**/ package /**/ S2Shape[] _shapes;
 
   // A map from S2CellId to the set of clipped shapes that intersect that
   // cell.  The cell ids cover a set of non-overlapping regions on the
   // sphere.  Note that this field is updated lazily (see below).  Const
   // methods *must* call MaybeApplyUpdates() before accessing this field.
   // (The easiest way to achieve this is simply to use an Iterator.)
-  CellMap _cellMap;
+  /**/ package /**/ CellMap _cellMap;
 
   // The options supplied for this index.
   Options _options;
@@ -1887,6 +1887,10 @@ public:
     //
     // Reads and writes to this field are guarded by "lock_".
     int numWaiting;
+
+    this() {
+      waitMutex = new Mutex();
+    }
   }
   UpdateState _updateState;
 
