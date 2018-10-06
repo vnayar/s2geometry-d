@@ -23,10 +23,12 @@ module s2.s2edge_distances;
 import s2.s1angle;
 import s2.s1chord_angle;
 import s2.s2point;
-import s2pointutil = s2.s2pointutil;
+import s2.s2pointutil : isUnitLength, robustCrossProd, simpleCCW;
 import s2.util.math.vector;
+import s2.s2predicates : sign;
 import algorithm = std.algorithm;
 import math = std.math;
+import std.exception;
 
 /////////////////////////////////////////////////////////////////////////////
 ///////////////            (point, edge) functions            ///////////////
@@ -79,8 +81,7 @@ bool updateMinDistance(in S2Point x, in S2Point a, in S2Point b, ref S1ChordAngl
 bool alwaysUpdateMinDistance(bool alwaysUpdate)(
     in S2Point x, in S2Point a, in S2Point b, ref S1ChordAngle min_dist)
 in {
-  assert(s2pointutil.isUnitLength(x) && s2pointutil.isUnitLength(a)
-      && s2pointutil.isUnitLength(b));
+  assert(isUnitLength(x) && isUnitLength(a) && isUnitLength(b));
 } body {
   double xa2 = (x-a).norm2();
   double xb2 = (x-b).norm2();
@@ -151,14 +152,32 @@ bool updateMaxDistance(in S2Point x, in S2Point a, in S2Point b, out S1ChordAngl
 // The fractional distance of this point along the edge AB can be obtained
 // using GetDistanceFraction() above.  Requires that all vectors have
 // unit length.
-//S2Point Project(const S2Point& x, const S2Point& a, const S2Point& b);
+S2Point project(in S2Point x, in S2Point a, in S2Point b) {
+  return project(x, a, b, robustCrossProd(a, b));
+}
 
-// A slightly more efficient version of Project() where the cross product of
-// the two endpoints has been precomputed.  The cross product does not need to
-// be normalized, but should be computed using S2::RobustCrossProd() for the
-// most accurate results.  Requires that x, a, and b have unit length.
-//S2Point Project(const S2Point& x, const S2Point& a, const S2Point& b,
-//                const Vector3_d& a_cross_b);
+/**
+ * A slightly more efficient version of Project() where the cross product of
+ * the two endpoints has been precomputed.  The cross product does not need to
+ * be normalized, but should be computed using S2::RobustCrossProd() for the
+ * most accurate results.  Requires that x, a, and b have unit length.
+ */
+S2Point project(in S2Point x, in S2Point a, in S2Point b, in Vector3_d a_cross_b)
+in {
+  assert(isUnitLength(a));
+  assert(isUnitLength(b));
+  assert(isUnitLength(x));
+} body {
+  // Find the closest point to X along the great circle through AB.
+  S2Point p = x - (x.dotProd(a_cross_b) / a_cross_b.norm2()) * a_cross_b;
+
+  // If this point is on the edge AB, then it's the closest point.
+  if (simpleCCW(a_cross_b, a, p) && simpleCCW(p, b, a_cross_b)) {
+    return p.normalize();
+  }
+  // Otherwise, the closest point is either A or B.
+  return ((x - a).norm2() <= (x - b).norm2()) ? a : b;
+}
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -187,15 +206,15 @@ S2Point interpolate(double t, in S2Point a, in S2Point b) {
 // distance from A to the result X rather than a fraction between 0 and 1.
 S2Point interpolateAtDistance(S1Angle ax_angle, in S2Point a, in S2Point b)
 in {
-  assert(s2pointutil.isUnitLength(a));
-  assert(s2pointutil.isUnitLength(b));
+  assert(isUnitLength(a));
+  assert(isUnitLength(b));
 } body {
   double ax = ax_angle.radians();
 
   // Use RobustCrossProd() to compute the tangent vector at A towards B.  The
   // result is always perpendicular to A, even if A=B or A=-B, but it is not
   // necessarily unit length.  (We effectively normalize it below.)
-  Vector3_d normal = s2pointutil.robustCrossProd(a, b);
+  Vector3_d normal = robustCrossProd(a, b);
   Vector3_d tangent = normal.crossProd(a);
   assert(tangent != S2Point(0, 0, 0));
 
@@ -237,9 +256,86 @@ in {
 // from some point on edge A=a0a1.  Equivalently, returns true if the directed
 // Hausdorff distance from B to A is no more than "tolerance".
 // Requires that tolerance is less than 90 degrees.
-// bool IsEdgeBNearEdgeA(const S2Point& a0, const S2Point& a1,
-//                       const S2Point& b0, const S2Point& b1,
-//                       S1Angle tolerance);
+bool isEdgeBNearEdgeA(in S2Point a0, in S2Point a1, in S2Point b0, in S2Point b1, S1Angle tolerance)
+in {
+  assert(tolerance.radians() < math.PI / 2);
+  assert(tolerance.radians() > 0);
+} body {
+  // The point on edge B=b0b1 furthest from edge A=a0a1 is either b0, b1, or
+  // some interior point on B.  If it is an interior point on B, then it must be
+  // one of the two points where the great circle containing B (circ(B)) is
+  // furthest from the great circle containing A (circ(A)).  At these points,
+  // the distance between circ(B) and circ(A) is the angle between the planes
+  // containing them.
+
+  Vector3_d a_ortho = robustCrossProd(a0, a1).normalize();
+  const S2Point a_nearest_b0 = project(b0, a0, a1, a_ortho);
+  const S2Point a_nearest_b1 = project(b1, a0, a1, a_ortho);
+  // If a_nearest_b0 and a_nearest_b1 have opposite orientation from a0 and a1,
+  // we invert a_ortho so that it points in the same direction as a_nearest_b0 x
+  // a_nearest_b1.  This helps us handle the case where A and B are oppositely
+  // oriented but otherwise might be near each other.  We check orientation and
+  // invert rather than computing a_nearest_b0 x a_nearest_b1 because those two
+  // points might be equal, and have an unhelpful cross product.
+  if (sign(a_ortho, a_nearest_b0, a_nearest_b1) < 0) a_ortho *= -1;
+
+  // To check if all points on B are within tolerance of A, we first check to
+  // see if the endpoints of B are near A.  If they are not, B is not near A.
+  const S1Angle b0_distance = S1Angle(b0, a_nearest_b0);
+  const S1Angle b1_distance = S1Angle(b1, a_nearest_b1);
+  if (b0_distance > tolerance || b1_distance > tolerance)
+    return false;
+
+  // If b0 and b1 are both within tolerance of A, we check to see if the angle
+  // between the planes containing B and A is greater than tolerance.  If it is
+  // not, no point on B can be further than tolerance from A (recall that we
+  // already know that b0 and b1 are close to A, and S2Edges are all shorter
+  // than 180 degrees).  The angle between the planes containing circ(A) and
+  // circ(B) is the angle between their normal vectors.
+  const Vector3_d b_ortho = robustCrossProd(b0, b1).normalize();
+  const S1Angle planar_angle = S1Angle(a_ortho, b_ortho);
+  if (planar_angle <= tolerance)
+    return true;
+
+
+  // As planar_angle approaches M_PI, the projection of a_ortho onto the plane
+  // of B approaches the null vector, and normalizing it is numerically
+  // unstable.  This makes it unreliable or impossible to identify pairs of
+  // points where circ(A) is furthest from circ(B).  At this point in the
+  // algorithm, this can only occur for two reasons:
+  //
+  //  1.) b0 and b1 are closest to A at distinct endpoints of A, in which case
+  //      the opposite orientation of a_ortho and b_ortho means that A and B are
+  //      in opposite hemispheres and hence not close to each other.
+  //
+  //  2.) b0 and b1 are closest to A at the same endpoint of A, in which case
+  //      the orientation of a_ortho was chosen arbitrarily to be that of a0
+  //      cross a1.  B must be shorter than 2*tolerance and all points in B are
+  //      close to one endpoint of A, and hence to A.
+  //
+  // The logic applies when planar_angle is robustly greater than M_PI/2, but
+  // may be more computationally expensive than the logic beyond, so we choose a
+  // value close to M_PI.
+  if (planar_angle >= S1Angle.fromRadians(math.PI - 0.01)) {
+    return (S1Angle(b0, a0) < S1Angle(b0, a1)) == (S1Angle(b1, a0) < S1Angle(b1, a1));
+  }
+
+  // Finally, if either of the two points on circ(B) where circ(B) is furthest
+  // from circ(A) lie on edge B, edge B is not near edge A.
+  //
+  // The normalized projection of a_ortho onto the plane of circ(B) is one of
+  // the two points along circ(B) where it is furthest from circ(A).  The other
+  // is -1 times the normalized projection.
+  S2Point furthest = (a_ortho - a_ortho.dotProd(b_ortho) * b_ortho).normalize();
+  enforce(isUnitLength(furthest));
+  S2Point furthest_inv = -1 * furthest;
+
+  // A point p lies on B if you can proceed from b_ortho to b0 to p to b1 and
+  // back to b_ortho without ever turning right.  We test this for furthest and
+  // furthest_inv, and return true if neither point lies on B.
+  return !((sign(b_ortho, b0, furthest) > 0 && sign(furthest, b1, b_ortho) > 0)
+      || (sign(b_ortho, b0, furthest_inv) > 0 && sign(furthest_inv, b1, b_ortho) > 0));
+}
 
 
 //////////////////   Implementation details follow   ////////////////////
@@ -269,8 +365,7 @@ bool alwaysUpdateMinInteriorDistance(bool alwaysUpdate)(
     in S2Point x, in S2Point a, in S2Point b,
     in double xa2, in double xb2, ref S1ChordAngle min_dist)
 in {
-  assert(s2pointutil.isUnitLength(x) && s2pointutil.isUnitLength(a)
-      && s2pointutil.isUnitLength(b));
+  assert(isUnitLength(x) && isUnitLength(a) && isUnitLength(b));
   assert(xa2 == (x-a).norm2());
   assert(xb2 == (x-b).norm2());
 } body {
