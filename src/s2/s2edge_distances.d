@@ -404,7 +404,7 @@ in {
   // We ignore the QR^2 term and instead use XQ^2 as a lower bound, since it
   // is faster and the corresponding distance on the Earth's surface is
   // accurate to within 1% for distances up to about 1800km.
-  S2Point c = s2pointutil.robustCrossProd(a, b);
+  S2Point c = robustCrossProd(a, b);
   double c2 = c.norm2();
   double x_dot_c = x.dotProd(c);
   double x_dot_c2 = x_dot_c * x_dot_c;

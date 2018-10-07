@@ -704,7 +704,7 @@ public:
    * OwningShape below).  You can also subtype this class to store additional
    * data (see S2Shape for details).
    */
-  class Shape : S2Shape {
+  static class Shape : S2Shape {
   public:
     // Must call Init().
     this() {
