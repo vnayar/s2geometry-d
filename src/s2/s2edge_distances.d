@@ -100,7 +100,7 @@ in {
 // If the distance from X to the edge AB is greater than "max_dist", this
 // method updates "max_dist" and returns true.  Otherwise it returns false.
 // The case A == B is handled correctly.
-bool updateMaxDistance(in S2Point x, in S2Point a, in S2Point b, out S1ChordAngle max_dist) {
+bool updateMaxDistance(in S2Point x, in S2Point a, in S2Point b, ref S1ChordAngle max_dist) {
   auto dist = algorithm.max(S1ChordAngle(x, a), S1ChordAngle(x, b));
   if (dist > S1ChordAngle.right()) {
     alwaysUpdateMinDistance!true(-x, a, b, dist);
