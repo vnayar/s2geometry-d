@@ -265,12 +265,42 @@ S2Polyline makePolyline(string str) {
 //
 // CAVEAT: Because whitespace is ignored, empty polygons must be specified
 //         as the string "empty" rather than as the empty string ("").
-//std::unique_ptr<MutableS2ShapeIndex> MakeIndexOrDie(absl::string_view str);
+/+
+MutableS2ShapeIndex makeIndexOrDie(string str) {
+  auto index = new MutableS2ShapeIndex();
+  enforce(makeIndex(str, index), ": str == \"" ~ str ~ "\"");
+  return index;
+}
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-//ABSL_MUST_USE_RESULT bool MakeIndex(
-//    absl::string_view str, std::unique_ptr<MutableS2ShapeIndex>* index);
+bool makeIndex(string str, MutableS2ShapeIndex index) {
+  string[] strs = str.split('#');
+  enforce(strs.size() == 3, "Must contain two # characters: " ~ str);
+
+  S2Point[] points;
+  foreach (auto point_str; strs[0].split('|')) {
+    S2Point point;
+    if (!makePoint(point_str, point)) return false;
+    points ~= point;
+  }
+  if (!points.empty()) {
+    // TODO:  Resume when S2PointVectorShape is implemented.
+    index.add(new S2PointVectorShape(points));
+  }
+  for (const auto& line_str : SplitString(strs[1], '|')) {
+    std::unique_ptr<S2LaxPolylineShape> lax_polyline;
+    if (!MakeLaxPolyline(line_str, &lax_polyline)) return false;
+    (*index)->Add(unique_ptr<S2Shape>(lax_polyline.release()));
+  }
+  for (const auto& polygon_str : SplitString(strs[2], '|')) {
+    std::unique_ptr<S2LaxPolygonShape> lax_polygon;
+    if (!MakeLaxPolygon(polygon_str, &lax_polygon)) return false;
+    (*index)->Add(unique_ptr<S2Shape>(lax_polygon.release()));
+  }
+  return true;
+}
++/
 
 //ABSL_DEPRECATED("Use MakeIndexOrDie.")
 //std::unique_ptr<MutableS2ShapeIndex> MakeIndex(absl::string_view str);

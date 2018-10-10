@@ -83,7 +83,7 @@ import s2.s2shape_index;
 // };
 abstract class S2DistanceTarget(DistanceT) {
 public:
-  alias DeltaT = DistanceT.DeltaT;
+  alias Delta = DistanceT.Delta;
 
   // Returns an S2Cap that bounds the set of points whose distance to the
   // target is DistanceT::Zero().
@@ -141,7 +141,7 @@ public:
   // If the target takes advantage of "max_error" to optimize its distance
   // calculation, this method must return "true".  (Most target types can use
   // the default implementation which simply returns false.)
-  bool setMaxError(in DeltaT max_error) {
+  bool setMaxError(in Delta max_error) {
     return false;
   }
 
