@@ -410,7 +410,6 @@ private bool findCrossingError(
   //
   // Note that we don't need to maintain any state regarding loop crossings
   // because duplicate edges are detected and rejected above.
-  // TODO: Resume here.
   if (getWedgeRelation(a.v0(), a.v1(), a2, b.v0(), b2) == WedgeRelation.WEDGE_PROPERLY_OVERLAPS
       && getWedgeRelation(a.v0(), a.v1(), a2, b2, b.v0())
           == WedgeRelation.WEDGE_PROPERLY_OVERLAPS) {

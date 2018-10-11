@@ -27,6 +27,7 @@ import s2.s2latlng_rect;
 import s2.s2point;
 import s2.strings.serialize;
 import s2.s2polyline;
+import s2.s2shape;
 
 import std.conv;
 import std.exception;
@@ -265,7 +266,7 @@ S2Polyline makePolyline(string str) {
 //
 // CAVEAT: Because whitespace is ignored, empty polygons must be specified
 //         as the string "empty" rather than as the empty string ("").
-/+
+/+ TODO: Resume when S2LaxPolygonShape is implemented.
 MutableS2ShapeIndex makeIndexOrDie(string str) {
   auto index = new MutableS2ShapeIndex();
   enforce(makeIndex(str, index), ": str == \"" ~ str ~ "\"");
@@ -285,26 +286,26 @@ bool makeIndex(string str, MutableS2ShapeIndex index) {
     points ~= point;
   }
   if (!points.empty()) {
-    // TODO:  Resume when S2PointVectorShape is implemented.
     index.add(new S2PointVectorShape(points));
   }
-  for (const auto& line_str : SplitString(strs[1], '|')) {
-    std::unique_ptr<S2LaxPolylineShape> lax_polyline;
-    if (!MakeLaxPolyline(line_str, &lax_polyline)) return false;
-    (*index)->Add(unique_ptr<S2Shape>(lax_polyline.release()));
+  foreach (auto line_str; strs[1].split('|')) {
+    auto lax_polyline = new S2LaxPolylineShape();
+    if (!makeLaxPolyline(line_str, lax_polyline)) return false;
+    index.add(new S2Shape(lax_polyline));
   }
-  for (const auto& polygon_str : SplitString(strs[2], '|')) {
-    std::unique_ptr<S2LaxPolygonShape> lax_polygon;
-    if (!MakeLaxPolygon(polygon_str, &lax_polygon)) return false;
-    (*index)->Add(unique_ptr<S2Shape>(lax_polygon.release()));
+  foreach (string polygon_str; strs[2].split('|')) {
+    auto lax_polygon = new S2LaxPolygonShape();
+    if (!makeLaxPolygon(polygon_str, lax_polygon)) return false;
+    index.add(lax_polygon);
   }
   return true;
 }
+
+deprecated("Use MakeIndexOrDie.")
+MutableS2ShapeIndex makeIndex(string str) {
+  return makeIndexOrDie(str);
+}
 +/
-
-//ABSL_DEPRECATED("Use MakeIndexOrDie.")
-//std::unique_ptr<MutableS2ShapeIndex> MakeIndex(absl::string_view str);
-
 // string ToString(const S2Point& point);
 // string ToString(const S2LatLngRect& rect);
 // string ToString(const S2LatLng& latlng);

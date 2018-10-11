@@ -131,11 +131,13 @@ public:
    * Without the call to set_s2debug_override(), invalid data would cause a
    * fatal error in Init() whenever the --s2debug flag is enabled.
    */
-  void setS2debugOverride(S2Debug s2debugOverride) {
+  @property
+  void s2debugOverride(S2Debug s2debugOverride) {
     _s2debugOverride = s2debugOverride;
   }
 
-  S2Debug s2debug_override() const {
+  @property
+  S2Debug s2debugOverride() const {
     return _s2debugOverride;
   }
 
@@ -189,6 +191,10 @@ public:
     assert(k < _vertices.length);
   } body {
     return _vertices[k];
+  }
+
+  const(S2Point[]) vertices() const {
+    return _vertices;
   }
 
   /// Return the length of the polyline.
