@@ -38,6 +38,7 @@ import s2.s2point;
 import s2.s2pointutil;
 import s2.s2testing;
 import s2.util.math.vector;
+import s2.s2predicates : sign;
 
 enum double DOUBLE_ERR = 0.0001;
 
@@ -172,11 +173,11 @@ unittest {
             math.remainder(lng, 2 * math.PI), math.remainder(lng + math.PI_2, 2 * math.PI)));
     for (int k = 0; k < 4; ++k) {
       Assert.equal(
-          simpleCCW(
+          sign(
               r.getVertex(k - 1).toS2Point(),
               r.getVertex(k).toS2Point(),
               r.getVertex(k + 1).toS2Point()),
-          true);
+          1);
     }
   }
 }

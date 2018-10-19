@@ -310,7 +310,7 @@ public:
 
   // Returns a pointer to the shape with the given id, or nullptr if the shape
   // has been removed from the index.
-  abstract const(S2Shape) shape(int id) const;
+  abstract inout(S2Shape) shape(int id) inout;
 
   // Returns the number of bytes currently occupied by the index (including any
   // unused space at the end of vectors, etc).

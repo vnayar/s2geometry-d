@@ -232,7 +232,7 @@ public:
   // Returns a pointer to the shape with the given id, or nullptr if the shape
   // has been removed from the index.
   override
-  const(S2Shape) shape(int id) const {
+  inout(S2Shape) shape(int id) inout {
     return _shapes[id];
   }
 

@@ -19,9 +19,13 @@
 module s2.s2contains_point_query;
 
 import s2.s2edge_crosser;
-import s2.s2shape_index;
 import s2.s2edge_crossings : vertexCrossing;
+import s2.s2point;
+import s2.s2shape;
+import s2.s2shape_index;
 import s2.shapeutil.shape_edge;
+
+import std.typecons : Rebindable;
 
 /**
  * Defines whether shapes are considered to contain their vertices.  Note that
@@ -106,9 +110,9 @@ public:
    *
    *   return MakeS2ContainsPointQuery(&index).Contains(p);
    */
-  using Options = S2ContainsPointQueryOptions;
+  alias Options = S2ContainsPointQueryOptions;
 
-  this(in IndexT index, in Options options = null) {
+  this(IndexT index, Options options = null) {
     _index = index;
     _options = options !is null ? options : new Options();
     _it = new Iterator(_index);
@@ -116,7 +120,7 @@ public:
 
 
   // Convenience constructor that accepts the S2VertexModel directly.
-  this(in IndexT index, S2VertexModel vertex_model) {
+  this(IndexT index, S2VertexModel vertex_model) {
     this(index, new Options(vertex_model));
   }
 
@@ -129,7 +133,7 @@ public:
   }
 
   /// Equivalent to the two-argument constructor above.
-  void initialize(in IndexT index, in Options options = null) {
+  void initialize(IndexT index, Options options = null) {
     _index = index;
     _options = options !is null ? options : new Options();
     _it.initialize(index);
@@ -158,9 +162,9 @@ public:
    */
   bool shapeContains(in S2Shape shape, in S2Point p) {
     if (!_it.locate(p)) return false;
-    S2ClippedShape clipped = _it.cell().findClipped(shape.id());
+    const(S2ClippedShape)* clipped = _it.cell().findClipped(shape.id());
     if (clipped is null) return false;
-    return new ShapeContains(_it, clipped, p);
+    return shapeContains(_it, *clipped, p);
   }
 
   // Visits all shapes in the given index() that contain the given point "p",
@@ -171,7 +175,7 @@ public:
   // Note that the API allows non-const access to the visited shapes.
   alias ShapeVisitor = bool delegate(S2Shape);
 
-  bool visitContainingShapes(in S2Point p, in ShapeVisitor visitor) {
+  bool visitContainingShapes(in S2Point p, ShapeVisitor visitor) {
     // This function returns "false" only if the algorithm terminates early
     // because the "visitor" function returned false.
     if (!_it.locate(p)) return true;
@@ -190,7 +194,7 @@ public:
   /// Convenience function that returns all the shapes that contain the given point "p".
   S2Shape[] getContainingShapes(in S2Point p) {
     S2Shape[] results;
-    visitContainingShapes(p, (S2Shape shape) => {
+    visitContainingShapes(p, (S2Shape shape) {
           results ~= shape;
           return true;
         });
@@ -266,7 +270,7 @@ public:
           }
           sign = vertexCrossing(crosser.a(), crosser.b(), edge.v0, edge.v1);
         }
-        inside ^= sign;
+        inside ^= cast(bool) sign;
       }
     }
     return inside;
@@ -280,8 +284,8 @@ public:
 
 // Returns an S2ContainsPointQuery for the given S2ShapeIndex.  Note that
 // it is efficient to return S2ContainsPointQuery objects by value.
-S2ContainsPointQuery makeS2ContainsPointQuery(IndexT)(
-    in IndexT index, in S2ContainsPointQueryOptions options = null) {
-  return new S2ContainsPointQuery(
+S2ContainsPointQuery!IndexT makeS2ContainsPointQuery(IndexT)(
+    IndexT index, S2ContainsPointQueryOptions options = null) {
+  return new S2ContainsPointQuery!IndexT(
       index, options !is null ? options : new S2ContainsPointQueryOptions());
 }

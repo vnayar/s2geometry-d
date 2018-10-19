@@ -23,7 +23,8 @@ module s2.s2edge_distances;
 import s2.s1angle;
 import s2.s1chord_angle;
 import s2.s2point;
-import s2.s2pointutil : isUnitLength, robustCrossProd, simpleCCW;
+import s2.s2pointutil : isUnitLength, robustCrossProd;
+import s2.s2edge_crossings : crossingSign;
 import s2.util.math.vector;
 import s2.s2predicates : sign;
 import algorithm = std.algorithm;
@@ -172,7 +173,7 @@ in {
   S2Point p = x - (x.dotProd(a_cross_b) / a_cross_b.norm2()) * a_cross_b;
 
   // If this point is on the edge AB, then it's the closest point.
-  if (simpleCCW(a_cross_b, a, p) && simpleCCW(p, b, a_cross_b)) {
+  if (sign(a_cross_b, a, p) > 0 && sign(p, b, a_cross_b) > 0) {
     return p.normalize();
   }
   // Otherwise, the closest point is either A or B.
@@ -234,9 +235,26 @@ in {
 // Like UpdateMinDistance(), but computes the minimum distance between the
 // given pair of edges.  (If the two edges cross, the distance is zero.)
 // The cases a0 == a1 and b0 == b1 are handled correctly.
-// bool UpdateEdgePairMinDistance(const S2Point& a0, const S2Point& a1,
-//                                const S2Point& b0, const S2Point& b1,
-//                                S1ChordAngle* min_dist);
+bool updateEdgePairMinDistance(
+    in S2Point a0, in S2Point a1, in S2Point b0, in S2Point b1, ref S1ChordAngle min_dist) {
+  if (min_dist == S1ChordAngle.zero()) {
+    return false;
+  }
+  if (crossingSign(a0, a1, b0, b1) > 0) {
+    min_dist = S1ChordAngle.zero();
+    return true;
+  }
+  // Otherwise, the minimum distance is achieved at an endpoint of at least
+  // one of the two edges.  We use "|" rather than "||" below to ensure that
+  // all four possibilities are always checked.
+  //
+  // The calculation below computes each of the six vertex-vertex distances
+  // twice (this could be optimized).
+  return (updateMinDistance(a0, b0, b1, min_dist) |
+          updateMinDistance(a1, b0, b1, min_dist) |
+          updateMinDistance(b0, a0, a1, min_dist) |
+          updateMinDistance(b1, a0, a1, min_dist));
+}
 
 // As above, but for maximum distances. If one edge crosses the antipodal
 // reflection of the other, the distance is Pi.

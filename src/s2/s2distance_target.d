@@ -20,6 +20,8 @@ module s2.s2distance_target;
 
 import s2.s2cap;
 import s2.s2cell;
+import s2.s2point;
+import s2.s2shape;
 import s2.s2shape_index;
 
 // S2DistanceTarget represents a geometric object to which distances are
@@ -129,7 +131,7 @@ public:
   // unlikely to be useful for other purposes.
   alias ShapeVisitor = bool function(in S2Shape containing_shape, in S2Point target_point);
 
-  abstract bool visitContainingShapes(in S2ShapeIndex query_index, in ShapeVisitor visitor);
+  abstract bool visitContainingShapes(S2ShapeIndex query_index, in ShapeVisitor visitor);
 
   // Specifies that whenever one of the UpdateMinDistance() methods above
   // returns "true", the returned distance is allowed to be up to "max_error"

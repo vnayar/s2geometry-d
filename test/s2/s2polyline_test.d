@@ -476,10 +476,11 @@ void checkNearlyCovers(
 }
 
 @("S2PolylineCoveringTest.StraightAndWigglyPolylinesCoverEachOther") unittest {
-  checkNearlyCovers("40:1, 20:1",
-                   "39.9:0.9, 40:1.1, 30:1.15, 29:0.95, 28:1.1, 27:1.15, "
-                   "26:1.05, 25:0.85, 24:1.1, 23:0.9, 20:0.99",
-                   0.2, true, true);
+  checkNearlyCovers(
+      "40:1, 20:1",
+      "39.9:0.9, 40:1.1, 30:1.15, 29:0.95, 28:1.1, 27:1.15, "
+          ~ "26:1.05, 25:0.85, 24:1.1, 23:0.9, 20:0.99",
+      0.2, true, true);
 }
 
 @("S2PolylineCoveringTest.MatchStartsAtLastVertex") unittest {
