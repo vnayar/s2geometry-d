@@ -129,9 +129,9 @@ public:
   // NOTE(ericv): This method exists only for the purpose of implementing
   // S2ClosestEdgeQuery::Options::include_interiors() efficiently.  Its API is
   // unlikely to be useful for other purposes.
-  alias ShapeVisitor = bool function(in S2Shape containing_shape, in S2Point target_point);
+  alias ShapeVisitor = bool delegate(in S2Shape containing_shape, in S2Point target_point);
 
-  abstract bool visitContainingShapes(S2ShapeIndex query_index, in ShapeVisitor visitor);
+  abstract bool visitContainingShapes(S2ShapeIndex query_index, ShapeVisitor visitor);
 
   // Specifies that whenever one of the UpdateMinDistance() methods above
   // returns "true", the returned distance is allowed to be up to "max_error"

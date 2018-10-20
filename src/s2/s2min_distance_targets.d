@@ -116,7 +116,7 @@ public:
   }
 
   final override
-  bool visitContainingShapes(S2ShapeIndex index, in ShapeVisitor visitor) {
+  bool visitContainingShapes(S2ShapeIndex index, ShapeVisitor visitor) {
     return makeS2ContainsPointQuery(index).visitContainingShapes(
         _point, (in S2Shape shape) {
           return visitor(shape, _point);
@@ -160,7 +160,7 @@ public:
   }
 
   final override
-  bool visitContainingShapes(S2ShapeIndex index, in ShapeVisitor visitor) {
+  bool visitContainingShapes(S2ShapeIndex index, ShapeVisitor visitor) {
     // We test the center of the edge in order to ensure that edge targets AB
     // and BA yield identical results (which is not guaranteed by the API but
     // users might expect).  Other options would be to test both endpoints, or
@@ -203,7 +203,7 @@ public:
   }
 
   final override
-  bool visitContainingShapes(S2ShapeIndex index, in ShapeVisitor visitor) {
+  bool visitContainingShapes(S2ShapeIndex index, ShapeVisitor visitor) {
     // The simplest approach is simply to return the polygons that contain the
     // cell center.  Alternatively, if the index cell is smaller than the target
     // cell then we could return all polygons that are present in the
