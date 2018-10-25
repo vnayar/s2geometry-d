@@ -110,7 +110,6 @@ public:
     return S1ChordAngle(2);
   }
 
-
   // Return a chord angle of 180 degrees (a "straight angle").  This is the
   // maximum finite chord angle.
   static S1ChordAngle straight() {

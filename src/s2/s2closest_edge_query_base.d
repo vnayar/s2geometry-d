@@ -18,6 +18,7 @@
 
 module s2.s2closest_edge_query_base;
 
+import s2.logger;
 import s2.s1angle;
 import s2.s1chord_angle;
 import s2.s2cap;
@@ -25,7 +26,9 @@ import s2.s2cell;
 import s2.s2cell_id;
 import s2.s2cell_union;
 import s2.s2distance_target;
+import s2.s2point;
 import s2.s2region_coverer;
+import s2.s2shape;
 import s2.s2shape_index;
 import s2.shapeutil.count_edges : countEdgesUpTo;
 import s2.shapeutil.shape_edge_id;
@@ -34,6 +37,8 @@ import s2.util.container.btree;
 import std.algorithm;
 import std.array;
 import std.container.binaryheap;
+import std.exception : enforce;
+import std.range : retro;
 
 // S2ClosestEdgeQueryBase is a templatized class for finding the closest
 // edge(s) between two geometries.  It is not intended to be used directly,
@@ -114,7 +119,7 @@ public:
   class Options {
   public:
     this() {
-      _queue = BinaryHeap!(new QueueEntry[]);
+      _queue = BinaryHeap!(QueueEntry[])([]);
     }
 
     // Specifies that at most "max_edges" edges should be returned.
@@ -132,7 +137,7 @@ public:
       _maxEdges = max_edges;
     }
 
-    static int MAX_MAX_EDGES = int.max;
+    enum int MAX_MAX_EDGES = int.max;
 
     // Specifies that only edges whose distance to the target is less than
     // "max_distance" should be returned.
@@ -245,8 +250,8 @@ public:
     int edgeId = -1;      // Identifies an edge within the shape.
 
     // Compares edges first by distance, then by (shape_id, edge_id).
-    bool opCmp(Result o) {
-      if (distance != o.distance) return distance - o.distance;
+    int opCmp(Result o) const {
+      if (distance != o.distance) return distance.opCmp(o.distance);
       if (shapeId != o.shapeId) return shapeId - o.shapeId;
       if (edgeId != o.edgeId) return edgeId - o.edgeId;
       return 0;
@@ -290,7 +295,7 @@ public:
   // Note that if options().include_interiors() is true, the result vector may
   // include some entries with edge_id == -1.  This indicates that the target
   // intersects the indexed polygon with the given shape_id.
-  Result[] findClosestEdges(Target target, in Options options) {
+  Result[] findClosestEdges(Target target, Options options) {
     Result[] results;
     findClosestEdges(target, options, results);
     return results;
@@ -298,7 +303,7 @@ public:
 
   // This version can be more efficient when this method is called many times,
   // since it does not require allocating a new vector on each call.
-  void findClosestEdges(Target target, in Options options, out Result[] results) {
+  void findClosestEdges(Target target, Options options, out Result[] results) {
     findClosestEdgesInternal(target, options);
     if (options.maxEdges() == 1) {
       if (_resultSingleton.shapeId >= 0) {
@@ -308,7 +313,7 @@ public:
       results = sort(_resultVector).retro.array;
       _resultVector.length = 0;
     } else {
-      results = _resultSet[];
+      results = _resultSet[].array;
       _resultSet.clear();
     }
   }
@@ -322,7 +327,7 @@ public:
   // that case distance == Zero() and shape_id >= 0).
   //
   // REQUIRES: options.max_edges() == 1
-  Result findClosestEdge(Target target, in Options options)
+  Result findClosestEdge(Target target, Options options)
   in {
     assert(options.maxEdges() == 1);
   } body {
@@ -336,7 +341,7 @@ public:
     return _options;
   }
 
-  void findClosestEdgesInternal(Target target, in Options options)
+  void findClosestEdgesInternal(Target target, Options options)
   in {
     assert(_resultVector.empty());
     assert(_resultSet.empty());
@@ -345,7 +350,7 @@ public:
     _target = target;
     _options = options;
 
-    _testedEdges.length = 0;
+    _testedEdges.clear();
     _distanceLimit = options.maxDistance();
     _resultSingleton = Result();
 
@@ -360,7 +365,7 @@ public:
       auto shape_ids = new BTree!int();
       target.visitContainingShapes(
           _index,
-          (in S2Shape containing_shape, in S2Point target_point) => {
+          (in S2Shape containing_shape, in S2Point target_point) {
             shape_ids.insert(containing_shape.id());
             return shape_ids.length < options.maxEdges();
           });
@@ -484,7 +489,7 @@ public:
     if (_indexCovering.empty()) {
       // We delay iterator initialization until now to make queries on very
       // small indexes a bit faster (i.e., where brute force is used).
-      _iter.init(_index, S2ShapeIndex.InitialPosition.UNPOSITIONED);
+      _iter.initialize(_index, S2ShapeIndex.InitialPosition.UNPOSITIONED);
     }
 
     // Optimization: if the user is searching for just the closest edge, and the
@@ -495,7 +500,7 @@ public:
     // "target" will be processed twice, but in general this is still faster.
     S2Cap cap = _target.getCapBound();
     if (options().maxEdges() == 1 && _iter.locate(cap.center())) {
-      processEdges(QueueEntry(DistanceT.zero(), _iter.id(), _iter.cell()));
+      processEdges(new QueueEntry(DistanceT.zero(), _iter.id(), _iter.cell()));
       // Skip the rest of the algorithm if we found an intersecting edge.
       if (_distanceLimit == DistanceT.zero()) return;
     }
@@ -532,12 +537,12 @@ public:
           // This initial cell is a proper descendant of a top-level cell.
           // Check how it is related to the cells of the S2ShapeIndex.
           S2ShapeIndex.CellRelation r = _iter.locate(id_i);
-          if (r == S2ShapeIndex.InitialPosition.INDEXED) {
+          if (r == S2ShapeIndex.CellRelation.INDEXED) {
             // This cell is a descendant of an index cell.  Enqueue it and skip
             // any other initial cells that are also descendants of this cell.
             enqueueCell(_iter.id(), _iter.cell());
             const S2CellId last_id = _iter.id().rangeMax();
-            while (++i < _initialCells.size() && _initialCells[i] <= last_id)
+            while (++i < _initialCells.length && _initialCells[i] <= last_id)
               continue;
           } else {
             // Enqueue the cell only if it contains at least one index cell.
@@ -572,8 +577,8 @@ public:
 
     // TODO(ericv): Use a single iterator (iter_) below and save position
     // information using pair<S2CellId, const S2ShapeIndexCell*> type.
-    auto next = S2ShapeIndex.Iterator(_index, S2ShapeIndex.InitialPosition.BEGIN);
-    auto last = S2ShapeIndex.Iterator(_index, S2ShapeIndex.InitialPosition.END);
+    auto next = new S2ShapeIndex.Iterator(_index, S2ShapeIndex.InitialPosition.BEGIN);
+    auto last = new S2ShapeIndex.Iterator(_index, S2ShapeIndex.InitialPosition.END);
     last.prev();
     if (next.id() != last.id()) {
       // The index has at least two cells.  Choose a level such that the entire
@@ -605,7 +610,7 @@ public:
    *
    * REQUIRES: "first" and "last" have a common ancestor.
    */
-  void addInitialRange(in S2ShapeIndex.Iterator first, in S2ShapeIndex.Iterator last) {
+  void addInitialRange(S2ShapeIndex.Iterator first, in S2ShapeIndex.Iterator last) {
     if (first.id() == last.id()) {
       // The range consists of a single index cell.
       _indexCovering ~= first.id();
@@ -620,9 +625,11 @@ public:
   }
 
   void maybeAddResult(in S2Shape shape, int edge_id) {
-    if (_avoidDuplicates && !_testedEdges.insert(ShapeEdgeId(shape.id(), edge_id)).second) {
+    auto testEdge = ShapeEdgeId(shape.id(), edge_id);
+    if (_avoidDuplicates && testEdge !in _testedEdges) {
       return;
     }
+    _testedEdges[testEdge] = true;
     auto edge = shape.edge(edge_id);
     DistanceT distance = _distanceLimit;
     if (_target.updateMinDistance(edge.v0, edge.v1, distance)) {
@@ -642,21 +649,21 @@ public:
       // edges, we can't erase an element before insertion because the "new"
       // edge might in fact be a duplicate.
       _resultSet.insert(result);
-      int size = _resultSet.length;
+      int size = cast(int) _resultSet.length;
       if (size >= options().maxEdges()) {
         if (size > options().maxEdges()) {
-          _resultSet.erase(--_resultSet.end());
+          _resultSet.remove(_resultSet.end().getValue());
         }
-        _distanceLimit = (--_resultSet.end()).distance - options().maxError();
+        _distanceLimit = _resultSet.end().getValue().distance - options().maxError();
       }
     }
   }
 
   // Process all the edges of the given index cell.
   void processEdges(in QueueEntry entry) {
-    S2ShapeIndexCell index_cell = entry.indexCell;
+    const(S2ShapeIndexCell) index_cell = entry.indexCell;
     for (int s = 0; s < index_cell.numClipped(); ++s) {
-      S2ClippedShape clipped = index_cell.clipped(s);
+      const(S2ClippedShape) clipped = index_cell.clipped(s);
       S2Shape shape = _index.shape(clipped.shapeId());
       for (int j = 0; j < clipped.numEdges(); ++j) {
         maybeAddResult(shape, clipped.edge(j));
@@ -676,7 +683,7 @@ public:
       if (num_edges == 0) return;
       if (num_edges < kMinEdgesToEnqueue) {
         // Set "distance" to zero to avoid the expense of computing it.
-        processEdges(QueueEntry(DistanceT.zero(), id, index_cell));
+        processEdges(new QueueEntry(DistanceT.zero(), id, index_cell));
         return;
       }
     }
@@ -689,7 +696,7 @@ public:
       // Ensure that "distance" is a lower bound on the true distance to the cell.
       distance = distance - options().maxError();  // operator-=() not defined.
     }
-    _queue.push(QueueEntry(distance, id, index_cell));
+    _queue.insert(new QueueEntry(distance, id, index_cell));
   }
 
   // Enqueue the given cell id.
@@ -782,30 +789,37 @@ public:
   // only, and checking whether each edge is in that set before computing the
   // distance to it.
   bool _avoidDuplicates;
-  ShapeEdgeIdHash[ShapeEdgeId] _testedEdges;
+  bool[ShapeEdgeId] _testedEdges;
 
   // The algorithm maintains a priority queue of unprocessed S2CellIds, sorted
   // in increasing order of distance from the target point.
-  struct QueueEntry {
+  class QueueEntry {
+    this(in DistanceT distance, in S2CellId id, in S2ShapeIndexCell indexCell) {
+      this.distance = distance;
+      this.id = id;
+      this.indexCell = indexCell;
+    }
+
     // A lower bound on the distance from the target point to any edge point
     // within "id".  This is the key of the priority queue.
-    DistanceT distance;
+    const(DistanceT) distance;
 
     // The cell being queued.
-    S2CellId id;
+    const(S2CellId) id;
 
     // If "id" belongs to the index, this field stores the corresponding
     // S2ShapeIndexCell.  Otherwise "id" is a proper ancestor of one or more
     // S2ShapeIndexCells and this field stores nullptr.  The purpose of this
     // field is to avoid an extra Seek() when the queue entry is processed.
-    S2ShapeIndexCell indexCell;
+    const(S2ShapeIndexCell) indexCell;
 
-    bool opCmp(in QueueEntry other) const {
+    int opCmp(in QueueEntry other) const {
       // The priority queue returns the largest elements first, so we want the
       // "largest" entry to have the smallest distance.
-      return distance - other.distance;
+      return distance.opCmp(other.distance);
     }
-  };
+  }
+
   alias CellQueue = BinaryHeap!(QueueEntry[]);
   CellQueue _queue;
 

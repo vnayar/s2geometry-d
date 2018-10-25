@@ -62,7 +62,7 @@ public:
 
   final override
   ReferencePoint getReferencePoint() const {
-    return ReferencePoint.defaultReferencePoint(false);
+    return ReferencePoint(false);
   }
 
   final override

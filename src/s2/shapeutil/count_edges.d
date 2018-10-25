@@ -33,7 +33,7 @@ int countEdgesUpTo(S2ShapeIndexT)(in S2ShapeIndexT index, int max_edges) {
   const int num_shape_ids = index.numShapeIds();
   int num_edges = 0;
   for (int s = 0; s < num_shape_ids; ++s) {
-    S2Shape shape = index.shape(s);
+    const(S2Shape) shape = index.shape(s);
     if (shape is null) continue;
     num_edges += shape.numEdges();
     if (num_edges >= max_edges) break;

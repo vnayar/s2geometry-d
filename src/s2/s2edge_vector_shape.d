@@ -65,8 +65,8 @@ public:
   }
 
   override
-  Edge edge(int e) const {
-    return Edge(_edges[e][0], _edges[e][1]);
+  S2Shape.Edge edge(int e) const {
+    return S2Shape.Edge(_edges[e][0], _edges[e][1]);
   }
 
   override
@@ -75,8 +75,8 @@ public:
   }
 
   override
-  ReferencePoint getReferencePoint() const {
-    return ReferencePoint.defaultReferencePoint(false);
+  S2Shape.ReferencePoint getReferencePoint() const {
+    return ReferencePoint(false);
   }
 
   override
@@ -85,21 +85,21 @@ public:
   }
 
   override
-  Chain chain(int i) const {
+  S2Shape.Chain chain(int i) const {
     return Chain(i, 1);
   }
 
   override
-  Edge chainEdge(int i, int j) const
+  S2Shape.Edge chainEdge(int i, int j) const
   in {
     assert(j == 0);
   } body {
-    return Edge(_edges[i][0], _edges[i][1]);
+    return S2Shape.Edge(_edges[i][0], _edges[i][1]);
   }
 
   override
-  ChainPosition chainPosition(int e) const {
-    return ChainPosition(e, 0);
+  S2Shape.ChainPosition chainPosition(int e) const {
+    return S2Shape.ChainPosition(e, 0);
   }
 
 private:

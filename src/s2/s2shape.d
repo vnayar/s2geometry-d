@@ -94,8 +94,9 @@ public:
     // Returns a ReferencePoint with the given "contained" value and a default
     // "point".  It should be used when all points or no points are contained.
     // (Was called "contained")
-    static ReferencePoint defaultReferencePoint(bool _contained) {
-      return ReferencePoint(origin(), _contained);
+    this(bool contained) {
+      this.point = origin();
+      this.contained = contained;
     }
   }
 

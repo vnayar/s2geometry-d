@@ -392,7 +392,7 @@ public:
     }
 
     /// Returns a reference to the contents of the current index cell.
-    const(S2ShapeIndexCell) cell() const
+    inout(S2ShapeIndexCell) cell() inout
     in {
       assert(!done());
     } body {
@@ -509,7 +509,7 @@ protected:
     }
 
     /// Returns a reference to the contents of the current index cell.
-    const(S2ShapeIndexCell) cell() const
+    inout(S2ShapeIndexCell) cell() inout
     in {
       assert(!done());
     } body {

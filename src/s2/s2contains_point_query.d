@@ -230,8 +230,6 @@ public:
     return true;
   }
 
-  // TODO: Resume here.
-
   /////////////////////////// Low-Level Methods ////////////////////////////
   //
   // Most clients will not need the following methods.  They can be slightly

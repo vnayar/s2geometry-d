@@ -296,7 +296,7 @@ public:
     //   bool done() const;
     //   S2Point center() const;
     override
-    const(S2ShapeIndexCell) cell() const {
+    inout(S2ShapeIndexCell) cell() inout {
       // Since MutableS2ShapeIndex always sets the "cell_" field, we can skip the
       // logic in the base class that conditionally calls GetCell().
       return super.cell();

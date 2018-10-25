@@ -758,7 +758,7 @@ public:
 
     override
     S2Shape.ReferencePoint getReferencePoint() const {
-      return S2Shape.ReferencePoint.defaultReferencePoint(false);
+      return S2Shape.ReferencePoint(false);
     }
 
     override
