@@ -36,7 +36,7 @@ import s2.s2point;
 import s2.s2pointutil;
 //import s2.s2polygon;
 import s2.s2shape;
-import s2.s2shapeutil_contains_brute_force : containsBruteForce;
+import s2.shapeutil.contains_brute_force : containsBruteForce;
 import s2.shapeutil.visit_crossing_edge_pairs;
 import s2.s2testing;
 

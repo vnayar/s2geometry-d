@@ -17,6 +17,7 @@
 
 module s2.s2latlng;
 
+import s2.logger;
 import s2.r2point;
 import s2.s2point;
 import s2.s1angle;
@@ -152,10 +153,8 @@ public:
   // Converts a normalized S2LatLng to the equivalent unit-length vector.
   // The maximum error in the result is 1.5 * DBL_EPSILON.  (This does not
   // include the error of converting degrees, E5, E6, or E7 to radians.)
-  S2Point toS2Point() const
-  in {
-    assert(isValid(), "Invalid S2LatLng in S2LatLng.toPoint() : " ~ this.toString());
-  } body {
+  S2Point toS2Point() const {
+    if (!isValid()) logger.logError("Invalid S2LatLng in S2LatLng.toPoint() : ", this);
     double phi = lat().radians();
     double theta = lng().radians();
     double cosphi = math.cos(phi);

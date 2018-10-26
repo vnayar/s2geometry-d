@@ -22,12 +22,16 @@ module s2.s2text_format;
 // precision of the original object, so it should not be used
 // for data storage.
 
+import s2.s2point_vector_shape;
+import s2.mutable_s2shape_index;
 import s2.s2latlng;
 import s2.s2latlng_rect;
+import s2.s2lax_polygon_shape;
+import s2.s2lax_polyline_shape;
 import s2.s2point;
-import s2.strings.serialize;
 import s2.s2polyline;
 import s2.s2shape;
+import s2.strings.serialize;
 
 import std.conv;
 import std.exception;
@@ -190,15 +194,25 @@ S2Polyline makePolyline(string str) {
 }
 
 // Like MakePolyline, but returns an S2LaxPolylineShape instead.
-//std::unique_ptr<S2LaxPolylineShape> MakeLaxPolylineOrDie(absl::string_view str);
+S2LaxPolylineShape makeLaxPolylineOrDie(string str) {
+  S2LaxPolylineShape lax_polyline;
+  enforce(makeLaxPolyline(str, lax_polyline), ": str == \"" ~ str ~ "\"");
+  return lax_polyline;
+}
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-//ABSL_MUST_USE_RESULT bool MakeLaxPolyline(
-//    absl::string_view str, std::unique_ptr<S2LaxPolylineShape>* lax_polyline);
+bool makeLaxPolyline(string str, out S2LaxPolylineShape lax_polyline) {
+  S2Point[] vertices;
+  if (!parsePoints(str, vertices)) return false;
+  lax_polyline = new S2LaxPolylineShape(vertices);
+  return true;
+}
 
-//ABSL_DEPRECATED("Use MakeLaxPolylineOrDie.")
-//std::unique_ptr<S2LaxPolylineShape> MakeLaxPolyline(absl::string_view str);
+deprecated("Use MakeLaxPolylineOrDie.")
+S2LaxPolylineShape makeLaxPolyline(string str) {
+  return makeLaxPolylineOrDie(str);
+}
 
 // Given a sequence of loops separated by semicolons, returns a newly
 // allocated polygon.  Loops are automatically normalized by inverting them
@@ -238,12 +252,29 @@ S2Polyline makePolyline(string str) {
 // be oriented so that the interior of the loop is always on the left, and
 // polygons with degeneracies are supported.  As with MakePolygon, "full" and
 // denotes the full polygon and "" or "empty" denote the empty polygon.
-//std::unique_ptr<S2LaxPolygonShape> MakeLaxPolygonOrDie(absl::string_view str);
+S2LaxPolygonShape makeLaxPolygonOrDie(string str) {
+  S2LaxPolygonShape lax_polygon;
+  enforce(makeLaxPolygon(str, lax_polygon), ": str == \"" ~ str ~ "\"");
+  return lax_polygon;
+}
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-//ABSL_MUST_USE_RESULT bool MakeLaxPolygon(
-//    absl::string_view str, std::unique_ptr<S2LaxPolygonShape>* lax_polygon);
+bool makeLaxPolygon(string str, out S2LaxPolygonShape lax_polygon) {
+  string[] loop_strs = str.split(";");
+  S2Point[][] loops;
+  foreach (loop_str; loop_strs) {
+    if (loop_str == "full") {
+      loops ~= new S2Point[0];
+    } else if (loop_str != "empty") {
+      S2Point[] points;
+      if (!parsePoints(loop_str, points)) return false;
+      loops ~= points;
+    }
+  }
+  lax_polygon = new S2LaxPolygonShape(loops);
+  return true;
+}
 
 //ABSL_DEPRECATED("Use MakeLaxPolygonOrDie.")
 //std::unique_ptr<S2LaxPolygonShape> MakeLaxPolygon(absl::string_view str);
@@ -266,7 +297,6 @@ S2Polyline makePolyline(string str) {
 //
 // CAVEAT: Because whitespace is ignored, empty polygons must be specified
 //         as the string "empty" rather than as the empty string ("").
-/+ TODO: Resume when S2LaxPolygonShape is implemented.
 MutableS2ShapeIndex makeIndexOrDie(string str) {
   auto index = new MutableS2ShapeIndex();
   enforce(makeIndex(str, index), ": str == \"" ~ str ~ "\"");
@@ -275,12 +305,12 @@ MutableS2ShapeIndex makeIndexOrDie(string str) {
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-bool makeIndex(string str, MutableS2ShapeIndex index) {
+bool makeIndex(string str, out MutableS2ShapeIndex index) {
   string[] strs = str.split('#');
-  enforce(strs.size() == 3, "Must contain two # characters: " ~ str);
+  enforce(strs.length == 3, "Must contain two # characters: " ~ str);
 
   S2Point[] points;
-  foreach (auto point_str; strs[0].split('|')) {
+  foreach (point_str; strs[0].split('|')) {
     S2Point point;
     if (!makePoint(point_str, point)) return false;
     points ~= point;
@@ -288,12 +318,12 @@ bool makeIndex(string str, MutableS2ShapeIndex index) {
   if (!points.empty()) {
     index.add(new S2PointVectorShape(points));
   }
-  foreach (auto line_str; strs[1].split('|')) {
+  foreach (line_str; strs[1].split('|')) {
     auto lax_polyline = new S2LaxPolylineShape();
     if (!makeLaxPolyline(line_str, lax_polyline)) return false;
-    index.add(new S2Shape(lax_polyline));
+    index.add(lax_polyline);
   }
-  foreach (string polygon_str; strs[2].split('|')) {
+  foreach (polygon_str; strs[2].split('|')) {
     auto lax_polygon = new S2LaxPolygonShape();
     if (!makeLaxPolygon(polygon_str, lax_polygon)) return false;
     index.add(lax_polygon);
@@ -305,7 +335,7 @@ deprecated("Use MakeIndexOrDie.")
 MutableS2ShapeIndex makeIndex(string str) {
   return makeIndexOrDie(str);
 }
-+/
+
 // string ToString(const S2Point& point);
 // string ToString(const S2LatLngRect& rect);
 // string ToString(const S2LatLng& latlng);

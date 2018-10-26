@@ -16,7 +16,7 @@
 // Original Author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
-module s2.s2shapeutil_contains_brute_force;
+module s2.shapeutil.contains_brute_force;
 
 import s2.s2shape;
 import s2.s2point;

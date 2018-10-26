@@ -30,7 +30,7 @@ import s2.s2point;
 import s2.s2pointutil;
 import s2.s2shape;
 import s2.s2shape_index : S2ShapeIndex, S2ShapeIndexCell, S2ClippedShape;
-import s2.s2shapeutil_contains_brute_force : containsBruteForce;
+import s2.shapeutil.contains_brute_force : containsBruteForce;
 import s2.util.container.btree_map;
 import s2coords = s2.s2coords;
 
