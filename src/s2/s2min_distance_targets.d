@@ -33,6 +33,7 @@ import s2.s2edge_distances : updateMinDistance, updateEdgePairMinDistance;
 import s2.s2point;
 import s2.s2shape;
 import s2.s2shape_index;
+import s2.s2closest_edge_query;
 
 import std.math : sqrt;
 
@@ -46,10 +47,9 @@ import std.math : sqrt;
  * (See s2distance_target.h for details.)
  */
 struct S2MinDistance {
-private:
+public:
   S1ChordAngle s1ChordAngle;
 
-public:
   alias s1ChordAngle this;
 
   alias Delta = S1ChordAngle;
@@ -77,6 +77,10 @@ public:
       return true;
     }
     return false;
+  }
+
+  int opCmp(in S2MinDistance other) const {
+    return s1ChordAngle.opCmp(other.s1ChordAngle);
   }
 }
 
@@ -220,7 +224,6 @@ private:
   const(S2Cell) _cell;
 }
 
-/+ TODO: Resume when S2ClosestEdgeQuery is implemented.
 /**
  * An S2DistanceTarget subtype for computing the minimum distance to an
  * S2ShapeIndex (a collection of points, polylines, and/or polygons).
@@ -264,34 +267,113 @@ public:
     _query = new S2ClosestEdgeQuery(index);
   }
 
-  ~S2MinDistanceShapeIndexTarget() override;
-
   // Specifies that distance will be measured to the boundary and interior
   // of polygons in the S2ShapeIndex rather than to polygon boundaries only.
   //
   // DEFAULT: true
-  bool include_interiors() const;
-  void set_include_interiors(bool include_interiors);
+  bool includeInteriors() const {
+    return _query.options().includeInteriors();
+  }
+
+  void setIncludeInteriors(bool include_interiors) {
+    _query.mutableOptions().setIncludeInteriors(include_interiors);
+  }
 
   // Specifies that the distances should be computed by examining every edge
   // in the S2ShapeIndex (for testing and debugging purposes).
   //
   // DEFAULT: false
-  bool use_brute_force() const;
-  void set_use_brute_force(bool use_brute_force);
+  bool useBruteForce() const {
+    return _query.options().useBruteForce();
+  }
 
-  bool set_max_error(const S1ChordAngle& max_error) override;
-  S2Cap GetCapBound() final;
-  bool UpdateMinDistance(const S2Point& p, S2MinDistance* min_dist) final;
-  bool UpdateMinDistance(const S2Point& v0, const S2Point& v1,
-                         S2MinDistance* min_dist) final;
-  bool UpdateMinDistance(const S2Cell& cell,
-                         S2MinDistance* min_dist) final;
-  bool VisitContainingShapes(const S2ShapeIndex& query_index,
-                             const ShapeVisitor& visitor) final;
+  void setUseBruteForce(bool use_brute_force) {
+    _query.mutableOptions().setUseBruteForce(use_brute_force);
+  }
 
- private:
-  const S2ShapeIndex* index_;
-  std::unique_ptr<S2ClosestEdgeQuery> query_;
+  override
+  bool setMaxError(in S1ChordAngle max_error) {
+    _query.mutableOptions().setMaxError(max_error.toS1Angle());
+    return true;  // Indicates that we may return suboptimal results.
+  }
+
+  final override
+  S2Cap getCapBound() {
+    // TODO: Resume when s2shape_index_region is complete.
+    //return makeS2ShapeIndexRegion(_index).getCapBound();
+    return null;
+  }
+
+  final override
+  bool updateMinDistance(in S2Point p, ref S2MinDistance min_dist) {
+    _query.mutableOptions().setMaxDistance(min_dist);
+    auto target = new S2ClosestEdgeQuery.PointTarget(p);
+    S2ClosestEdgeQuery.Result r = _query.findClosestEdge(target);
+    if (r.shapeId < 0) return false;
+    min_dist = r.distance;
+    return true;
+  }
+
+  final override
+  bool updateMinDistance(in S2Point v0, in S2Point v1, ref S2MinDistance min_dist) {
+    _query.mutableOptions().setMaxDistance(min_dist);
+    auto target = new S2ClosestEdgeQuery.EdgeTarget(v0, v1);
+    S2ClosestEdgeQuery.Result r = _query.findClosestEdge(target);
+    if (r.shapeId < 0) return false;
+    min_dist = r.distance;
+    return true;
+  }
+
+  final override
+  bool updateMinDistance(in S2Cell cell, ref S2MinDistance min_dist) {
+    _query.mutableOptions().setMaxDistance(min_dist);
+    auto target = new S2ClosestEdgeQuery.CellTarget(cell);
+    S2ClosestEdgeQuery.Result r = _query.findClosestEdge(target);
+    if (r.shapeId < 0) return false;
+    min_dist = r.distance;
+    return true;
+  }
+
+  final override
+  bool visitContainingShapes(S2ShapeIndex query_index, in ShapeVisitor visitor) {
+    // It is sufficient to find the set of chain starts in the target index
+    // (i.e., one vertex per connected component of edges) that are contained by
+    // the query index, except for one special case to handle full polygons.
+    //
+    // TODO(ericv): Do this by merge-joining the two S2ShapeIndexes, and share
+    // the code with S2BooleanOperation.
+
+    int num_shape_ids = _index.numShapeIds();
+    for (int s = 0; s < num_shape_ids; ++s) {
+      const(S2Shape) shape = _index.shape(s);
+      if (shape is null) continue;
+      int num_chains = shape.numChains();
+      // Shapes that don't have any edges require a special case (below).
+      bool tested_point = false;
+      for (int c = 0; c < num_chains; ++c) {
+        S2Shape.Chain chain = shape.chain(c);
+        if (chain.length == 0) continue;
+        tested_point = true;
+        S2Point v0 = shape.chainEdge(c, 0).v0;
+        auto target = new S2MinDistancePointTarget(v0);
+        if (!target.visitContainingShapes(query_index, visitor)) {
+          return false;
+        }
+      }
+      if (!tested_point) {
+        // Special case to handle full polygons.
+        S2Shape.ReferencePoint refPoint = shape.getReferencePoint();
+        if (!refPoint.contained) continue;
+        auto target = new S2MinDistancePointTarget(refPoint.point);
+        if (!target.visitContainingShapes(query_index, visitor)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+private:
+  const(S2ShapeIndex) _index;
+  S2ClosestEdgeQuery _query;
 }
-+/

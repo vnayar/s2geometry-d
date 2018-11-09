@@ -27,7 +27,7 @@ import s2.s2pointutil : isUnitLength, robustCrossProd;
 import s2.s2edge_crossings : crossingSign;
 import s2.util.math.vector;
 import s2.s2predicates : sign;
-import algorithm = std.algorithm;
+import std.algorithm : min, max;
 import math = std.math;
 import std.exception;
 
@@ -55,8 +55,10 @@ S1Angle getDistance(in S2Point x, in S2Point a, in S2Point b) {
 // value, since this step is relatively expensive.
 //
 // See s2pred::CompareEdgeDistance() for an exact version of this predicate.
-//bool IsDistanceLess(const S2Point& x, const S2Point& a, const S2Point& b,
-//                    S1ChordAngle limit);
+bool isDistanceLess(in S2Point x, in S2Point a, in S2Point b, S1ChordAngle limit) {
+  return updateMinDistance(x, a, b, limit);
+}
+
 
 // If the distance from X to the edge AB is less than "min_dist", this
 // method updates "min_dist" and returns true.  Otherwise it returns false.
@@ -90,7 +92,7 @@ in {
     return true;  // Minimum distance is attained along the edge interior.
   }
   // Otherwise the minimum distance is to one of the endpoints.
-  double dist2 = algorithm.min(xa2, xb2);
+  double dist2 = min(xa2, xb2);
   if (!alwaysUpdate && dist2 >= min_dist.length2()) {
     return false;
   }
@@ -102,7 +104,7 @@ in {
 // method updates "max_dist" and returns true.  Otherwise it returns false.
 // The case A == B is handled correctly.
 bool updateMaxDistance(in S2Point x, in S2Point a, in S2Point b, ref S1ChordAngle max_dist) {
-  auto dist = algorithm.max(S1ChordAngle(x, a), S1ChordAngle(x, b));
+  auto dist = max(S1ChordAngle(x, a), S1ChordAngle(x, b));
   if (dist > S1ChordAngle.right()) {
     alwaysUpdateMinDistance!true(-x, a, b, dist);
     dist = S1ChordAngle.straight() - dist;
@@ -133,7 +135,32 @@ bool updateMaxDistance(in S2Point x, in S2Point a, in S2Point b, ref S1ChordAngl
 // endpoints are antipodal to within about 1e-15 radians (less than 1 micron).
 // This could be fixed by extending S2::RobustCrossProd to use higher
 // precision when necessary.
-//double GetUpdateMinDistanceMaxError(S1ChordAngle dist);
+double getUpdateMinDistanceMaxError(S1ChordAngle dist) {
+  // There are two cases for the maximum error in UpdateMinDistance(),
+  // depending on whether the closest point is interior to the edge.
+  return max(getUpdateMinInteriorDistanceMaxError(dist), dist.getS2PointConstructorMaxError());
+}
+
+// Returns the maximum error in the result of UpdateMinInteriorDistance,
+// assuming that all input points are normalized to within the bounds
+// guaranteed by S2Point::Normalize().  The error can be added or subtracted
+// from an S1ChordAngle "x" using x.PlusError(error).
+private double getUpdateMinInteriorDistanceMaxError(S1ChordAngle dist) {
+  // If a point is more than 90 degrees from an edge, then the minimum
+  // distance is always to one of the endpoints, not to the edge interior.
+  if (dist >= S1ChordAngle.right()) return 0.0;
+
+  // This bound includes all source of error, assuming that the input points
+  // are normalized to within the bounds guaranteed to S2Point::Normalize().
+  // "a" and "b" are components of chord length that are perpendicular and
+  // parallel to the plane containing the edge respectively.
+  double b = min(1.0, 0.5 * dist.length2());
+  double a = math.sqrt(b * (2 - b));
+  return ((2.5 + 2 * math.sqrt(3.0) + 8.5 * a) * a
+      + (2 + 2 * math.sqrt(3.0) / 3 + 6.5 * (1 - b)) * b
+      + (23 + 16 / math.sqrt(3.0)) * double.epsilon) * double.epsilon;
+}
+
 
 // Returns true if the minimum distance from X to the edge AB is attained at
 // an interior point of AB (i.e., not an endpoint), and that distance is less
@@ -359,11 +386,6 @@ in {
 //////////////////   Implementation details follow   ////////////////////
 
 
-// inline bool IsDistanceLess(const S2Point& x, const S2Point& a,
-//                            const S2Point& b, S1ChordAngle limit) {
-//   return UpdateMinDistance(x, a, b, &limit);
-// }
-
 // inline bool IsInteriorDistanceLess(const S2Point& x, const S2Point& a,
 //                                    const S2Point& b, S1ChordAngle limit) {
 //   return UpdateMinInteriorDistance(x, a, b, &limit);
@@ -406,7 +428,7 @@ in {
   //
   //             max(XA^2, XB^2) < min(XA^2, XB^2) + AB^2
   //
-  if (algorithm.max(xa2, xb2) >= algorithm.min(xa2, xb2) + (a-b).norm2()) {
+  if (max(xa2, xb2) >= min(xa2, xb2) + (a-b).norm2()) {
     return false;
   }
   // The minimum distance might be to a point on the edge interior.  Let R

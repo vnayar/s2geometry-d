@@ -47,6 +47,7 @@ import core.thread : Thread;
 import core.sync.condition : Condition;
 import core.sync.mutex : Mutex;
 
+
 // Verify that that every cell of the index contains the correct edges, and
 // that no cells are missing from the index.  The running time of this
 // function is quadratic in the number of edges.

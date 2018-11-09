@@ -116,10 +116,16 @@ public:
   // Options that control the set of edges returned.  Note that by default
   // *all* edges are returned, so you will always want to set either the
   // max_edges() option or the max_distance() option (or both).
-  class Options {
+  static class Options {
   public:
-    this() {
-      _queue = BinaryHeap!(QueueEntry[])([]);
+    this() { }
+
+    this(Options options) {
+      _maxDistance = options._maxDistance;
+      _maxError = options._maxError;
+      _maxEdges = options._maxEdges;
+      _includeInteriors = options._includeInteriors;
+      _useBruteForce = options._useBruteForce;
     }
 
     // Specifies that at most "max_edges" edges should be returned.
@@ -250,7 +256,7 @@ public:
     int edgeId = -1;      // Identifies an edge within the shape.
 
     // Compares edges first by distance, then by (shape_id, edge_id).
-    int opCmp(Result o) const {
+    int opCmp(in Result o) const {
       if (distance != o.distance) return distance.opCmp(o.distance);
       if (shapeId != o.shapeId) return shapeId - o.shapeId;
       if (edgeId != o.edgeId) return edgeId - o.edgeId;
@@ -259,23 +265,25 @@ public:
   }
 
   // Default constructor; requires Init() to be called.
-  this() { }
+  this() {
+    _queue = BinaryHeap!(QueueEntry[])([]);
+  }
 
   // Convenience constructor that calls Init().
   this(S2ShapeIndex index) {
-    init(index);
+    initialize(index);
   }
 
   // Initializes the query.
   // REQUIRES: ReInit() must be called if "index" is modified.
-  void init(S2ShapeIndex index) {
+  void initialize(S2ShapeIndex index) {
     _index = index;
-    reInit();
+    reInitialize();
   }
 
   // Reinitializes the query.  This method must be called whenever the
   // underlying index is modified.
-  void reInit() {
+  void reInitialize() {
     _indexNumEdges = 0;
     _indexNumEdgesLimit = 0;
     _indexCovering.length = 0;
