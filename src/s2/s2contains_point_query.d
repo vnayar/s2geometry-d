@@ -124,7 +124,7 @@ public:
     this(index, new Options(vertex_model));
   }
 
-  const(IndexT) index() const {
+  inout(IndexT) index() inout {
     return _index;
   }
 

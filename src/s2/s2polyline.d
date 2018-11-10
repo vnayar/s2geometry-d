@@ -409,7 +409,7 @@ public:
    * polylines more efficiently, or compute the actual intersection geometry,
    * use S2BooleanOperation.)
    */
-  bool intersects(in S2Polyline line) const {
+  bool intersects(S2Polyline line) {
     if (numVertices() <= 0 || line.numVertices() <= 0) {
       return false;
     }
@@ -630,22 +630,22 @@ public:
   // S2Region interface (see s2region.h for details):
 
   override
-  S2Polyline clone() const {
+  S2Polyline clone() {
     return new S2Polyline(this);
   }
 
   override
-  void getCellUnionBound(out S2CellId[] cell_ids) const {
+  void getCellUnionBound(out S2CellId[] cell_ids) {
     return getCapBound().getCellUnionBound(cell_ids);
   }
 
   override
-  S2Cap getCapBound() const {
+  S2Cap getCapBound() {
     return getRectBound().getCapBound();
   }
 
   override
-  S2LatLngRect getRectBound() const {
+  S2LatLngRect getRectBound() {
     auto bounder = new S2LatLngRectBounder();
     for (int i = 0; i < numVertices(); ++i) {
       bounder.addPoint(vertex(i));

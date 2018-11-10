@@ -40,19 +40,19 @@ interface S2Region {
    * Note that each subtype of S2Region returns an object reference of its
    * own type (e.g., S2Cap.clone() returns an S2Cap).
    */
-  S2Region clone() const;
+  S2Region clone();
 
   /**
    * Returns a bounding spherical cap that contains the region.  The bound may
    * not be tight.
    */
-  S2Cap getCapBound() const;
+  S2Cap getCapBound();
 
   /**
    * Returns a bounding latitude-longitude rectangle that contains the region.
    * The bound may not be tight.
    */
-  S2LatLngRect getRectBound() const;
+  S2LatLngRect getRectBound();
 
   /**
    * Returns a small collection of S2CellIds whose union covers the region.
@@ -73,13 +73,13 @@ interface S2Region {
    *
    * TODO(ericv): Remove the default implementation.
    */
-  void getCellUnionBound(out S2CellId[] cellIds) const;
+  void getCellUnionBound(out S2CellId[] cellIds);
 
   /**
    * Returns true if the region completely contains the given cell, otherwise
    * returns false.
    */
-  bool contains(in S2Cell cell) const;
+  bool contains(in S2Cell cell);
 
   /**
    * If this method returns false, the region does not intersect the given
@@ -91,14 +91,14 @@ interface S2Region {
    * to be more efficient.  For all other S2Region subtypes, this method
    * returns true if the region intersect the cell and false otherwise.
    */
-  bool mayIntersect(in S2Cell cell) const;
+  bool mayIntersect(in S2Cell cell);
 
   /**
    * Returns true if and only if the given point is contained by the region.
    * The point 'p' is generally required to be unit length, although some
    * subtypes may relax this restriction.
    */
-  bool contains(in S2Point p) const;
+  bool contains(in S2Point p);
 
   //////////////////////////////////////////////////////////////////////////
   // Many S2Region subtypes also define the following non-virtual methods.

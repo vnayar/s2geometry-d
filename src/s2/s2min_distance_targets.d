@@ -27,13 +27,14 @@ import s2.s1angle;
 import s2.s1chord_angle;
 import s2.s2cap;
 import s2.s2cell;
+import s2.s2closest_edge_query;
 import s2.s2contains_point_query;
 import s2.s2distance_target;
 import s2.s2edge_distances : updateMinDistance, updateEdgePairMinDistance;
 import s2.s2point;
 import s2.s2shape;
 import s2.s2shape_index;
-import s2.s2closest_edge_query;
+import s2.s2shape_index_region : makeS2ShapeIndexRegion;
 
 import std.math : sqrt;
 
@@ -299,9 +300,7 @@ public:
 
   final override
   S2Cap getCapBound() {
-    // TODO: Resume when s2shape_index_region is complete.
-    //return makeS2ShapeIndexRegion(_index).getCapBound();
-    return null;
+    return makeS2ShapeIndexRegion(_index).getCapBound();
   }
 
   final override
@@ -374,6 +373,6 @@ public:
   }
 
 private:
-  const(S2ShapeIndex) _index;
+  S2ShapeIndex _index;
   S2ClosestEdgeQuery _query;
 }

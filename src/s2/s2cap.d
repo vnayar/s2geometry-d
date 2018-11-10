@@ -458,7 +458,7 @@ public:
   // most 4 cells except for very large caps, which may need up to 6 cells.
   // The output is not sorted.
   override
-  void getCellUnionBound(out S2CellId[] cell_ids) const {
+  void getCellUnionBound(out S2CellId[] cell_ids) {
     // TODO(ericv): The covering could be made quite a bit tighter by mapping
     // the cap to a rectangle in (i,j)-space and finding a covering for that.
 

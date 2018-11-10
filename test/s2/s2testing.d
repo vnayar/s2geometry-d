@@ -264,7 +264,7 @@ public:
   // "check_tight" is true, also checks that it does not contain any cells
   // that do not intersect the given region.  ("id" is only used internally.)
   static void checkCovering(
-      in S2Region region, in S2CellUnion covering, bool check_tight, S2CellId id = S2CellId()) {
+      S2Region region, in S2CellUnion covering, bool check_tight, S2CellId id = S2CellId()) {
     if (!id.isValid()) {
       for (int face = 0; face < 6; ++face) {
         checkCovering(region, covering, check_tight, S2CellId.fromFace(face));

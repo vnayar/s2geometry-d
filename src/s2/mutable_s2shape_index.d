@@ -273,7 +273,7 @@ public:
     // easier just to declare a new iterator whenever required, since iterator
     // construction is cheap).
     void init(MutableS2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
-      index.maybeApplyUpdates();
+      index.maybeApplyUpdates();  // TODO: This method is why indexes and iterators cannot be const.
       initStale(index, pos);
     }
 

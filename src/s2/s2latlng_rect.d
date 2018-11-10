@@ -789,7 +789,7 @@ public:
   }
 
   override
-  void getCellUnionBound(out S2CellId[] cellIds) const {
+  void getCellUnionBound(out S2CellId[] cellIds) {
     return getCapBound().getCellUnionBound(cellIds);
   }
 

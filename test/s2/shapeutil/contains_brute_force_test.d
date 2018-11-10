@@ -28,7 +28,7 @@ import fluent.asserts;
 @("ContainsBruteForce.NoInterior") unittest {
   // Defines a polyline that almost entirely encloses the point 0:0.
   auto polyline = makeLaxPolylineOrDie("0:0, 0:1, 1:-1, -1:-1, -1e9:1");
-  Assert.equal(containsBruteForce(polyline, makePoint("0:0")), false);
+  Assert.equal(containsBruteForce(polyline, makePointOrDie("0:0")), false);
 }
 
 @("ContainsBruteForce.ContainsReferencePoint") unittest {

@@ -18,15 +18,20 @@
 
 module s2.s2shape_index_region;
 
+import s2.r2point;
+import s2.r2rect;
 import s2.s2cap;
 import s2.s2cell;
+import s2.s2cell_id;
 import s2.s2cell_union;
 import s2.s2contains_point_query;
 import s2.s2edge_clipping
     : clipToPaddedFace, intersectsRect, FACE_CLIP_ERROR_UV_COORD, INTERSECTS_RECT_ERROR_UV_DIST;
 import s2.s2edge_crosser;
 import s2.s2latlng_rect;
+import s2.s2point;
 import s2.s2region;
+import s2.s2shape;
 import s2.s2shape_index;
 
 import std.exception : enforce;
@@ -88,14 +93,14 @@ public:
   }
 
   override
-  S2Cap getCapBound() const {
+  S2Cap getCapBound() {
     S2CellId[] covering;
     getCellUnionBound(covering);
     return new S2CellUnion(covering).getCapBound();
   }
 
   override
-  S2LatLngRect getRectBound() const {
+  S2LatLngRect getRectBound() {
     S2CellId[] covering;
     getCellUnionBound(covering);
     return new S2CellUnion(covering).getRectBound();
@@ -104,7 +109,7 @@ public:
   // This method currently returns at most 4 cells, unless the index spans
   // multiple faces in which case it may return up to 6 cells.
   override
-  void getCellUnionBound(S2CellId[] cell_ids) const {
+  void getCellUnionBound(out S2CellId[] cell_ids) {
     // We find the range of S2Cells spanned by the index and choose a level such
     // that the entire index can be covered with just a few cells.  There are
     // two cases:
@@ -126,7 +131,7 @@ public:
     // The following code uses only a single Iterator object because creating an
     // Iterator may be relatively expensive for some S2ShapeIndex types (e.g.,
     // it may involve memory allocation).
-    cell_ids.clear();
+    cell_ids.length = 0;
     cell_ids.reserve(6);
 
     // Find the last S2CellId in the index.
@@ -167,15 +172,13 @@ public:
   // contains the given cell then it may return false.  The maximum error is
   // less than 10 * DBL_EPSILON radians (or about 15 nanometers).
   override
-  bool contains(in S2Cell target) const {
+  bool contains(in S2Cell target) {
     S2ShapeIndex.CellRelation relation = _iter.locate(target.id());
 
     // If the relation is DISJOINT, then "target" is not contained.  Similarly if
     // the relation is SUBDIVIDED then "target" is not contained, since index
     // cells are subdivided only if they (nearly) intersect too many edges.
     if (relation != S2ShapeIndex.CellRelation.INDEXED) return false;
-
-    // TODO: Resume here.
 
     // Otherwise, the iterator points to an index cell containing "target".
     // If any shape contains the target cell, we return true.
@@ -205,7 +208,7 @@ public:
   // barely disjoint from the given cell then it may return true.  The maximum
   // error is less than 10 * DBL_EPSILON radians (or about 15 nanometers).
   override
-  bool mayIntersect(in S2Cell target) const {
+  bool mayIntersect(in S2Cell target) {
     S2ShapeIndex.CellRelation relation = _iter.locate(target.id());
 
     // If "target" does not overlap any index cell, there is no intersection.
@@ -240,7 +243,7 @@ public:
   // same rules as S2Polygon).  Zero and one-dimensional shapes are ignored by
   // this method (if you need more flexibility, see S2BooleanOperation).
   override
-  bool contains(in S2Point p) const {
+  bool contains(in S2Point p) {
     if (_iter.locate(p)) {
       const(S2ShapeIndexCell) cell = _iter.cell();
       for (int s = 0; s < cell.numClipped(); ++s) {

@@ -241,7 +241,7 @@ public:
    * by definition the S2CellUnion may not be normalized, i.e. there may be
    * groups of four child cells that can be replaced by their parent cell.
    */
-  S2CellUnion getCovering(in S2Region region) {
+  S2CellUnion getCovering(S2Region region) {
     _interiorCovering = false;
     getCoveringInternal(region);
     auto r = S2CellUnion.fromVerbatim(_result);
@@ -249,7 +249,7 @@ public:
     return r;
   }
 
-  S2CellUnion getInteriorCovering(in S2Region region) {
+  S2CellUnion getInteriorCovering(S2Region region) {
     _interiorCovering = true;
     getCoveringInternal(region);
     auto r = S2CellUnion.fromVerbatim(_result);
@@ -262,14 +262,14 @@ public:
    * This version can be more efficient when this method is called many times,
    * since it does not require allocating a new vector on each call.
    */
-  void getCovering(in S2Region region, ref S2CellId[] covering) {
+  void getCovering(S2Region region, ref S2CellId[] covering) {
     _interiorCovering = false;
     getCoveringInternal(region);
     covering = _result;
     _result = null;
   }
 
-  void getInteriorCovering(in S2Region region, ref S2CellId[] interior) {
+  void getInteriorCovering(S2Region region, ref S2CellId[] interior) {
     _interiorCovering = true;
     getCoveringInternal(region);
     interior = _result;
@@ -286,7 +286,7 @@ public:
    * This function is useful as a starting point for algorithms that
    * recursively subdivide cells.
    */
-  void getFastCovering(in S2Region region, ref S2CellId[] covering) {
+  void getFastCovering(S2Region region, ref S2CellId[] covering) {
     region.getCellUnionBound(covering);
     canonicalizeCovering(covering);
   }
@@ -303,7 +303,7 @@ public:
    * method will most likely be removed.
    */
   static void getSimpleCovering(
-      in S2Region region, in S2Point start, int level, ref S2CellId[] output) {
+      S2Region region, in S2Point start, int level, ref S2CellId[] output) {
     return floodFill(region, S2CellId(start).parent(level), output);
   }
 
@@ -312,7 +312,7 @@ public:
    * edge-connected cells at the same level that intersect "region".
    * The output cells are returned in arbitrary order.
    */
-  static void floodFill(in S2Region region, S2CellId start, out S2CellId[] output) {
+  static void floodFill(S2Region region, S2CellId start, out S2CellId[] output) {
     bool[S2CellId] all;
     S2CellId[] frontier;
     all[start] = true;
@@ -617,7 +617,7 @@ public:
     tmp_coverer.mutableOptions().setMaxCells(min(4, _options.maxCells()));
     tmp_coverer.mutableOptions().setMaxLevel(_options.maxLevel());
     S2CellId[] cells;
-    tmp_coverer.getFastCovering(*_region, cells);
+    tmp_coverer.getFastCovering(_region, cells);
     adjustCellLevels(cells);
     foreach (S2CellId cell_id; cells) {
       addCandidate(newCandidate(new S2Cell(cell_id)));
@@ -625,7 +625,7 @@ public:
   }
 
   /// Generates a covering and stores it in result_.
-  void getCoveringInternal(in S2Region region)
+  void getCoveringInternal(S2Region region)
   in {
     assert(_pq.length == 0);
     assert(_result.length == 0);
@@ -646,7 +646,7 @@ public:
     // children first), and then by the number of fully contained children
     // (fewest children first).
 
-    _region = &region;
+    _region = region;
     _candidatesCreatedCounter = 0;
 
     getInitialCandidates();
@@ -761,7 +761,7 @@ public:
   // We save a temporary copy of the pointer passed to GetCovering() in order
   // to avoid passing this parameter around internally.  It is only used (and
   // only valid) for the duration of a single GetCovering() call.
-  const(S2Region)* _region = null;
+  S2Region _region = null;
 
   // The set of S2CellIds that have been added to the covering so far.
   S2CellId[] _result;

@@ -58,7 +58,7 @@ enum int iters = 1000;
 }
 
 void checkCovering(in S2RegionCoverer.Options options,
-    in S2Region region, in S2CellId[] covering, bool interior) {
+    S2Region region, in S2CellId[] covering, bool interior) {
   // Keep track of how many cells have the same options.min_level() ancestor.
   int[S2CellId] min_level_cells;
   foreach (S2CellId cell_id; covering) {

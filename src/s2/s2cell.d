@@ -556,7 +556,7 @@ public:
   }
 
   override
-  void getCellUnionBound(out S2CellId[] cellIds) const {
+  void getCellUnionBound(out S2CellId[] cellIds) {
     cellIds ~= id();
   }
 

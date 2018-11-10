@@ -621,12 +621,12 @@ public:
   // S2Region interface (see s2region.h for details):
 
   override
-  S2Region clone() const {
+  S2Region clone() {
     return new S2CellUnion(_cellIds, VerbatimFlag.VERBATIM);
   }
 
   override
-  S2Cap getCapBound() const {
+  S2Cap getCapBound() {
     // Compute the approximate centroid of the region.  This won't produce the
     // bounding cap of minimal area, but it should be close enough.
     if (_cellIds.length == 0) {
@@ -657,7 +657,7 @@ public:
   }
 
   override
-  S2LatLngRect getRectBound() const {
+  S2LatLngRect getRectBound() {
     S2LatLngRect bound = S2LatLngRect.empty();
     for (Iterator iter = begin(); iter != end(); iter++) {
       S2CellId id = iter.getValue();
@@ -667,7 +667,7 @@ public:
   }
 
   override
-  void getCellUnionBound(out S2CellId[] cellIds) const {
+  void getCellUnionBound(out S2CellId[] cellIds) {
     cellIds = _cellIds.dup;
   }
 
