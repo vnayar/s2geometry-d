@@ -70,8 +70,12 @@ public:
     return cast(int) _vertices.length;
   }
 
-  S2Point vertex(int i) const {
+  const(S2Point) vertex(int i) const {
     return _vertices[i];
+  }
+
+  const(S2Point[]) vertices() const {
+    return _vertices;
   }
 
   // S2Shape interface:

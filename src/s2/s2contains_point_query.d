@@ -101,6 +101,7 @@ public:
   /// Default constructor; requires Init() to be called.
   this() {
     _index = null;
+    _it = new Iterator();
   }
 
   /**

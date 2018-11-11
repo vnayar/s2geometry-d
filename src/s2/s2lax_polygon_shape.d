@@ -85,7 +85,7 @@ public:
   alias Loop = S2Point[];
 
   this(in Loop[] loops) {
-    init(loops);
+    initialize(loops);
   }
 
   // Constructs an S2LaxPolygonShape from an S2Polygon, by copying its data.
@@ -94,7 +94,7 @@ public:
   // S2LaxPolygonShape(const S2Polygon& polygon);
 
   // Initializes an S2LaxPolygonShape from the given vertex loops.
-  void init(in S2Point[][] loops) {
+  void initialize(in S2Point[][] loops) {
     _numLoops = cast(int) loops.length;
     if (_numLoops == 0) {
       _numVertices = 0;
@@ -158,6 +158,18 @@ public:
       return _vertices[j];
     } else {
       return _vertices[_cumulativeVertices[i] + j];
+    }
+  }
+
+  const(S2Point[]) loopVertices(int i) const
+  in {
+    assert(i < numLoops());
+  } body {
+    if (numLoops() == 1) {
+      return _vertices;
+    } else {
+      size_t indexStart = _cumulativeVertices[i];
+      return _vertices[indexStart .. indexStart + numLoopVertices(i)];
     }
   }
 

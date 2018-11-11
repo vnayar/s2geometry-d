@@ -81,7 +81,7 @@ void testCrossing(
   Assert.equal(edge_or_vertex, crosser.edgeOrVertexCrossing(c, d));
 
   // Check that the crosser can be re-used.
-  crosser.init(c, d);
+  crosser.initialize(c, d);
   crosser.restartAt(a);
   Assert.equal(robust, crosser.crossingSign(b));
   Assert.equal(robust, crosser.crossingSign(a));
@@ -101,7 +101,7 @@ void testCrossing(
   Assert.equal(edge_or_vertex, crosser2.edgeOrVertexCrossing(c, d));
 
   // Check that the crosser can be re-used.
-  crosser2.init(c, d);
+  crosser2.initialize(c, d);
   crosser2.restartAt(a);
   Assert.equal(robust, crosser2.crossingSign(b));
   Assert.equal(robust, crosser2.crossingSign(a));

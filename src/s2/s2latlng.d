@@ -129,7 +129,7 @@ public:
     return S1Angle.fromRadians(_coords[1]);
   }
 
-  ref R2Point coords() {
+  R2Point coords() const {
     return _coords;
   }
 

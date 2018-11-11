@@ -28,6 +28,7 @@ import std.string;
 //   otherwise.
 // -------------------------------------------------------------------------
 bool dictionaryParse(string encoded_str, ref string[2][] items) {
+  encoded_str = encoded_str.strip();
   if (encoded_str.empty())
     return true;
   string[] entries = encoded_str.split(',');

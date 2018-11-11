@@ -349,6 +349,11 @@ public:
    */
   static class Iterator {
   public:
+    /// Default constructor; must be followed by a call to Init().
+    this() {
+      _iter = null;
+    }
+
     /**
      * Constructs an iterator positioned as specified.  By default iterators
      * are unpositioned, since this avoids an extra seek in this situation

@@ -81,7 +81,7 @@ public:
   // Initialize the S2EdgeCrosser with the given fixed edge AB.  The arguments
   // "a" and "b" must point to values that persist for the lifetime of the
   // S2EdgeCrosser object (or until the next Init() call).
-  void init(ref in S2Point a, ref in S2Point b) {
+  void initialize(ref in S2Point a, ref in S2Point b) {
     _a = &a;
     _b = &b;
     _aCrossB = a.crossProd(*_b);
@@ -380,11 +380,11 @@ public:
     return _c;
   }
 
-  void init(in S2Point a, in S2Point b) {
+  void initialize(in S2Point a, in S2Point b) {
     _a = a;
     _b = b;
     _c = S2Point();
-    _crosser.init(_a, _b);
+    _crosser.initialize(_a, _b);
   }
 
   int crossingSign(in S2Point c, in S2Point d) {

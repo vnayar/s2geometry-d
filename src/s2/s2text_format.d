@@ -22,19 +22,21 @@ module s2.s2text_format;
 // precision of the original object, so it should not be used
 // for data storage.
 
-import s2.s2point_vector_shape;
 import s2.mutable_s2shape_index;
 import s2.s2latlng;
 import s2.s2latlng_rect;
 import s2.s2lax_polygon_shape;
 import s2.s2lax_polyline_shape;
+import s2.s2point_vector_shape;
 import s2.s2point;
 import s2.s2polyline;
 import s2.s2shape;
+import s2.s2shape_index;
 import s2.strings.serialize;
 
 import std.conv;
 import std.exception;
+import std.format : format;
 import std.range;
 import std.string;
 
@@ -49,7 +51,7 @@ S2Point makePointOrDie(string str) {
 
 // As above, but do not CHECK-fail on invalid input. Returns true if conversion
 // is successful.
-bool makePoint(string str, out S2Point point) {
+bool makePoint(string str, ref S2Point point) {
   S2Point[] vertices;
   if (!parsePoints(str, vertices) || vertices.length != 1) return false;
   point = vertices[0];
@@ -75,7 +77,7 @@ S2LatLng[] parseLatLngsOrDie(string str) {
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-bool parseLatLngs(string str, out S2LatLng[] latlngs) {
+bool parseLatLngs(string str, ref S2LatLng[] latlngs) {
   string[2][] ps;
   if (!dictionaryParse(str, ps)) return false;
   foreach (p; ps) {
@@ -105,7 +107,7 @@ S2Point[] parsePointsOrDie(string str) {
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-bool parsePoints(string str, out S2Point[] vertices) {
+bool parsePoints(string str, ref S2Point[] vertices) {
   S2LatLng[] latlngs;
   if (!parseLatLngs(str, latlngs)) return false;
   foreach (latlng; latlngs) {
@@ -119,7 +121,7 @@ S2Point[] parsePoints(string str) {
   return parsePointsOrDie(str);
 }
 
-bool makeLatLng(string str, out S2LatLng latlng) {
+bool makeLatLng(string str, ref S2LatLng latlng) {
   S2LatLng[] latlngs;
   if (!parseLatLngs(str, latlngs) || latlngs.length != 1) return false;
   latlng = latlngs[0];
@@ -143,7 +145,7 @@ S2LatLngRect makeLatLngRectOrDie(string str) {
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-bool makeLatLngRect(string str, out S2LatLngRect rect) {
+bool makeLatLngRect(string str, ref S2LatLngRect rect) {
   S2LatLng[] latlngs;
   if (!parseLatLngs(str, latlngs) || latlngs.empty()) return false;
   rect = S2LatLngRect.fromPoint(latlngs[0]);
@@ -181,7 +183,7 @@ S2Polyline makePolylineOrDie(string str) {
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-bool makePolyline(string str, out S2Polyline polyline) {
+bool makePolyline(string str, ref S2Polyline polyline) {
   S2Point[] vertices;
   if (!parsePoints(str, vertices)) return false;
   polyline = new S2Polyline(vertices);
@@ -195,14 +197,14 @@ S2Polyline makePolyline(string str) {
 
 // Like MakePolyline, but returns an S2LaxPolylineShape instead.
 S2LaxPolylineShape makeLaxPolylineOrDie(string str) {
-  S2LaxPolylineShape lax_polyline;
+  auto lax_polyline = new S2LaxPolylineShape();
   enforce(makeLaxPolyline(str, lax_polyline), ": str == \"" ~ str ~ "\"");
   return lax_polyline;
 }
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-bool makeLaxPolyline(string str, out S2LaxPolylineShape lax_polyline) {
+bool makeLaxPolyline(string str, ref S2LaxPolylineShape lax_polyline) {
   S2Point[] vertices;
   if (!parsePoints(str, vertices)) return false;
   lax_polyline = new S2LaxPolylineShape(vertices);
@@ -260,7 +262,7 @@ S2LaxPolygonShape makeLaxPolygonOrDie(string str) {
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-bool makeLaxPolygon(string str, out S2LaxPolygonShape lax_polygon) {
+bool makeLaxPolygon(string str, ref S2LaxPolygonShape lax_polygon) {
   string[] loop_strs = str.split(";");
   S2Point[][] loops;
   foreach (loop_str; loop_strs) {
@@ -305,12 +307,12 @@ MutableS2ShapeIndex makeIndexOrDie(string str) {
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-bool makeIndex(string str, out MutableS2ShapeIndex index) {
+bool makeIndex(string str, ref MutableS2ShapeIndex index) {
   string[] strs = str.split('#');
   enforce(strs.length == 3, "Must contain two # characters: " ~ str);
 
   S2Point[] points;
-  foreach (point_str; strs[0].split('|')) {
+  foreach (point_str; strs[0].strip().split('|')) {
     S2Point point;
     if (!makePoint(point_str, point)) return false;
     points ~= point;
@@ -318,12 +320,12 @@ bool makeIndex(string str, out MutableS2ShapeIndex index) {
   if (!points.empty()) {
     index.add(new S2PointVectorShape(points));
   }
-  foreach (line_str; strs[1].split('|')) {
+  foreach (line_str; strs[1].strip().split('|')) {
     auto lax_polyline = new S2LaxPolylineShape();
     if (!makeLaxPolyline(line_str, lax_polyline)) return false;
     index.add(lax_polyline);
   }
-  foreach (polygon_str; strs[2].split('|')) {
+  foreach (polygon_str; strs[2].strip().split('|')) {
     auto lax_polygon = new S2LaxPolygonShape();
     if (!makeLaxPolygon(polygon_str, lax_polygon)) return false;
     index.add(lax_polygon);
@@ -336,19 +338,130 @@ MutableS2ShapeIndex makeIndex(string str) {
   return makeIndexOrDie(str);
 }
 
-// string ToString(const S2Point& point);
-// string ToString(const S2LatLngRect& rect);
-// string ToString(const S2LatLng& latlng);
-// string ToString(const S2Loop& loop);
-// string ToString(const S2Polyline& polyline);
-// string ToString(const S2Polygon& polygon);
-// string ToString(const std::vector<S2Point>& points);
-// string ToString(const std::vector<S2LatLng>& points);
-// string ToString(const S2LaxPolylineShape& polyline);
-// string ToString(const S2LaxPolygonShape& polygon);
+private void appendVertex(in S2LatLng ll, ref string val) {
+  val ~= format("%.15g:%.15g", ll.lat().degrees(), ll.lng().degrees());
+}
+
+private void appendVertex(in S2Point p, ref string val) {
+  auto ll = S2LatLng(p);
+  return appendVertex(ll, val);
+}
+
+private void appendVertices(in S2Point[] v, ref string val) {
+  for (int i = 0; i < v.length; ++i) {
+    if (i > 0) val ~= ", ";
+    appendVertex(v[i], val);
+  }
+}
+
+string toString(in S2Point point) {
+  string val;
+  appendVertex(point, val);
+  return val;
+}
+
+string toString(in S2LatLngRect rect) {
+  string val;
+  appendVertex(rect.lo(), val);
+  val ~= ", ";
+  appendVertex(rect.hi(), val);
+  return val;
+}
+
+string toString(in S2LatLng latlng) {
+  string val;
+  appendVertex(latlng, val);
+  return val;
+}
+
+// TODO: Resume when S2Loop is complete.
+// string toString(const S2Loop& loop);
+
+string toString(in S2Polyline polyline) {
+  string val;
+  if (polyline.numVertices() > 0) {
+    appendVertices(polyline.vertices(), val);
+  }
+  return val;
+}
+
+// TODO: Resume when S2Polygon is complete.
+// string toString(in S2Polygon polygon) {
+//   if (polygon.isEmpty()) {
+//     return "empty";
+//   } else if (polygon.isFull()) {
+//     return "full";
+//   }
+//   string val;
+//   for (int i = 0; i < polygon.numLoops(); ++i) {
+//     if (i > 0) val += ";\n";
+//     const(S2Loop) loop = polygon.loop(i);
+//     appendVertices(loop.vertex(0), loop.numVertices(), val);
+//   }
+//   return val;
+// }
+
+string toString(in S2Point[] points) {
+  string val;
+  appendVertices(points, val);
+  return val;
+}
+
+string toString(in S2LatLng[] latlngs) {
+  string val;
+  for (int i = 0; i < latlngs.length; ++i) {
+    if (i > 0) val ~= ", ";
+    appendVertex(latlngs[i], val);
+  }
+  return val;
+}
+
+string toString(in S2LaxPolylineShape polyline) {
+  string val;
+  if (polyline.numVertices() > 0) {
+    appendVertices(polyline.vertices(), val);
+  }
+  return val;
+}
+
+string toString(in S2LaxPolygonShape polygon) {
+  string val;
+  for (int i = 0; i < polygon.numLoops(); ++i) {
+    if (i > 0) val ~= ";\n";
+    int n = polygon.numLoopVertices(i);
+    if (n > 0) appendVertices(polygon.loopVertices(i), val);
+  }
+  return val;
+}
 
 // Convert the contents of an S2ShapeIndex to the format above.  The index may
 // contain S2Shapes of any type.  Shapes are reordered if necessary so that
 // all point geometry (shapes of dimension 0) are first, followed by all
 // polyline geometry, followed by all polygon geometry.
 // string ToString(const S2ShapeIndex& index);
+string toString(in S2ShapeIndex index) {
+  string val;
+  for (int dim = 0; dim < 3; ++dim) {
+    if (dim > 0) val ~= "#";
+    int count = 0;
+    for (int s = 0; s < index.numShapeIds(); ++s) {
+      const(S2Shape) shape = index.shape(s);
+      if (shape is null || shape.dimension() != dim) continue;
+      val ~= (count > 0) ? " | " : (dim > 0) ? " " : "";
+      for (int i = 0; i < shape.numChains(); ++i, ++count) {
+        if (i > 0) val ~= (dim == 2) ? "; " : " | ";
+        S2Shape.Chain chain = shape.chain(i);
+        appendVertex(shape.edge(chain.start).v0, val);
+        int limit = chain.start + chain.length;
+        if (dim != 1) --limit;
+        for (int e = chain.start; e < limit; ++e) {
+          val ~= ", ";
+          appendVertex(shape.edge(e).v1, val);
+        }
+      }
+    }
+    // Example output: "# #", "0:0 # #", "# # 0:0, 0:1, 1:0"
+    if (dim == 1 || (dim == 0 && count > 0)) val ~= " ";
+  }
+  return val;
+}

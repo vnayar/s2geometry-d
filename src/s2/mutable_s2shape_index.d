@@ -210,7 +210,7 @@ public:
   // Initialize a MutableS2ShapeIndex with the given options.  This method may
   // only be called when the index is empty (i.e. newly created or Reset() has
   // just been called).
-  void init(Options options)
+  void initialize(Options options)
   in {
     assert(_shapes.length == 0);
   } body {
@@ -263,7 +263,7 @@ public:
     //   for (MutableS2ShapeIndex::Iterator it(&index, S2ShapeIndex::BEGIN);
     //        !it.done(); it.Next()) { ... }
     this(MutableS2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
-      init(index, pos);
+      initialize(index, pos);
     }
 
 
@@ -272,7 +272,7 @@ public:
     // after the underlying index has been updated (although it is usually
     // easier just to declare a new iterator whenever required, since iterator
     // construction is cheap).
-    void init(MutableS2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
+    void initialize(MutableS2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
       index.maybeApplyUpdates();  // TODO: This method is why indexes and iterators cannot be const.
       initStale(index, pos);
     }
@@ -620,6 +620,7 @@ public:
       _isActive = false;
       _b = origin();
       _nextS2CellId = S2CellId.begin(S2CellId.MAX_LEVEL);
+      _crosser = new S2EdgeCrosser();
     }
 
     /**
@@ -675,7 +676,7 @@ public:
     void drawTo(in S2Point b) {
       _a = _b;
       _b = b;
-      _crosser.init(_a, _b);
+      _crosser.initialize(_a, _b);
     }
 
     // Indicates that the given edge of the given shape may cross the line
