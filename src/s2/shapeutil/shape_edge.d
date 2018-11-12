@@ -41,11 +41,11 @@ public:
     return _id;
   }
 
-  S2Point v0() const {
+  ref const(S2Point) v0() const {
     return _edge.v0;
   }
 
-  S2Point v1() const {
+  ref const(S2Point) v1() const {
     return _edge.v1;
   }
 
