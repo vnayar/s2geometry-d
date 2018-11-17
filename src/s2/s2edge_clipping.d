@@ -65,13 +65,11 @@ alias S2PointUVW = S2Point;
 // The results are consistent with s2pred::Sign(), i.e. the edge is
 // well-defined even its endpoints are antipodal.  [TODO(ericv): Extend the
 // implementation of S2::RobustCrossProd so that this statement is true.]
-void getFaceSegments(in S2Point a, in S2Point b, ref FaceSegmentVector segments)
+void getFaceSegments(in S2Point a, in S2Point b, out FaceSegmentVector segments)
 in {
   assert(isUnitLength(a));
   assert(isUnitLength(b));
 } body {
-  segments.length = 0;
-
   // Fast path: both endpoints are on the same face.
   FaceSegment segment;
   int a_face = XYZtoFaceUV(a, segment.a);

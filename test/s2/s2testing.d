@@ -59,7 +59,18 @@ public:
    * If you want to construct a regular polygon, try this:
    *   S2Polygon polygon(S2Loop::MakeRegularLoop(center, radius, num_vertices));
    */
-  // static S2Point[] makeRegularPoints(in S2Point center, in S1Angle radius, int num_vertices)
+  // TODO: Implement when S2Loop is implemented.
+  /+
+  static S2Point[] makeRegularPoints(in S2Point center, in S1Angle radius, int num_vertices) {
+    unique_ptr<S2Loop> loop(
+        S2Loop::MakeRegularLoop(center, radius, num_vertices));
+    vector<S2Point> points;
+    for (int i = 0; i < loop->num_vertices(); i++) {
+      points.push_back(loop->vertex(i));
+    }
+    return points;
+  }
+  +/
 
   /** Append the vertices of "loop" to "vertices". */
   //static void AppendLoopVertices(const S2Loop& loop, std::vector<S2Point>* vertices);

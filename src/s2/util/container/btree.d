@@ -773,7 +773,9 @@ public:
       }
       if (_isLeaf) {
         // The index 'i' is one past the end.
-        return Iterator(this, i);
+        auto iterator = Iterator(this, i-1);
+        iterator.increment();
+        return iterator;
       } else {
         return _children[i].findFirstGE(v);
       }

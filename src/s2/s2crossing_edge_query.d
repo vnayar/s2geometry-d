@@ -77,13 +77,17 @@ private enum int MAX_BRUTE_FORCE_EDGES = 27;
  */
 class S2CrossingEdgeQuery {
 public:
-  /// Convenience constructor that calls Init().
-  this(S2ShapeIndex index) {
-    initialize(index);
-  }
 
   /// Default constructor; requires Init() to be called.
-  this() { }
+  this() {
+    _iter = new S2ShapeIndex.Iterator();
+  }
+
+  /// Convenience constructor that calls Init().
+  this(S2ShapeIndex index) {
+    this();
+    initialize(index);
+  }
 
   inout(S2ShapeIndex) index() inout {
     return _index;
@@ -183,8 +187,7 @@ public:
 
   // These versions can be more efficient when they are called many times,
   // since they do not require allocating a new vector on each call.
-  void getCandidates(in S2Point a0, in S2Point a1, ref ShapeEdgeId[] edges) {
-    edges.length = 0;
+  void getCandidates(in S2Point a0, in S2Point a1, out ShapeEdgeId[] edges) {
     int num_edges = countEdgesUpTo(_index, MAX_BRUTE_FORCE_EDGES + 1);
     if (num_edges <= MAX_BRUTE_FORCE_EDGES) {
       edges.reserve(num_edges);
@@ -286,7 +289,6 @@ public:
     foreach (segment; segments) {
       _a0 = segment.a;
       _a1 = segment.b;
-
       // Optimization: rather than always starting the recursive subdivision at
       // the top level face cell, instead we start at the smallest S2CellId that
       // contains the edge (the "edge root cell").  This typically lets us skip
@@ -384,7 +386,7 @@ public:
 
   deprecated("Use GetCrossingEdges")
   bool getCrossings(
-      in S2Point a0, in S2Point a1, in S2Shape shape, CrossingType type, int[] edges) {
+      in S2Point a0, in S2Point a1, in S2Shape shape, CrossingType type, ref int[] edges) {
     edges.length = 0;
     foreach (const(ShapeEdge) edge; getCrossingEdges(a0, a1, shape, type)) {
       edges ~= edge.id().edgeId;
@@ -393,10 +395,11 @@ public:
   }
 
   deprecated("Use GetCrossingEdges")
-  bool getCrossings(in S2Point a0, in S2Point a1, CrossingType type, EdgeMap edge_map) {
+  bool getCrossings(in S2Point a0, in S2Point a1, CrossingType type, out EdgeMap edge_map) {
+    import std.stdio;
     // Since this API is obsolete, don't worry about reserving vectors, etc.
-    edge_map.clear();
     foreach (const(ShapeEdge) edge; getCrossingEdges(a0, a1, type)) {
+      writeln("getCrossings 0: edge.id().shapeId=", edge.id().shapeId);
       S2Shape shape = _index.shape(edge.id().shapeId);
       edge_map[shape] ~= edge.id().edgeId;
     }
@@ -404,8 +407,7 @@ public:
   }
 
   deprecated("Use method returning std::vector")
-  bool getCandidates(in S2Point a0, in S2Point a1, in S2Shape shape, ref int[] edges) {
-    edges.length = 0;
+  bool getCandidates(in S2Point a0, in S2Point a1, in S2Shape shape, out int[] edges) {
     foreach (const(ShapeEdgeId) edge; getCandidates(a0, a1, shape)) {
       edges ~= edge.edgeId;
     }
@@ -413,9 +415,8 @@ public:
   }
 
   deprecated("Use method returning std::vector")
-  bool getCandidates(in S2Point a0, in S2Point a1, EdgeMap edge_map) {
+  bool getCandidates(in S2Point a0, in S2Point a1, out EdgeMap edge_map) {
     // Since this API is obsolete, don't worry about reserving vectors, etc.
-    edge_map.clear();
     foreach (const(ShapeEdgeId) edge; getCandidates(a0, a1)) {
       S2Shape shape = _index.shape(edge.shapeId);
       edge_map[shape] ~= edge.edgeId;
@@ -513,7 +514,7 @@ public:
    * Split the current edge into two child edges at the given v-value "v" and
    * return the bound for each child.
    */
-  void splitVBound(in R2Rect edge_bound, double v, R2Rect[2] child_bounds) const {
+  void splitVBound(in R2Rect edge_bound, double v, ref R2Rect[2] child_bounds) const {
     double u = edge_bound[0].project(interpolateDouble(v, _a0[1], _a1[1], _a0[0], _a1[0]));
     int diag = (_a0[0] > _a1[0]) != (_a0[1] > _a1[1]);
     splitBound(edge_bound, diag, u, 0, v, child_bounds);
@@ -525,7 +526,7 @@ public:
    * endpoints of child 1 will be updated.
    */
   static void splitBound(
-      in R2Rect edge_bound, int u_end, double u, int v_end, double v, R2Rect[2] child_bounds) {
+      in R2Rect edge_bound, int u_end, double u, int v_end, double v, ref R2Rect[2] child_bounds) {
     child_bounds[0] = edge_bound;
     child_bounds[0][0][1 - u_end] = u;
     child_bounds[0][1][1 - v_end] = v;

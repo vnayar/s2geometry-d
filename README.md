@@ -6,6 +6,8 @@
 
 This project is a migration of Google's S2 Geometric Library from C++ to the D programming language.
 
+Converted from [commit cdf1a05](https://github.com/google/s2geometry/commit/cdf1a05acf462ad60e1110a354c86e0b606c8931) on February 2nd 2018.
+
 The S2 Geometric Library is a package for manipulating geometric shapes. Unlike many geometry
 libraries, S2 is primarily designed to work with _spherical geometry_, i.e., shapes drawn on a
 sphere rather than on a planar 2D map. This makes it especially suitable for working with geographic

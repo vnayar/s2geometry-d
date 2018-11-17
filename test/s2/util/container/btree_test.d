@@ -466,6 +466,7 @@ unittest {
   // Remove the ends so we can test ranges at the start and end of the BTree.
   btree.remove('A');
   btree.remove('Z');
+  btree.remove('N');
   // Add a few duplicates for testing purposes.
   btree.insert('U');
   btree.insert('U');
@@ -476,12 +477,17 @@ unittest {
 
   Assert.equal(btree.equalRange('A').empty(), true);
   Assert.equal(btree.equalRange('Z').empty(), true);
+  Assert.equal(btree.equalRange('N').empty(), true);
 
   // Check the size of various matches.
   Assert.equal(array(btree.equalRange('B')).length, 3);
+  Assert.equal(array(btree.equalRange('B')).front, 'B');
   Assert.equal(array(btree.equalRange('O')).length, 1);
+  Assert.equal(array(btree.equalRange('O')).front, 'O');
   Assert.equal(array(btree.equalRange('U')).length, 4);
+  Assert.equal(array(btree.equalRange('U')).front, 'U');
   Assert.equal(array(btree.equalRange('Y')).length, 2);
+  Assert.equal(array(btree.equalRange('Y')).front, 'Y');
 }
 
 @("Range.lowerRange")
