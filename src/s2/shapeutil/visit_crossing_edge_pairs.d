@@ -374,7 +374,7 @@ private bool findCrossingError(
   S2Shape.ChainPosition bp = shape.chainPosition(b.id().edgeId);
   if (is_interior) {
     if (ap.chainId != bp.chainId) {
-      error.init(S2Error.Code.POLYGON_LOOPS_CROSS,
+      error.initialize(S2Error.Code.POLYGON_LOOPS_CROSS,
           "Loop %d edge %d crosses loop %d edge %d",
           ap.chainId, ap.offset, bp.chainId, bp.offset);
     } else {
@@ -402,7 +402,7 @@ private bool findCrossingError(
   S2Point b2 = shape.chainEdge(bp.chainId, b_next).v1;
   if (a.v0() == b.v0() || a.v0() == b2) {
     // The second edge index is sometimes off by one, hence "near".
-    error.init(S2Error.Code.POLYGON_LOOPS_SHARE_EDGE,
+    error.initialize(S2Error.Code.POLYGON_LOOPS_SHARE_EDGE,
         "Loop %d edge %d has duplicate near loop %d edge %d",
         ap.chainId, ap.offset, bp.chainId, bp.offset);
     return true;
@@ -417,7 +417,7 @@ private bool findCrossingError(
   if (getWedgeRelation(a.v0(), a.v1(), a2, b.v0(), b2) == WedgeRelation.WEDGE_PROPERLY_OVERLAPS
       && getWedgeRelation(a.v0(), a.v1(), a2, b2, b.v0())
           == WedgeRelation.WEDGE_PROPERLY_OVERLAPS) {
-    error.init(S2Error.Code.POLYGON_LOOPS_CROSS,
+    error.initialize(S2Error.Code.POLYGON_LOOPS_CROSS,
         "Loop %d edge %d crosses loop %d edge %d",
         ap.chainId, ap.offset, bp.chainId, bp.offset);
     return true;
@@ -444,8 +444,8 @@ private void appendShapeEdges(in S2ShapeIndex index,
 private void initLoopError(S2Error.Code code, string format,
                           S2Shape.ChainPosition ap, S2Shape.ChainPosition bp,
                           bool is_polygon, S2Error error) {
-  error.init(code, format, ap.offset, bp.offset);
+  error.initialize(code, format, ap.offset, bp.offset);
   if (is_polygon) {
-    error.init(code, "Loop %d: %s", ap.chainId, error.text());
+    error.initialize(code, "Loop %d: %s", ap.chainId, error.text());
   }
 }

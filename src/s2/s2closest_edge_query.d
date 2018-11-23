@@ -117,7 +117,7 @@ public:
    * *all* edges are returned, so you will always want to set either the
    * max_edges() option or the max_distance() option (or both).
    */
-  final class Options : Base.Options {
+  final static class Options : Base.Options {
   public:
     // See S2ClosestEdgeQueryBase::Options for the full set of options.
 

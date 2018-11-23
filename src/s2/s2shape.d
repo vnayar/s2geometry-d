@@ -91,6 +91,11 @@ public:
     S2Point point;
     bool contained;
 
+    this(in S2Point p, in bool c) {
+      point = p;
+      contained = c;
+    }
+
     // Returns a ReferencePoint with the given "contained" value and a default
     // "point".  It should be used when all points or no points are contained.
     // (Was called "contained")

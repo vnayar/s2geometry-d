@@ -116,7 +116,7 @@ public:
   // can prepend text to an existing error by calling Init() more than once:
   //
   //   error->Init(error->code(), "Loop %d: %s", j, error->text().c_str());
-  void init(T...)(Code code, string fmt, T args) {
+  void initialize(T...)(Code code, string fmt, T args) {
     _code = code;
     _text ~= format(fmt, args);
   }

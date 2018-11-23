@@ -163,18 +163,21 @@ public:
     // All vertices must be unit length.
     for (int i = 0; i < numVertices(); ++i) {
       if (!isUnitLength(vertex(i))) {
-        error.init(S2Error.Code.NOT_UNIT_LENGTH, "Vertex %d is not unit length", i);
+        error.initialize(
+            S2Error.Code.NOT_UNIT_LENGTH, "Vertex %d is not unit length", i);
         return true;
       }
     }
     // Adjacent vertices must not be identical or antipodal.
     for (int i = 1; i < numVertices(); ++i) {
       if (vertex(i - 1) == vertex(i)) {
-        error.init(S2Error.Code.DUPLICATE_VERTICES, "Vertices %d and %d are identical", i - 1, i);
+        error.initialize(
+            S2Error.Code.DUPLICATE_VERTICES, "Vertices %d and %d are identical", i - 1, i);
         return true;
       }
       if (vertex(i - 1) == -vertex(i)) {
-        error.init(S2Error.Code.ANTIPODAL_VERTICES, "Vertices %d and %d are antipodal", i - 1, i);
+        error.initialize(
+            S2Error.Code.ANTIPODAL_VERTICES, "Vertices %d and %d are antipodal", i - 1, i);
         return true;
       }
     }
