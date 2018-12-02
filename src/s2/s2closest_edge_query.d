@@ -274,13 +274,16 @@ public:
   // Convenience constructor that calls Init().  Options may be specified here
   // or changed at any time using the mutable_options() accessor method.
   this(S2ShapeIndex index, Options options = null) {
+    this();
     if (options is null)
       options = new Options();
     initialize(index, options);
   }
 
   // Default constructor; requires Init() to be called.
-  this() { }
+  this() {
+    _base = new Base();
+  }
 
   // Initializes the query.  Options may be specified here or changed at any
   // time using the mutable_options() accessor method.

@@ -228,6 +228,11 @@ public:
       return _node.getValue(_position);
     }
 
+    inout(ValueT) opUnary(string op)() inout
+    if (op == "*") {
+      return getValue();
+    }
+
     void increment() {
       if (_node.isLeaf() && ++_position < _node.numValues()) {
         return;

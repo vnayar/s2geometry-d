@@ -58,11 +58,15 @@ import std.math;
 import std.range : empty, back, isInputRange, popBack;
 import core.atomic;
 
+
 // Build the S2ShapeIndex only when it is first needed.  This can save
 // significant amounts of memory and time when geometry is constructed but
 // never queried, for example when loops are passed directly to S2Polygon,
 // or when geometry is being converted from one format to another.
 enum bool LAZY_INDEXING = true;
+
+enum double M_PI = cast(double) PI;
+enum double M_PI_2 = cast(double) PI_2;
 
 /**
  * An S2Loop represents a simple spherical polygon.  It consists of a single
@@ -100,7 +104,9 @@ class S2Loop : S2Region {
 public:
   // Default constructor.  The loop must be initialized by calling Init() or
   // Decode() before it is used.
-  this() { }
+  this() {
+    _index = new MutableS2ShapeIndex();
+  }
 
   this(in S2Point[] vertices) {
     this(vertices, S2Debug.ALLOW);
@@ -108,6 +114,7 @@ public:
 
   // Convenience constructor that calls Init() with the given vertices.
   this(in S2Point[] vertices, S2Debug s2DebugOverride) {
+    this();
     _s2DebugOverride = s2DebugOverride;
     initialize(vertices);
   }
@@ -153,6 +160,7 @@ public:
   // loop contains points on its boundary that actually belong to other cells
   // (i.e., the covering will include a layer of neighboring cells).
   this(in S2Cell cell) {
+    this();
     _depth = 0;
     _vertices.length = 4;
     _s2DebugOverride = S2Debug.ALLOW;
@@ -224,6 +232,10 @@ public:
     return _vertices[j < 0 ? i : j];
   }
 
+  const(S2Point[]) vertices() const {
+    return _vertices;
+  }
+
   // Like vertex(), but this method returns vertices in reverse order if the
   // loop represents a polygon hole.  For example, arguments 0, 1, 2 are
   // mapped to vertices n-1, n-2, n-3, where n == num_vertices().  This
@@ -287,7 +299,7 @@ public:
   bool isNormalized() const {
     // Optimization: if the longitude span is less than 180 degrees, then the
     // loop covers less than half the sphere and is therefore normalized.
-    if (_bound.lng().getLength() < PI) return true;
+    if (_bound.lng().getLength() < M_PI) return true;
 
     // We allow some error so that hemispheres are always considered normalized.
     // TODO(ericv): This is no longer required by the S2Polygon implementation,
@@ -299,9 +311,7 @@ public:
   // Invert the loop if necessary so that the area enclosed by the loop is at
   // most 2*Pi.
   void normalize()
-  in {
-    assert(_ownsVertices);
-  } out {
+  out {
     assert(isNormalized());
   } body {
     if (!isNormalized()) invert();
@@ -312,10 +322,7 @@ public:
   // AB, BC, CD, DA) becomes the loop DCBA (with edges DC, CB, BA, AD).
   // Notice that the last edge is the same in both cases except that its
   // direction has been reversed.
-  void invert()
-  in {
-    assert(_ownsVertices);
-  } body {
+  void invert() {
     clearIndex();
     if (isEmptyOrFull()) {
       _vertices[0] = isFull() ? emptyVertex() : fullVertex();
@@ -324,7 +331,7 @@ public:
     }
     // origin_inside_ must be set correctly before building the S2ShapeIndex.
     _originInside ^= true;
-    if (_bound.lat().lo() > -PI_2 && _bound.lat().hi() < PI_2) {
+    if (_bound.lat().lo() > -M_PI_2 && _bound.lat().hi() < M_PI_2) {
       // The complement of this loop contains both poles.
       _subregionBound = _bound = S2LatLngRect.full();
     } else {
@@ -403,7 +410,7 @@ public:
     // area that we computed originally.
 
     if (isEmptyOrFull()) {
-      return containsOrigin() ? (4 * PI) : 0;
+      return containsOrigin() ? (4 * M_PI) : 0;
     }
     double area = getSurfaceIntegral(&signedArea);
 
@@ -417,18 +424,18 @@ public:
     double max_error = getTurningAngleMaxError();
 
     // The signed area should be between approximately -4*Pi and 4*Pi.
-    enforce(fabs(area) <= 4 * PI + max_error);
+    enforce(fabs(area) <= 4 * M_PI + max_error);
     if (area < 0) {
       // We have computed the negative of the area of the loop exterior.
-      area += 4 * PI;
+      area += 4 * M_PI;
     }
-    area = max(0.0, min(4 * PI, area));
+    area = max(0.0, min(4 * M_PI, area));
 
     // If the area is close enough to zero or 4*Pi so that the loop orientation
     // is ambiguous, then we compute the loop orientation explicitly.
     if (area < max_error && !isNormalized()) {
-      return 4 * PI;
-    } else if (area > (4 * PI - max_error) && isNormalized()) {
+      return 4 * M_PI;
+    } else if (area > (4 * M_PI - max_error) && isNormalized()) {
       return 0.0;
     } else {
       return area;
@@ -468,7 +475,7 @@ public:
     // For empty and full loops, we return the limit value as the loop area
     // approaches 0 or 4*Pi respectively.
     if (isEmptyOrFull()) {
-      return containsOrigin() ? (-2 * PI) : (2 * PI);
+      return containsOrigin() ? (-2 * M_PI) : (2 * M_PI);
     }
     // Don't crash even if the loop is not well-defined.
     if (numVertices() < 3) return 0;
@@ -771,7 +778,7 @@ public:
     // The exact value is fairly arbitrary since it depends on the stability of
     // the "f_tri" function.  The value below is quite conservative but could be
     // reduced further if desired.
-    const auto kMaxLength = S1ChordAngle.fromRadians(PI - 1e-5);
+    const auto kMaxLength = S1ChordAngle.fromRadians(M_PI - 1e-5);
 
     // The default constructor for T must initialize the value to zero.
     // (This is true for built-in types such as "double".)
@@ -847,7 +854,7 @@ public:
     // sphere (arc length) from each vertex to the center is acos(cos(r)) = r.
     double z = cos(radius.radians());
     double r = sin(radius.radians());
-    double radian_step = 2 * PI / num_vertices;
+    double radian_step = 2 * M_PI / num_vertices;
     S2Point[] vertices;
     for (int i = 0; i < num_vertices; ++i) {
       double angle = i * radian_step;
@@ -1194,9 +1201,9 @@ private:
   // Internal copy constructor used only by Clone() that makes a deep copy of
   // its argument.
   this(in S2Loop src) {
+    this();
     _depth = src._depth;
     _vertices = src._vertices.dup;
-    _ownsVertices = true;
     _s2DebugOverride = src._s2DebugOverride;
     _originInside = src._originInside;
     _unindexedContainsCalls = 0;
@@ -1294,7 +1301,7 @@ private:
     }
     S2LatLngRect b = bounder.getBound();
     if (contains(S2Point(0, 0, 1))) {
-      b = new S2LatLngRect(R1Interval(b.lat().lo(), PI_2), S1Interval.full());
+      b = new S2LatLngRect(R1Interval(b.lat().lo(), M_PI_2), S1Interval.full());
     }
     // If a loop contains the south pole, then either it wraps entirely
     // around the sphere (full longitude range), or it also contains the
@@ -1302,7 +1309,7 @@ private:
     // Either way, we only need to do the south pole containment test if
     // b.lng().is_full().
     if (b.lng().isFull() && contains(S2Point(0, 0, -1))) {
-      b.mutableLat().setLo(-PI_2);
+      b.mutableLat().setLo(-M_PI_2);
     }
     _bound = b;
     _subregionBound = S2LatLngRectBounder.expandForSubregions(_bound);
@@ -1549,6 +1556,7 @@ private:
     auto bi = new RangeIterator(b._index);
     auto ab = new LoopCrosser(a, b, relation, false);  // Tests edges of A against B
     auto ba = new LoopCrosser(b, a, relation, true);   // Tests edges of B against A
+    int cnt = 0;
     while (!ai.done() || !bi.done()) {
       if (ai.rangeMax() < bi.rangeMin()) {
         // The A and B cells don't overlap, and A precedes B.
@@ -1603,7 +1611,6 @@ private:
   // take ownership of the memory for vertices_, and the owns_vertices_ field
   // is used to prevent deallocation and overwriting.
   S2Point[] _vertices;
-  bool _ownsVertices = false;
 
   S2Debug _s2DebugOverride = S2Debug.ALLOW;
   bool _originInside = false;  // Does the loop contain S2::Origin()?
@@ -1917,6 +1924,7 @@ public:
     _bCrossingTarget = relation.bCrossingTarget();
     _bQuery = new S2CrossingEdgeQuery(b._index);
     if (swapped) swap(_aCrossingTarget, _bCrossingTarget);
+    _crosser = new S2CopyingEdgeCrosser();
   }
 
   // Return the crossing targets for the loop relation, taking into account
@@ -2119,13 +2127,15 @@ private bool matchBoundaries(in S2Loop a, in S2Loop b, int a_offset, S1Angle max
     // then (i+1+offset) overflows the [0, 2*na-1] range allowed by vertex().
     // So we reduce the range if necessary.
     int io = i + a_offset;
-    if (io >= a.numVertices()) io -= a.numVertices();
+    if (io >= a.numVertices()) {
+      io -= a.numVertices();
+    }
 
-    if (i < a.numVertices() && Boundary(i + 1, j) in done
+    if (i < a.numVertices() && Boundary(i + 1, j) !in done
         && getDistance(a.vertex(io + 1), b.vertex(j), b.vertex(j + 1)) <= max_error) {
       pending ~= Boundary(i + 1, j);
     }
-    if (j < b.numVertices() && Boundary(i, j + 1) in done
+    if (j < b.numVertices() && Boundary(i, j + 1) !in done
         && getDistance(b.vertex(j + 1), a.vertex(io), a.vertex(io + 1)) <= max_error) {
       pending ~= Boundary(i, j + 1);
     }

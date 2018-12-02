@@ -40,6 +40,7 @@ import std.container.binaryheap;
 import std.exception : enforce;
 import std.range : retro;
 
+
 // S2ClosestEdgeQueryBase is a templatized class for finding the closest
 // edge(s) between two geometries.  It is not intended to be used directly,
 // but rather to serve as the implementation of various specialized classes
@@ -266,6 +267,7 @@ public:
 
   // Default constructor; requires Init() to be called.
   this() {
+    _resultSet = new BTree!Result();
     _queue = BinaryHeap!(QueueEntry[])([]);
   }
 
@@ -304,6 +306,7 @@ public:
   // include some entries with edge_id == -1.  This indicates that the target
   // intersects the indexed polygon with the given shape_id.
   Result[] findClosestEdges(Target target, Options options) {
+    import std.stdio;
     Result[] results;
     findClosestEdges(target, options, results);
     return results;
@@ -318,7 +321,7 @@ public:
         results ~= _resultSingleton;
       }
     } else if (options.maxEdges() == Options.MAX_MAX_EDGES) {
-      results = sort(_resultVector).retro.array;
+      results ~= _resultVector;
       _resultVector.length = 0;
     } else {
       results = _resultSet[].array;

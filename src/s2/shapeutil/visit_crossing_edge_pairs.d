@@ -272,7 +272,8 @@ class IndexCrosser {
 // duplicate vertices and edges are allowed, but loop crossings are not).
 bool findSelfIntersection(S2ShapeIndex index, out S2Error error) {
   if (index.numShapeIds() == 0) return false;
-  if (index.numShapeIds() != 1) logger.logError("index.numShapeIds() != 1");
+  if (index.numShapeIds() != 1)
+    logger.logError("index.numShapeIds()=", index.numShapeIds(), ", expected 1.");
   const(S2Shape) shape = index.shape(0);
 
   // Visit all crossing pairs except possibly for ones of the form (AB, BC),

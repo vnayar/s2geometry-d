@@ -117,7 +117,7 @@ public:
   // Returns an invalid cell id guaranteed to be larger than any
   // valid cell id.  Useful for creating indexes.
   static S2CellId sentinel() {
-    return S2CellId(long.max);
+    return S2CellId(ulong.max);
   }
 
   // Return the cell corresponding to a given S2 cube face.
@@ -754,7 +754,7 @@ public:
   // S2CellId::FromFace(3).child(0).child(2).
   string toString() const {
     if (!isValid()) {
-      return "Invalid: " ~ format.format("%016d", id());
+      return "Invalid: " ~ format.format("%016x", id());
     }
     string s = conv.to!string(face()) ~ "/";
     for (int current_level = 1; current_level <= level(); ++current_level) {

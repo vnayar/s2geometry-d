@@ -23,6 +23,7 @@ import s2.s2crossing_edge_query : CrossingType;
 import s2.s2edge_crossings : crossingSign;
 import s2.s2edge_vector_shape;
 import s2.s2latlng;
+import s2.s2shape_index;
 import s2.shapeutil.contains_brute_force;
 import s2.shapeutil.edge_iterator;
 import s2.shapeutil.shape_edge;

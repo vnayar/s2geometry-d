@@ -360,7 +360,10 @@ class S2CopyingEdgeCrosser {
 public:
   // These methods are all exactly like S2EdgeCrosser, except that the
   // arguments can be temporaries.
-  this() {}
+  this() {
+    _crosser = new S2EdgeCrosser();
+  }
+
   this(in S2Point a, in S2Point b) {
     _a = a;
     _b = b;

@@ -29,6 +29,8 @@ import s2.r1interval;
 import s2.s2cell_id;
 import s2.s2point;
 
+import std.conv : to;
+
 /**
  * S2ClippedShape represents the part of a shape that intersects an S2Cell.
  * It consists of the set of edge ids that intersect that cell, and a boolean
@@ -156,7 +158,8 @@ public:
   // REQUIRES: 0 <= i < num_clipped()
   ref const(S2ClippedShape) clipped(int i) const
   in {
-    assert(0 <= i && i < numClipped());
+    assert(0 <= i && i < numClipped(),
+        "clipped(" ~ i.to!string ~ ") but numClipped()=" ~ numClipped.to!string);
   } body {
     return _shapes[i];
   }
@@ -610,7 +613,7 @@ protected:
      * Returns the current contents of the "cell_" field, which may be null
      * if the cell contents have not been decoded yet.
      */
-    S2ShapeIndexCell rawCell() {
+    inout(S2ShapeIndexCell) rawCell() inout {
       return _cell;
     }
 

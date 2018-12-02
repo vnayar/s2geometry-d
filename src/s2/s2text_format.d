@@ -27,8 +27,9 @@ import s2.s2latlng;
 import s2.s2latlng_rect;
 import s2.s2lax_polygon_shape;
 import s2.s2lax_polyline_shape;
-import s2.s2point_vector_shape;
+import s2.s2loop;
 import s2.s2point;
+import s2.s2point_vector_shape;
 import s2.s2polyline;
 import s2.s2shape;
 import s2.s2shape_index;
@@ -164,15 +165,33 @@ S2LatLngRect makeLatLngRect(string str) {
 // returns a newly allocated loop.  Example of the input format:
 //     "-20:150, 10:-120, 0.123:-170.652"
 // The strings "empty" or "full" create an empty or full loop respectively.
-//std::unique_ptr<S2Loop> MakeLoopOrDie(absl::string_view str);
+S2Loop makeLoopOrDie(string str) {
+  S2Loop loop;
+  enforce(makeLoop(str, loop), ": str == \"" ~ str ~ "\"");
+  return loop;
+}
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-//ABSL_MUST_USE_RESULT bool MakeLoop(absl::string_view str,
-//                                   std::unique_ptr<S2Loop>* loop);
+bool makeLoop(string str, ref S2Loop loop) {
+  if (str == "empty") {
+    loop = new S2Loop(S2Loop.empty());
+    return true;
+  }
+  if (str == "full") {
+    loop = new S2Loop(S2Loop.full());
+    return true;
+  }
+  S2Point[] vertices;
+  if (!parsePoints(str, vertices)) return false;
+  loop = new S2Loop(vertices);
+  return true;
+}
 
-//ABSL_DEPRECATED("Use MakeLoopOrDie.")
-//std::unique_ptr<S2Loop> MakeLoop(absl::string_view str);
+deprecated("Use MakeLoopOrDie.")
+S2Loop makeLoop(string str) {
+  return makeLoopOrDie(str);
+}
 
 // Similar to MakeLoop(), but returns an S2Polyline rather than an S2Loop.
 S2Polyline makePolylineOrDie(string str) {
@@ -375,7 +394,18 @@ string toString(in S2LatLng latlng) {
 }
 
 // TODO: Resume when S2Loop is complete.
-// string toString(const S2Loop& loop);
+string toString(in S2Loop loop) {
+  if (loop.isEmpty()) {
+    return "empty";
+  } else if (loop.isFull()) {
+    return "full";
+  }
+  string val;
+  if (loop.numVertices() > 0) {
+    appendVertices(loop.vertices(), val);
+  }
+  return val;
+}
 
 string toString(in S2Polyline polyline) {
   string val;

@@ -36,6 +36,7 @@ import s2.s2metrics : MAX_DIAG;
 import s2.s2point;
 import s2.s2polyline;
 import s2.s2shape;
+import s2.s2shape_index;
 import s2.s2testing;
 import s2.s2text_format;
 

@@ -299,7 +299,7 @@ public:
     inout(S2ShapeIndexCell) cell() inout {
       // Since MutableS2ShapeIndex always sets the "cell_" field, we can skip the
       // logic in the base class that conditionally calls GetCell().
-      return super.cell();
+      return rawCell();
     }
 
     // IteratorBase API:
@@ -461,7 +461,7 @@ public:
     _pendingRemovals.length = 0;
     atomicStore!(MemoryOrder.raw)(_indexStatus, IndexStatus.FRESH);
     S2Shape[] result = _shapes[];
-    swap(result, _shapes);
+    _shapes.length = 0;
     return result;
   }
 
@@ -754,7 +754,9 @@ public:
           _shapeIds.remove(pos);
         } else {
           _shapeIds.length++;
-          _shapeIds[pos+1 .. $] = _shapeIds[pos .. $-1];
+          for (auto i = _shapeIds.length - 1; i > pos; i--) {
+            _shapeIds[i] = shapeIds[i-1];
+          }
           _shapeIds[pos] = shape_id;
         }
       }
@@ -1685,8 +1687,8 @@ public:
           clipped.setContainsCenter(true);
           ++cnext_pos;
         }
-        shapesAppender ~= clipped;
       }
+      shapesAppender ~= clipped;
     }
     // UpdateEdges() visits cells in increasing order of S2CellId, so during
     // initial construction of the index all insertions happen at the end.  It
@@ -1813,14 +1815,14 @@ public:
 
   // The shapes in the index, accessed by their shape id.  Removed shapes are
   // replaced by nullptr pointers.
-  /**/ package /**/ S2Shape[] _shapes;
+  S2Shape[] _shapes;
 
   // A map from S2CellId to the set of clipped shapes that intersect that
   // cell.  The cell ids cover a set of non-overlapping regions on the
   // sphere.  Note that this field is updated lazily (see below).  Const
   // methods *must* call MaybeApplyUpdates() before accessing this field.
   // (The easiest way to achieve this is simply to use an Iterator.)
-  /**/ package /**/ CellMap _cellMap;
+  CellMap _cellMap;
 
   // The options supplied for this index.
   Options _options;
@@ -1899,5 +1901,8 @@ public:
   void unlockAndSignal() {
     _lock.unlock();
     _updateState.waitMutex.unlock();
+    if (_updateState.numWaiting == 0) {
+      _updateState = null;
+    }
   }
 }

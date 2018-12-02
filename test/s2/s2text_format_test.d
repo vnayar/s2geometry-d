@@ -24,7 +24,7 @@ import s2.s1angle;
 import s2.s2latlng;
 import s2.s2lax_polygon_shape;
 import s2.s2lax_polyline_shape;
-//import s2.s2loop;
+import s2.s2loop;
 //import s2.s2polygon;
 import s2.s2latlng_rect;
 import s2.s2point;
@@ -104,20 +104,20 @@ void expectString(string expected, in S2LatLng ll) {
   }
 }
 
-// @("ToString.UninitializedLoop") unittest {
-//   auto loop = new S2Loop();
-//   Assert.equal(toString(loop), "");
-// }
+@("ToString.UninitializedLoop") unittest {
+  auto loop = new S2Loop();
+  Assert.equal(toString(loop), "");
+}
 
-// TEST(ToString, EmptyLoop) {
-//   S2Loop empty(S2Loop::kEmpty());
-//   EXPECT_EQ("empty", s2textformat::ToString(empty));
-// }
+@("ToString.EmptyLoop") unittest {
+  auto empty = new S2Loop(S2Loop.empty());
+  Assert.equal("empty", toString(empty));
+}
 
-// TEST(ToString, FullLoop) {
-//   S2Loop full(S2Loop::kFull());
-//   EXPECT_EQ("full", s2textformat::ToString(full));
-// }
+@("ToString.FullLoop") unittest {
+  auto full = new S2Loop(S2Loop.full());
+  Assert.equal("full", toString(full));
+}
 
 @("ToString.EmptyPolyline") unittest {
   auto polyline = new S2Polyline();
