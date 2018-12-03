@@ -36,9 +36,12 @@ import s2.s2point_vector_shape;
 import s2.s2predicates;
 import s2.s2testing;
 import s2.s2text_format;
+import s2.shapeutil.shape_edge_id;
 
 import fluent.asserts;
 
+import std.algorithm;
+import std.conv;
 import std.math;
 import std.stdio;
 
@@ -308,51 +311,45 @@ public:
   }
 }
 
-// TODO: Resume here.
 // Generates a fractal loop that approximately fills the given S2Cap.
-// class FractalLoopShapeIndexFactory : ShapeIndexFactory {
-// public:
-//   override
-//   void addEdges(in S2Cap index_cap, int num_edges, MutableS2ShapeIndex index) const {
-//     S2Testing.Fractal fractal;
-//     fractal.SetLevelForApproxMaxEdges(num_edges);
-//     index->Add(make_unique<S2Loop::OwningShape>(
-//         fractal.MakeLoop(S2Testing::GetRandomFrameAt(index_cap.center()),
-//                          index_cap.GetRadius())));
-//   }
-// };
-
-/+
+class FractalLoopShapeIndexFactory : ShapeIndexFactory {
+public:
+  override
+  void addEdges(in S2Cap index_cap, int num_edges, MutableS2ShapeIndex index) const {
+    auto fractal = new S2Testing.Fractal();
+    fractal.setLevelForApproxMaxEdges(num_edges);
+    index.add(new S2Loop.Shape(
+        fractal.makeLoop(S2Testing.getRandomFrameAt(index_cap.center()), index_cap.getRadius())));
+  }
+}
 
 // Generates a cloud of points that approximately fills the given S2Cap.
-class PointCloudShapeIndexFactory : public ShapeIndexFactory {
- public:
-  void AddEdges(const S2Cap& index_cap, int num_edges,
-                MutableS2ShapeIndex* index) const override {
-    vector<S2Point> points;
+class PointCloudShapeIndexFactory : ShapeIndexFactory {
+public:
+  override
+  void addEdges(in S2Cap index_cap, int num_edges, MutableS2ShapeIndex index) const {
+    S2Point[] points;
     for (int i = 0; i < num_edges; ++i) {
-      points.push_back(S2Testing::SamplePoint(index_cap));
+      points ~= S2Testing.samplePoint(index_cap);
     }
-    index->Add(make_unique<S2PointVectorShape>(std::move(points)));
+    index.add(new S2PointVectorShape(points));
   }
-};
+}
 
 // The approximate radius of S2Cap from which query edges are chosen.
-static const S1Angle kRadius = S2Testing::KmToAngle(10);
+private const S1Angle kRadius = S2Testing.kmToAngle(10);
 
 // An approximate bound on the distance measurement error for "reasonable"
 // distances (say, less than Pi/2) due to using S1ChordAngle.
-static double kChordAngleError = 1e-15;
+private double kChordAngleError = 1e-15;
 
-using Result = pair<S1Angle, s2shapeutil::ShapeEdgeId>;
+alias Result = Pair!(S1Angle, ShapeEdgeId);
 
 // Converts to the format required by CheckDistanceResults() in s2testing.h
-vector<Result> ConvertResults(const vector<S2ClosestEdgeQuery::Result>& edges) {
-  vector<Result> results;
-  for (const auto& edge : edges) {
-    results.push_back(
-        make_pair(edge.distance.ToAngle(),
-                  s2shapeutil::ShapeEdgeId(edge.shape_id, edge.edge_id)));
+Result[] convertResults(in S2ClosestEdgeQuery.Result[] edges) {
+  Result[] results;
+  foreach (const edge; edges) {
+    results ~= Result(edge.distance.toS1Angle(), ShapeEdgeId(edge.shapeId, edge.edgeId));
   }
   return results;
 }
@@ -361,46 +358,47 @@ vector<Result> ConvertResults(const vector<S2ClosestEdgeQuery::Result>& edges) {
 // the query results into two parallel vectors, one for distances and one for
 // (shape_id, edge_id) pairs.  Also verify that the results satisfy the search
 // criteria.
-static void GetClosestEdges(S2ClosestEdgeQuery::Target* target,
-                            S2ClosestEdgeQuery *query,
-                            vector<S2ClosestEdgeQuery::Result>* edges) {
-  query->FindClosestEdges(target, edges);
-  EXPECT_LE(edges->size(), query->options().max_edges());
-  if (query->options().max_distance() ==
-      S2ClosestEdgeQuery::Distance::Infinity()) {
-    int min_expected = min(query->options().max_edges(),
-                           s2shapeutil::CountEdges(query->index()));
-    if (!query->options().include_interiors()) {
+private void getClosestEdges(
+    S2ClosestEdgeQuery.Target target, S2ClosestEdgeQuery query, S2ClosestEdgeQuery.Result[] edges) {
+  import s2.shapeutil.count_edges : countEdges;
+
+  query.findClosestEdges(target, edges);
+  Assert.notGreaterThan(edges.length, query.options().maxEdges());
+  if (query.options().maxDistance() == S2ClosestEdgeQuery.Distance.infinity()) {
+    int min_expected = min(query.options().maxEdges(), countEdges(query.index()));
+    if (!query.options().includeInteriors()) {
       // We can predict exactly how many edges should be returned.
-      EXPECT_EQ(min_expected, edges->size());
+      Assert.equal(edges.length, min_expected);
     } else {
       // All edges should be returned, and possibly some shape interiors.
-      EXPECT_LE(min_expected, edges->size());
+      Assert.notGreaterThan(edges.length, min_expected);
     }
   }
-  for (const auto& edge : *edges) {
+  foreach (const edge; edges) {
     // Check that the edge satisfies the max_distance() condition.
-    EXPECT_LE(edge.distance, query->options().max_distance());
+    Assert.notGreaterThan(edge.distance, query.options().maxDistance());
   }
 }
 
-static S2ClosestEdgeQuery::Result TestFindClosestEdges(
-    S2ClosestEdgeQuery::Target* target, S2ClosestEdgeQuery *query) {
-  vector<S2ClosestEdgeQuery::Result> expected, actual;
-  query->mutable_options()->set_use_brute_force(true);
-  GetClosestEdges(target, query, &expected);
-  query->mutable_options()->set_use_brute_force(false);
-  GetClosestEdges(target, query, &actual);
-  EXPECT_TRUE(CheckDistanceResults(ConvertResults(expected),
-                                   ConvertResults(actual),
-                                   query->options().max_edges(),
-                                   query->options().max_distance().ToAngle(),
-                                   query->options().max_error().ToAngle()))
-      << "max_edges=" << query->options().max_edges()
-      << ", max_distance=" << query->options().max_distance()
-      << ", max_error=" << query->options().max_error();
+private S2ClosestEdgeQuery.Result checkFindClosestEdges(
+    S2ClosestEdgeQuery.Target target, S2ClosestEdgeQuery query) {
+  S2ClosestEdgeQuery.Result[] expected, actual;
+  query.mutableOptions().setUseBruteForce(true);
+  getClosestEdges(target, query, expected);
+  query.mutableOptions().setUseBruteForce(false);
+  getClosestEdges(target, query, actual);
+  Assert.equal(
+      checkDistanceResults(
+          convertResults(expected),
+          convertResults(actual),
+          query.options().maxEdges(),
+          query.options().maxDistance().toS1Angle(),
+          query.options().maxError().toS1Angle()), true,
+      "max_edges=" ~ to!string(query.options().maxEdges())
+      ~ ", max_distance=" ~ to!string(query.options().maxDistance())
+      ~ ", max_error=" ~ to!string(query.options().maxError()));
 
-  if (expected.empty()) return S2ClosestEdgeQuery::Result();
+  if (expected.empty()) return S2ClosestEdgeQuery.Result();
 
   // Note that when options.max_error() > 0, expected[0].distance may not be
   // the minimum distance.  It is never larger by more than max_error(), but
@@ -408,17 +406,19 @@ static S2ClosestEdgeQuery::Result TestFindClosestEdges(
   //
   // Here we verify that GetDistance() and IsDistanceLess() return results
   // that are consistent with the max_error() setting.
-  S1ChordAngle max_error = query->options().max_error();
+  S1ChordAngle max_error = query.options().maxError();
   S1ChordAngle min_distance = expected[0].distance;
-  EXPECT_LE(query->GetDistance(target), min_distance + max_error);
+  Assert.notGreaterThan(query.getDistance(target), min_distance + max_error);
 
   // Test IsDistanceLess().
-  EXPECT_FALSE(query->IsDistanceLess(target, min_distance - max_error));
-  EXPECT_TRUE(query->IsDistanceLess(target, min_distance.Successor()));
+  Assert.equal(query.isDistanceLess(target, min_distance - max_error), false);
+  Assert.equal(query.isDistanceLess(target, min_distance.successor()), true);
 
   // Return the closest edge result so that we can also test Project.
   return expected[0];
 }
+
+/+
 
 // The running time of this test is proportional to
 //    (num_indexes + num_queries) * num_edges.
@@ -468,7 +468,7 @@ static void TestWithIndexFactory(const ShapeIndexFactory& factory,
       // Find the edges closest to a given point.
       S2Point point = S2Testing::SamplePoint(query_cap);
       S2ClosestEdgeQuery::PointTarget target(point);
-      auto closest = TestFindClosestEdges(&target, &query);
+      auto closest = checkFindClosestEdges(&target, &query);
       if (!closest.distance.is_infinity()) {
         // Also test the Project method.
         EXPECT_NEAR(
@@ -482,7 +482,7 @@ static void TestWithIndexFactory(const ShapeIndexFactory& factory,
       S2Point b = S2Testing::SamplePoint(
           S2Cap(a, pow(1e-4, S2Testing::rnd.RandDouble()) * query_radius));
       S2ClosestEdgeQuery::EdgeTarget target(a, b);
-      TestFindClosestEdges(&target, &query);
+      checkFindClosestEdges(&target, &query);
     } else if (target_type == 2) {
       // Find the edges closest to a given cell.
       int min_level = S2::kMaxDiag.GetLevelForMaxValue(query_radius.radians());
@@ -491,14 +491,14 @@ static void TestWithIndexFactory(const ShapeIndexFactory& factory,
       S2Point a = S2Testing::SamplePoint(query_cap);
       S2Cell cell(S2CellId(a).parent(level));
       S2ClosestEdgeQuery::CellTarget target(cell);
-      TestFindClosestEdges(&target, &query);
+      checkFindClosestEdges(&target, &query);
     } else {
       DCHECK_EQ(3, target_type);
       // Use another one of the pre-built indexes as the target.
       int j_index = S2Testing::rnd.Uniform(num_indexes);
       S2ClosestEdgeQuery::ShapeIndexTarget target(indexes[j_index].get());
       target.set_include_interiors(S2Testing::rnd.OneIn(2));
-      TestFindClosestEdges(&target, &query);
+      checkFindClosestEdges(&target, &query);
     }
   }
 }
