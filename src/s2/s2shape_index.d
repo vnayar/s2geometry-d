@@ -31,6 +31,7 @@ import s2.s2point;
 
 import std.conv : to;
 
+
 /**
  * S2ClippedShape represents the part of a shape that intersects an S2Cell.
  * It consists of the set of edge ids that intersect that cell, and a boolean
@@ -466,6 +467,10 @@ public:
      */
     CellRelation locate(S2CellId target) {
       return IteratorBase.locateImpl(target, this);
+    }
+
+    void copy(Iterator other) {
+      _iter = other._iter.clone();
     }
 
   private:

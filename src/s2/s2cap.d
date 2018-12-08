@@ -560,6 +560,6 @@ public:
   override
   string toString() const {
     return format.format(
-        "[Center=%s, Radius=%s]", center().toString(), getRadius().toString());
+        "[_center=%s, _radius=%s]", center().toString(), getRadius().toString());
   }
 }

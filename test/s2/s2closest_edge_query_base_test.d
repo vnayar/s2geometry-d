@@ -34,6 +34,8 @@ import s2.s2point;
 import s2.s2shape_index;
 import s2.s2text_format;
 
+import fluent.asserts;
+
 // This is a proof-of-concept prototype of a possible S2FurthestEdgeQuery
 // class.  The purpose of this test is just to make sure that the code
 // compiles and does something reasonable.  (A real implementation would need
@@ -178,17 +180,16 @@ private:
   S2Point _point;
 }
 
-/+ TODO: Add when makeIndex is implemented.
 @("S2ClosestEdgeQueryBase.MaxDistance") unittest {
-  auto index = makeIndex("0:0 | 1:0 | 2:0 | 3:0 # #");
-  FurthestEdgeQuery query(index.get());
-  FurthestPointTarget target(s2textformat::MakePoint("4:0"));
-  FurthestEdgeQuery::Options options;
-  options.set_max_edges(1);
-  auto results = query.FindClosestEdges(&target, options);
-  ASSERT_EQ(1, results.size());
-  EXPECT_EQ(0, results[0].shape_id);
-  EXPECT_EQ(0, results[0].edge_id);
-  EXPECT_NEAR(4, S1ChordAngle(results[0].distance).ToAngle().degrees(), 1e-13);
+  auto index = makeIndexOrDie("0:0 | 1:0 | 2:0 | 3:0 # #");
+  auto query = new FurthestEdgeQuery(index);
+  auto target = new FurthestPointTarget(makePointOrDie("4:0"));
+  auto options = new FurthestEdgeQuery.Options();
+  options.setMaxEdges(1);
+  auto results = query.findClosestEdges(target, options);
+  Assert.equal(results.length, 1);
+  Assert.equal(results[0].shapeId, 0);
+  Assert.equal(results[0].edgeId, 0);
+  Assert.approximately(
+      S1ChordAngle(results[0].distance.getChordAngle()).toS1Angle().degrees(), 4, 1e-13);
 }
-+/

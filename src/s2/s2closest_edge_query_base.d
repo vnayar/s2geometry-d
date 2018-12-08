@@ -267,12 +267,14 @@ public:
 
   // Default constructor; requires Init() to be called.
   this() {
+    _iter = new S2ShapeIndex.Iterator();
     _resultSet = new BTree!Result();
     _queue = BinaryHeap!(QueueEntry[])([]);
   }
 
   // Convenience constructor that calls Init().
   this(S2ShapeIndex index) {
+    this();
     initialize(index);
   }
 
@@ -515,7 +517,9 @@ public:
       // Skip the rest of the algorithm if we found an intersecting edge.
       if (_distanceLimit == DistanceT.zero()) return;
     }
-    if (_indexCovering.empty()) initCovering();
+    if (_indexCovering.empty()) {
+      initCovering();
+    }
     if (_distanceLimit == DistanceT.infinity()) {
       // Start with the precomputed index covering.
       for (int i = 0; i < _indexCovering.length; ++i) {
@@ -605,7 +609,8 @@ public:
 
         // Find the range of index cells contained by this top-level cell and
         // then shrink the cell if necessary so that it just covers them.
-        S2ShapeIndex.Iterator cell_first = next;
+        S2ShapeIndex.Iterator cell_first = new S2ShapeIndex.Iterator();
+        cell_first.copy(next);
         next.seek(id.rangeMax().next());
         S2ShapeIndex.Iterator cell_last = next;
         cell_last.prev();
@@ -827,7 +832,7 @@ public:
     int opCmp(in QueueEntry other) const {
       // The priority queue returns the largest elements first, so we want the
       // "largest" entry to have the smallest distance.
-      return distance.opCmp(other.distance);
+      return other.distance.opCmp(distance);
     }
   }
 

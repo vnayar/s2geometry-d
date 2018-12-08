@@ -381,6 +381,7 @@ public:
       iterator._index = _index;
       iterator._iter = _iter;
       iterator._end = _end;
+      iterator.setState(id(), cell());
       return iterator;
     }
 

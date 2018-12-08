@@ -1287,8 +1287,6 @@ private void checkDistanceMethods(S2Loop loop, in S2Point x, S2Point boundary_x)
   }
 }
 
-/+ TODO: Resume here.
-
 @("S2LoopTestBase.DistanceMethods") unittest {
   auto t = new S2LoopTestBase();
   // S2ClosestEdgeQuery is already tested, so just do a bit of sanity checking.
@@ -1319,81 +1317,67 @@ private void checkDistanceMethods(S2Loop loop, in S2Point x, S2Point boundary_x)
       S2LatLng.fromDegrees(1, 1).toS2Point());
 }
 
-TEST_F(S2LoopTestBase, MakeRegularLoop) {
-  S2Point center = S2LatLng::FromDegrees(80, 135).ToPoint();
-  S1Angle radius = S1Angle::Degrees(20);
-  unique_ptr<S2Loop> loop(S2Loop::MakeRegularLoop(center, radius, 4));
+@("S2LoopTestBase.MakeRegularLoop") unittest {
+  S2Point center = S2LatLng.fromDegrees(80, 135).toS2Point();
+  S1Angle radius = S1Angle.fromDegrees(20);
+  auto loop = S2Loop.makeRegularLoop(center, radius, 4);
 
-  ASSERT_EQ(4, loop->num_vertices());
-  S2Point p0 = loop->vertex(0);
-  S2Point p1 = loop->vertex(1);
-  S2Point p2 = loop->vertex(2);
-  S2Point p3 = loop->vertex(3);
+  Assert.equal(loop.numVertices(), 4);
+  S2Point p0 = loop.vertex(0);
+  S2Point p1 = loop.vertex(1);
+  S2Point p2 = loop.vertex(2);
+  S2Point p3 = loop.vertex(3);
   // Make sure that the radius is correct.
-  EXPECT_DOUBLE_EQ(20.0, S2LatLng(center).GetDistance(S2LatLng(p0)).degrees());
-  EXPECT_DOUBLE_EQ(20.0, S2LatLng(center).GetDistance(S2LatLng(p1)).degrees());
-  EXPECT_DOUBLE_EQ(20.0, S2LatLng(center).GetDistance(S2LatLng(p2)).degrees());
-  EXPECT_DOUBLE_EQ(20.0, S2LatLng(center).GetDistance(S2LatLng(p3)).degrees());
+  Assert.approximately(20.0, S2LatLng(center).getDistance(S2LatLng(p0)).degrees(), DOUBLE_ERR);
+  Assert.approximately(20.0, S2LatLng(center).getDistance(S2LatLng(p1)).degrees(), DOUBLE_ERR);
+  Assert.approximately(20.0, S2LatLng(center).getDistance(S2LatLng(p2)).degrees(), DOUBLE_ERR);
+  Assert.approximately(20.0, S2LatLng(center).getDistance(S2LatLng(p3)).degrees(), DOUBLE_ERR);
   // Make sure that all angles of the polygon are the same.
-  EXPECT_DOUBLE_EQ(M_PI_2, (p1 - p0).Angle(p3 - p0));
-  EXPECT_DOUBLE_EQ(M_PI_2, (p2 - p1).Angle(p0 - p1));
-  EXPECT_DOUBLE_EQ(M_PI_2, (p3 - p2).Angle(p1 - p2));
-  EXPECT_DOUBLE_EQ(M_PI_2, (p0 - p3).Angle(p2 - p3));
+  Assert.approximately((p1 - p0).angle(p3 - p0), M_PI_2, DOUBLE_ERR);
+  Assert.approximately((p2 - p1).angle(p0 - p1), M_PI_2, DOUBLE_ERR);
+  Assert.approximately((p3 - p2).angle(p1 - p2), M_PI_2, DOUBLE_ERR);
+  Assert.approximately((p0 - p3).angle(p2 - p3), M_PI_2, DOUBLE_ERR);
   // Make sure that all edges of the polygon have the same length.
-  EXPECT_DOUBLE_EQ(27.990890717782829,
-                   S2LatLng(p0).GetDistance(S2LatLng(p1)).degrees());
-  EXPECT_DOUBLE_EQ(27.990890717782829,
-                   S2LatLng(p1).GetDistance(S2LatLng(p2)).degrees());
-  EXPECT_DOUBLE_EQ(27.990890717782829,
-                   S2LatLng(p2).GetDistance(S2LatLng(p3)).degrees());
-  EXPECT_DOUBLE_EQ(27.990890717782829,
-                   S2LatLng(p3).GetDistance(S2LatLng(p0)).degrees());
+  Assert.approximately(
+      S2LatLng(p0).getDistance(S2LatLng(p1)).degrees(), 27.990890717782829, DOUBLE_ERR);
+  Assert.approximately(
+      S2LatLng(p1).getDistance(S2LatLng(p2)).degrees(), 27.990890717782829, DOUBLE_ERR);
+  Assert.approximately(
+      S2LatLng(p2).getDistance(S2LatLng(p3)).degrees(), 27.990890717782829, DOUBLE_ERR);
+  Assert.approximately(
+      S2LatLng(p3).getDistance(S2LatLng(p0)).degrees(), 27.990890717782829, DOUBLE_ERR);
 
   // Check actual coordinates. This may change if we switch the algorithm
   // intentionally.
-  EXPECT_DOUBLE_EQ(62.162880741097204, S2LatLng(p0).lat().degrees());
-  EXPECT_DOUBLE_EQ(103.11051028343407, S2LatLng(p0).lng().degrees());
-  EXPECT_DOUBLE_EQ(61.955157772928345, S2LatLng(p1).lat().degrees());
-  EXPECT_DOUBLE_EQ(165.25681963683536, S2LatLng(p1).lng().degrees());
-  EXPECT_DOUBLE_EQ(75.139812547718478, S2LatLng(p2).lat().degrees());
-  EXPECT_DOUBLE_EQ(-119.13042521187423, S2LatLng(p2).lng().degrees());
-  EXPECT_DOUBLE_EQ(75.524190079054392, S2LatLng(p3).lat().degrees());
-  EXPECT_DOUBLE_EQ(26.392175948257943, S2LatLng(p3).lng().degrees());
+  Assert.approximately(S2LatLng(p0).lat().degrees(), 62.162880741097204, DOUBLE_ERR);
+  Assert.approximately(S2LatLng(p0).lng().degrees(), 103.11051028343407, DOUBLE_ERR);
+  Assert.approximately(S2LatLng(p1).lat().degrees(), 61.955157772928345, DOUBLE_ERR);
+  Assert.approximately(S2LatLng(p1).lng().degrees(), 165.25681963683536, DOUBLE_ERR);
+  Assert.approximately(S2LatLng(p2).lat().degrees(), 75.139812547718478, DOUBLE_ERR);
+  Assert.approximately(S2LatLng(p2).lng().degrees(), -119.13042521187423, DOUBLE_ERR);
+  Assert.approximately(S2LatLng(p3).lat().degrees(), 75.524190079054392, DOUBLE_ERR);
+  Assert.approximately(S2LatLng(p3).lng().degrees(), 26.392175948257943, DOUBLE_ERR);
 }
 
-TEST(S2LoopShape, Basic) {
-  unique_ptr<S2Loop> loop = s2textformat::MakeLoop("0:0, 0:1, 1:0");
-  S2Loop::Shape shape(loop.get());
-  EXPECT_EQ(loop.get(), shape.loop());
-  EXPECT_EQ(3, shape.num_edges());
-  EXPECT_EQ(1, shape.num_chains());
-  EXPECT_EQ(0, shape.chain(0).start);
-  EXPECT_EQ(3, shape.chain(0).length);
+@("S2LoopShape.Basic") unittest {
+  S2Loop loop = makeLoopOrDie("0:0, 0:1, 1:0");
+  auto shape = new S2Loop.Shape(loop);
+  Assert.equal(shape.loop(), loop);
+  Assert.equal(shape.numEdges(), 3);
+  Assert.equal(shape.numChains(), 1);
+  Assert.equal(shape.chain(0).start, 0);
+  Assert.equal(shape.chain(0).length, 3);
   auto edge2 = shape.edge(2);
-  EXPECT_EQ("1:0", s2textformat::ToString(edge2.v0));
-  EXPECT_EQ("0:0", s2textformat::ToString(edge2.v1));
-  EXPECT_EQ(2, shape.dimension());
-  EXPECT_TRUE(shape.has_interior());
-  EXPECT_FALSE(shape.GetReferencePoint().contained);
+  Assert.equal(.toString(edge2.v0), "1:0");
+  Assert.equal(.toString(edge2.v1), "0:0");
+  Assert.equal(shape.dimension(), 2);
+  Assert.equal(shape.hasInterior(), true);
+  Assert.equal(shape.getReferencePoint().contained, false);
 }
 
-TEST(S2LoopShape, EmptyLoop) {
-  S2Loop loop(S2Loop::kEmpty());
-  S2Loop::Shape shape(&loop);
-  EXPECT_EQ(0, shape.num_edges());
-  EXPECT_EQ(0, shape.num_chains());
+@("S2LoopShape.EmptyLoop") unittest {
+  auto loop = new S2Loop(S2Loop.empty());
+  auto shape = new S2Loop.Shape(loop);
+  Assert.equal(shape.numEdges(), 0);
+  Assert.equal(shape.numChains(), 0);
 }
-
-TEST(S2LoopShape, FullLoop) {
-  S2Loop loop(S2Loop::kFull());
-  S2Loop::Shape shape(&loop);
-  EXPECT_EQ(0, shape.num_edges());
-  EXPECT_EQ(0, shape.num_chains());
-}
-
-TEST(S2LoopOwningShape, Ownership) {
-  // Debug mode builds will catch any memory leak below.
-  auto loop = make_unique<S2Loop>(S2Loop::kEmpty());
-  S2Loop::OwningShape shape(std::move(loop));
-}
-+/

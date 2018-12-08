@@ -43,7 +43,6 @@ import fluent.asserts;
 import std.algorithm;
 import std.conv;
 import std.math;
-import std.stdio;
 
 @("S2ClosestEdgeQuery.NoEdges") unittest {
   auto index = new MutableS2ShapeIndex();
@@ -179,7 +178,6 @@ import std.stdio;
       "# 0:0, 0:5, 5:5, 5:0 # 0:10, 0:15, 5:15, 5:10");
   auto target = new S2ClosestEdgeQuery.ShapeIndexTarget(target_index);
   target.setIncludeInteriors(true);
-  // TODO: Resume here.
   auto results = query.findClosestEdges(target);
   Assert.equal(results.length, 2);
   Assert.equal(results[0].distance.s1ChordAngle, S1ChordAngle.zero());
@@ -418,107 +416,110 @@ private S2ClosestEdgeQuery.Result checkFindClosestEdges(
   return expected[0];
 }
 
-/+
-
 // The running time of this test is proportional to
 //    (num_indexes + num_queries) * num_edges.
 // (Note that every query is checked using the brute force algorithm.)
-static void TestWithIndexFactory(const ShapeIndexFactory& factory,
-                                 int num_indexes, int num_edges,
-                                 int num_queries) {
+private void checkWithIndexFactory(
+    in ShapeIndexFactory factory, int num_indexes, int num_edges, int num_queries) {
   // Build a set of MutableS2ShapeIndexes containing the desired geometry.
-  vector<S2Cap> index_caps;
-  vector<unique_ptr<MutableS2ShapeIndex>> indexes;
+  S2Cap[] index_caps;
+  MutableS2ShapeIndex[] indexes;
   for (int i = 0; i < num_indexes; ++i) {
-    S2Testing::rnd.Reset(FLAGS_s2_random_seed + i);
-    index_caps.push_back(S2Cap(S2Testing::RandomPoint(), kRadius));
-    indexes.emplace_back(new MutableS2ShapeIndex);
-    factory.AddEdges(index_caps.back(), num_edges, indexes.back().get());
+    S2Testing.rnd.reset(s2RandomSeed + i);
+    //S2Testing.rnd.reset(1 + i);
+    index_caps ~= new S2Cap(S2Testing.randomPoint(), kRadius);
+    //index_caps ~= new S2Cap(
+    //    S2Point(-0.150838938261600, 0.903791693775313, 0.400509911196795),
+    //    S1Angle.fromRadians(0.0899320));
+    indexes ~= new MutableS2ShapeIndex();
+    factory.addEdges(index_caps.back(), num_edges, indexes.back());
   }
   for (int i = 0; i < num_queries; ++i) {
-    S2Testing::rnd.Reset(FLAGS_s2_random_seed + i);
-    int i_index = S2Testing::rnd.Uniform(num_indexes);
-    const S2Cap& index_cap = index_caps[i_index];
+    S2Testing.rnd.reset(s2RandomSeed + i);
+    int i_index = S2Testing.rnd.uniform(num_indexes);
+    const S2Cap index_cap = index_caps[i_index];
 
     // Choose query points from an area approximately 4x larger than the
     // geometry being tested.
-    S1Angle query_radius = 2 * index_cap.GetRadius();
-    S2Cap query_cap(index_cap.center(), query_radius);
-    S2ClosestEdgeQuery query(indexes[i_index].get());
+    S1Angle query_radius = 2 * index_cap.getRadius();
+    auto query_cap = new S2Cap(index_cap.center(), query_radius);
+    auto query = new S2ClosestEdgeQuery(indexes[i_index]);
 
     // Occasionally we don't set any limit on the number of result edges.
     // (This may return all edges if we also don't set a distance limit.)
-    if (!S2Testing::rnd.OneIn(5)) {
-      query.mutable_options()->set_max_edges(1 + S2Testing::rnd.Uniform(10));
+    if (!S2Testing.rnd.oneIn(5)) {
+      query.mutableOptions().setMaxEdges(1 + S2Testing.rnd.uniform(10));
     }
     // We set a distance limit 2/3 of the time.
-    if (!S2Testing::rnd.OneIn(3)) {
-      query.mutable_options()->set_max_distance(
-          S2Testing::rnd.RandDouble() * query_radius);
+    if (!S2Testing.rnd.oneIn(3)) {
+      query.mutableOptions().setMaxDistance(
+          S2Testing.rnd.randDouble() * query_radius);
     }
-    if (S2Testing::rnd.OneIn(2)) {
+    if (S2Testing.rnd.oneIn(2)) {
       // Choose a maximum error whose logarithm is uniformly distributed over
       // a reasonable range, except that it is sometimes zero.
-      query.mutable_options()->set_max_error(S1Angle::Radians(
-          pow(1e-4, S2Testing::rnd.RandDouble()) * query_radius.radians()));
+      query.mutableOptions().setMaxError(
+          S1Angle.fromRadians(pow(1e-4, S2Testing.rnd.randDouble()) * query_radius.radians()));
     }
-    query.mutable_options()->set_include_interiors(S2Testing::rnd.OneIn(2));
-    int target_type = S2Testing::rnd.Uniform(4);
+    query.mutableOptions().setIncludeInteriors(S2Testing.rnd.oneIn(2));
+    int target_type = S2Testing.rnd.uniform(4);
     if (target_type == 0) {
       // Find the edges closest to a given point.
-      S2Point point = S2Testing::SamplePoint(query_cap);
-      S2ClosestEdgeQuery::PointTarget target(point);
-      auto closest = checkFindClosestEdges(&target, &query);
-      if (!closest.distance.is_infinity()) {
+      S2Point point = S2Testing.samplePoint(query_cap);
+      auto target = new S2ClosestEdgeQuery.PointTarget(point);
+      auto closest = checkFindClosestEdges(target, query);
+      if (!closest.distance.isInfinity()) {
         // Also test the Project method.
-        EXPECT_NEAR(
-            closest.distance.ToAngle().radians(),
-            S1Angle(point, query.Project(point, closest)).radians(),
+        Assert.approximately(
+            closest.distance.toS1Angle().radians(),
+            S1Angle(point, query.project(point, closest)).radians(),
             kChordAngleError);
       }
     } else if (target_type == 1) {
       // Find the edges closest to a given edge.
-      S2Point a = S2Testing::SamplePoint(query_cap);
-      S2Point b = S2Testing::SamplePoint(
-          S2Cap(a, pow(1e-4, S2Testing::rnd.RandDouble()) * query_radius));
-      S2ClosestEdgeQuery::EdgeTarget target(a, b);
-      checkFindClosestEdges(&target, &query);
+      S2Point a = S2Testing.samplePoint(query_cap);
+      S2Point b = S2Testing.samplePoint(
+          new S2Cap(a, pow(1e-4, S2Testing.rnd.randDouble()) * query_radius));
+      auto target = new S2ClosestEdgeQuery.EdgeTarget(a, b);
+      checkFindClosestEdges(target, query);
     } else if (target_type == 2) {
       // Find the edges closest to a given cell.
-      int min_level = S2::kMaxDiag.GetLevelForMaxValue(query_radius.radians());
-      int level = min_level + S2Testing::rnd.Uniform(
-          S2CellId::kMaxLevel - min_level + 1);
-      S2Point a = S2Testing::SamplePoint(query_cap);
-      S2Cell cell(S2CellId(a).parent(level));
-      S2ClosestEdgeQuery::CellTarget target(cell);
-      checkFindClosestEdges(&target, &query);
+      int min_level = MAX_DIAG.getLevelForMaxValue(query_radius.radians());
+      int level = min_level + S2Testing.rnd.uniform(
+          S2CellId.MAX_LEVEL - min_level + 1);
+      S2Point a = S2Testing.samplePoint(query_cap);
+      auto cell = new S2Cell(S2CellId(a).parent(level));
+      auto target = new S2ClosestEdgeQuery.CellTarget(cell);
+      checkFindClosestEdges(target, query);
     } else {
-      DCHECK_EQ(3, target_type);
+      Assert.equal(target_type, 3);
       // Use another one of the pre-built indexes as the target.
-      int j_index = S2Testing::rnd.Uniform(num_indexes);
-      S2ClosestEdgeQuery::ShapeIndexTarget target(indexes[j_index].get());
-      target.set_include_interiors(S2Testing::rnd.OneIn(2));
-      checkFindClosestEdges(&target, &query);
+      int j_index = S2Testing.rnd.uniform(num_indexes);
+      auto target = new S2ClosestEdgeQuery.ShapeIndexTarget(indexes[j_index]);
+      target.setIncludeInteriors(S2Testing.rnd.oneIn(2));
+      checkFindClosestEdges(target, query);
     }
   }
 }
 
-static const int kNumIndexes = 50;
-static const int kNumEdges = 100;
-static const int kNumQueries = 200;
 
-TEST(S2ClosestEdgeQuery, CircleEdges) {
-  TestWithIndexFactory(RegularLoopShapeIndexFactory(),
-                       kNumIndexes, kNumEdges, kNumQueries);
+enum int kNumIndexes = 50;
+enum int kNumEdges = 100;
+enum int kNumQueries = 200;
+
+/+
+
+@("S2ClosestEdgeQuery.CircleEdges") unittest {
+  checkWithIndexFactory(new RegularLoopShapeIndexFactory(), kNumIndexes, kNumEdges, kNumQueries);
 }
 
 TEST(S2ClosestEdgeQuery, FractalEdges) {
-  TestWithIndexFactory(FractalLoopShapeIndexFactory(),
+  checkWithIndexFactory(FractalLoopShapeIndexFactory(),
                        kNumIndexes, kNumEdges, kNumQueries);
 }
 
 TEST(S2ClosestEdgeQuery, PointCloudEdges) {
-  TestWithIndexFactory(PointCloudShapeIndexFactory(),
+  checkWithIndexFactory(PointCloudShapeIndexFactory(),
                        kNumIndexes, kNumEdges, kNumQueries);
 }
 
@@ -527,7 +528,7 @@ TEST(S2ClosestEdgeQuery, ConservativeCellDistanceIsUsed) {
   // taken into account when measuring distances to S2ShapeIndex cells.
   for (int seed : {42, 681, 894, 1018, 1750, 1759, 2401}) {
     FLAGS_s2_random_seed = seed;  // Automatically restored.
-    TestWithIndexFactory(FractalLoopShapeIndexFactory(), 5, 100, 10);
+    checkWithIndexFactory(FractalLoopShapeIndexFactory(), 5, 100, 10);
   }
 }
 

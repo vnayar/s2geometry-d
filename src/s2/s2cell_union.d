@@ -785,10 +785,11 @@ public:
    */
   static void getIntersection(in S2CellId[] x, in S2CellId[] y, out S2CellId[] output)
   in {
+    import std.conv : to;
     assert(output.length == 0 || output !is x);
     assert(output.length == 0 || output !is y);
-    assert(isSorted(x));
-    assert(isSorted(y));
+    assert(isSorted(x), "x is unsorted: x=" ~ to!string(x));
+    assert(isSorted(y), "y is unsorted: y=" ~ to!string(y));
   } out {
     // The output is generated in sorted order.
     assert(isSorted(output));
