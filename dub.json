@@ -4,8 +4,8 @@
 	"Vijay Nayar"
   ],
   "description": "Google's S2 Geometric Library implemented in D.",
-  "copyright": "Copyright © 2017, Vijay Nayar",
-  "license": "apache",
+  "copyright": "Copyright © 2018, Vijay Nayar",
+  "license": "Apache-2.0",
   "dependencies": {
     "fluent-asserts": "~>0.9.0"
   },

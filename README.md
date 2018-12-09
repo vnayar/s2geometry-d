@@ -1,7 +1,5 @@
 # S2 Geometry Library
 
-**WORK IN PROGRESS: NOT PRODUCTION READY YET**
-
 ## Overview
 
 This project is a migration of Google's S2 Geometric Library from C++ to the D programming language.
