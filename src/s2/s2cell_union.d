@@ -138,16 +138,16 @@ public:
   }
 
   /**
-   * Init() methods corresponding to the constructors/factory methods above.
+   * initialize() methods corresponding to the constructors/factory methods above.
    * TODO(ericv): Consider deprecating these methods in favor of using the
    * constructors and move assignment operator.
    */
-  void init(S2CellId[] cell_ids) {
+  void initialize(S2CellId[] cell_ids) {
     _cellIds = cell_ids;
     normalize();
   }
 
-  void init(ulong[] cell_ids) {
+  void initialize(ulong[] cell_ids) {
     _cellIds = toS2CellIds(cell_ids);
     normalize();
   }
@@ -525,7 +525,7 @@ public:
       output ~= id;
       id.appendAllNeighbors(expand_level, output);
     }
-    init(output);
+    initialize(output);
   }
 
   /**

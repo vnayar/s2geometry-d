@@ -100,6 +100,11 @@ public:
     return _length;
   }
 
+  @property
+  bool empty() const {
+    return _length == 0;
+  }
+
   ////
   // Iterator Style Methods
   ////

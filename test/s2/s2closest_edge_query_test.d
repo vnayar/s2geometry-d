@@ -43,6 +43,8 @@ import fluent.asserts;
 import std.algorithm;
 import std.conv;
 import std.math;
+import std.range;
+
 
 @("S2ClosestEdgeQuery.NoEdges") unittest {
   auto index = new MutableS2ShapeIndex();

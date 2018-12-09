@@ -19,6 +19,7 @@
 module s2.s2point_index;
 
 import s2.s2cell_id;
+import s2.s2point;
 import s2.util.container.btree_map;
 
 
@@ -81,8 +82,6 @@ public:
   static struct PointData {
   public:
 
-    this() {}  // Needed by STL
-
     this(in S2Point point, in DataT data) {
       _point = point;
       _data = data;
@@ -97,7 +96,6 @@ public:
     }
 
     bool opEquals(PointData other) const {
-      if (other is null) return false;
       return _point == other._point && _data == other._data;
     }
 
@@ -116,11 +114,13 @@ public:
   }
 
   // Default constructor.
-  this() { }
+  this() {
+    _map = new Map();
+  }
 
   // Returns the number of points in the index.
   int numPoints() const {
-    return _map.length;
+    return cast(int) _map.length;
   }
 
   // Adds the given point to the index.  Invalidates all iterators.
@@ -144,7 +144,7 @@ public:
     auto id = S2CellId(point_data.point());
     foreach (Map.Pair entry; _map.equalRange(id)) {
       if (entry.value == point_data) {
-        _map.remove(point_data);
+        _map.remove(entry.key);
         return true;
       }
     }
@@ -162,16 +162,14 @@ private:
   alias Map = BTreeMap!(S2CellId, PointData);
 
 public:
-  static class Iterator {
+  static struct Iterator {
   public:
     // Default constructor; must be followed by a call to Init().
-    this() {
-      _map = null;
-    }
+    //this() { }
 
     // Convenience constructor that calls Init().
-    this(in S2PointIndex index) {
-      init(index);
+    this(S2PointIndex index) {
+      initialize(index);
     }
 
     // Initializes an iterator for the given S2PointIndex.  If the index is
@@ -179,7 +177,7 @@ public:
     //
     // This method may be called multiple times, e.g. to make an iterator
     // valid again after the index is modified.
-    void initialize(in S2PointIndex index) {
+    void initialize(S2PointIndex index) {
       _map = index._map;
       _iter = _map.begin();
       _end = _map.end();
@@ -191,7 +189,7 @@ public:
     in {
       assert(!done());
     } body {
-      return _iter.getKey();
+      return _iter.getValue().key;
     }
 
     // The point associated with the current index entry.
@@ -200,7 +198,7 @@ public:
     in {
       assert(!done());
     } body {
-      return _iter.getValue().point();
+      return _iter.getValue().value.point();
     }
 
     // The client-supplied data associated with the current index entry.
@@ -209,7 +207,7 @@ public:
     in {
       assert(!done());
     } body {
-      return _iter.getValue().data();
+      return _iter.getValue().value.data();
     }
 
 
@@ -218,7 +216,7 @@ public:
     in {
       assert(!done());
     } body {
-      return _iter.getValue();
+      return _iter.getValue().value;
     }
 
     // Returns true if the iterator is positioned past the last index entry.
@@ -256,11 +254,11 @@ public:
     // Positions the iterator at the first entry with id() >= target, or at the
     // end of the index if no such entry exists.
     void seek(S2CellId target) {
-      _iter = _map.equalRange().toIterator();
+      _iter = _map.equalRange(target).toIterator();
     }
 
   private:
-    const(Map) _map;
+    Map _map;
     Map.Iterator _iter, _end;
   }
 

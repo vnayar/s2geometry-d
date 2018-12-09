@@ -434,7 +434,7 @@ unittest {
   Assert.equal(cell_union.empty(), true);
 
   // Test an empty range after the maximum S2CellId.
-  cell_union.init([initial_id]);
+  cell_union.initialize([initial_id]);
   S2CellId id_end = S2CellId.end(S2CellId.MAX_LEVEL);
   cell_union.initFromBeginEnd(id_end, id_end);
   Assert.equal(cell_union.empty(), true);
@@ -545,12 +545,12 @@ unittest {
   S2CellId[] ids;
   // One leaf cell on face 0.
   ids ~= S2CellId.fromFace(0).childBegin(S2CellId.MAX_LEVEL);
-  cell_union.init(ids);
+  cell_union.initialize(ids);
   Assert.equal(cell_union.leafCellsCovered(), 1uL);
 
   // Face 0 itself (which includes the previous leaf cell).
   ids ~= S2CellId.fromFace(0);
-  cell_union.init(ids);
+  cell_union.initialize(ids);
   Assert.equal(cell_union.leafCellsCovered(), 1uL << 60);
   // Five faces.
   cell_union.expand(0);
@@ -567,7 +567,7 @@ unittest {
   ids ~= S2CellId.fromFace(4).childBegin(27);
   ids ~= S2CellId.fromFace(4).childEnd(15).prev();
   ids ~= S2CellId.fromFace(5).childBegin(30);
-  cell_union.init(ids);
+  cell_union.initialize(ids);
   ulong expected = 1uL + (1uL << 6) + (1uL << 30) + (1uL << 32)
       + (2uL << 56) + (1uL << 58) + (1uL << 60);
   Assert.equal(cell_union.leafCellsCovered(), expected);
