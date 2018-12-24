@@ -91,6 +91,7 @@ module s2.util.container.dense_hash_table;
 import std.algorithm;
 import std.array;
 import std.range;
+import std.typecons;
 
 /**
 Hashtable class, used to implement the hashed associative containers
@@ -103,10 +104,14 @@ Params:
   ExtractKey = given a Value, returns the unique Key associated with it.
       Must inherit from unary_function, or at least have a
       result_type enum indicating the return type of operator().
+  SetKey = given a ref Value and a Key, modifies the value such that
+      ExtractKey(value) == key.  We guarantee this is only called
+      with key == deleted_key or key == empty_key.
 */
-class DenseHashTable(Value, Key, alias HashFcn, alias ExtractKey) {
+class DenseHashTable(Value, Key, alias HashFcn, alias ExtractKey, alias SetKey) {
 public:
-  // ACCESSOR FUNCTIONS for the things we templatize on, basically
+  // ACCESSOR FUNCTIONS for the things we templatize on, basically.
+  // The functions validate at compile time that the accessor functions have the right signature.
   static size_t hash(in Key key) {
     return HashFcn(key);
   }
@@ -115,11 +120,15 @@ public:
     return ExtractKey(v);
   }
 
+  static void setKey(ref Value v, Key k) {
+    SetKey(v, k);
+  }
+
   alias KeyType = Key;
   alias ValueType = Value;
 
-  alias ThisT = DenseHashTable!(Value, Key, HashFcn, ExtractKey);
-  alias Iterator = DenseHashTableIterator!(Value, Key, HashFcn, ExtractKey);
+  alias ThisT = DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey);
+  alias Iterator = DenseHashTableIterator!(Value, Key, HashFcn, ExtractKey, SetKey);
 
   /**
   How full we let the table get before we resize.  Knuth says .8 is
@@ -159,7 +168,7 @@ public:
   }
 
   Iterator end() {
-    return Iterator(this, _table[0 .. _numBuckets], true);
+    return Iterator(this, _table[_numBuckets .. _numBuckets], true);
   }
 
   // Accessor function for statistics gathering.
@@ -229,7 +238,7 @@ public:
     return _numDeleted > 0 && testDeletedKey(getKey(*it));
   }
 
- private:
+private:
   void checkUseDeleted(string caller) {
     assert(_settings.useDeleted, caller);
   }
@@ -239,7 +248,7 @@ public:
     checkUseDeleted("set_deleted()");
     bool retval = !testDeleted(it);
     // &* converts from iterator to value-type.
-    *it = _keyValInfo.delKey;
+    setKey(*it, _keyValInfo.delKey);
     return retval;
   }
 
@@ -277,7 +286,7 @@ private:
 public:
   // TODO(csilvers): change all callers of this to pass in a key instead,
   //                 and take a const key_type instead of const value_type.
-  void setEmptyKey(Key val) {
+  void setEmptyKey(Value val) {
     // Once you set the empty key, you can't change it
     assert(!_settings.useEmpty, "Calling setEmptyKey() multiple times, which is invalid!");
     // The deleted indicator (if specified) and the empty indicator
@@ -285,18 +294,19 @@ public:
     assert(!_settings.useDeleted || getKey(val) != _keyValInfo.delKey,
         "setEmptyKey() must be called with a key distinct from the deleted-key!");
     _settings.useEmpty = true;
+    _keyValInfo = new KeyValInfo();
     _keyValInfo.emptyValue = val;
 
-    assert(_table.length == 0);            // must set before first use
+    assert(_table is null);            // must set before first use
     // num_buckets was set in constructor even though table was not initialized.
     _table = new Value[_numBuckets];
     assert(_table);
     fillRangeWithEmpty(0, _numBuckets);
   }
-  // TODO(user): return a key_type rather than a value_type
+
   Key emptyKey() const {
     assert(_settings.useEmpty);
-    return _keyValInfo.emptyValue;
+    return getKey(_keyValInfo.emptyValue);
   }
 
   // FUNCTIONS CONCERNING SIZE
@@ -698,7 +708,7 @@ private:
 
 public:
   // This is the normal insert routine, used by the outside world
-  Pair!(Iterator, bool) insert(in Value obj) {
+  Pair!(Iterator, bool) insert(Value obj) {
     resizeDelta(1);                      // adding an object, grow if need be
     return insertNoResize(obj);
   }
@@ -706,7 +716,7 @@ public:
   // Specializations of insert(it, it) depending on the power of the iterator:
   // (1) Iterator supports operator-, resize before inserting
   void insert(FRange)(FRange fr)
-  if (isForwardRange(ForwardIterator)) {
+  if (isForwardRange!FRange) {
     size_t dist = fr.walkLength(fr);
     if (dist >= size_t.max) {
       throw new Exception("insert-range overflow");
@@ -718,7 +728,8 @@ public:
   }
 
   // (2) Arbitrary iterator, can't tell how much to resize
-  void insert(Range)(Range r) {
+  void insert(Range)(Range r)
+  if (isInputRange!Range) {
     foreach (f; r)
       insert(f);
   }
@@ -959,21 +970,18 @@ private:
   Value[] _table;
 }
 
-// We're just an array, but we need to skip over empty and deleted elements
-struct DenseHashTableIterator(Value, Key, alias HashFcn, alias ExtractKey) {
+/**
+ * A basic iterator type for finding entries and iterating.
+ * We're just an array, but we need to skip over empty and deleted elements.
+ *
+ * TODO(vnayar): Coonvert DenseHashTable to be range based after S2Builder is modified to use it.
+ */
+struct DenseHashTableIterator(Value, Key, alias HashFcn, alias ExtractKey, alias SetKey) {
 public:
-  static size_t hash(in Key key) {
-    return HashFcn(key);
-  }
-
-  static Key getKey(in Value v) {
-    return ExtractKey(v);
-  }
-
-  alias Iterator = DenseHashTableIterator!(Value, Key, HashFcn, ExtractKey);
+  alias Iterator = DenseHashTableIterator!(Value, Key, HashFcn, ExtractKey, SetKey);
 
   // "Real" constructor and default constructor
-  this(in DenseHashTable!(Value, Key, HashFcn, ExtractKey) h, Value[] data, bool advance) {
+  this(in DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey) h, Value[] data, bool advance) {
     _ht = h;
     _data = data;
     if (advance) advancePastEmptyAndDeleted();
@@ -981,7 +989,10 @@ public:
 
   // Happy dereferencer
   ref inout(Value) opUnary(string op)() inout
-  if (op == "*") {
+    if (op == "*")
+  in {
+    assert(!_data.empty(), "Iterator is already at end!");
+  } body {
     return _data.front();
   }
 
@@ -1002,11 +1013,11 @@ public:
   }
 
   // Comparison.
-  bool opEquals(Iterator o) const {
+  bool opEquals(this ThisT)(ThisT o) const {
     return _data == o._data;
   }
 
   // The actual data
-  const DenseHashTable!(Value, Key, HashFcn, ExtractKey) _ht;
+  Rebindable!(const DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey)) _ht;
   Value[] _data;
 }
