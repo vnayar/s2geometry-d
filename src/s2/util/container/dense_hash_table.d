@@ -714,24 +714,9 @@ public:
   }
 
   // Specializations of insert(it, it) depending on the power of the iterator:
-  // (1) Iterator supports operator-, resize before inserting
-  void insert(FRange)(FRange fr)
-  if (isForwardRange!FRange) {
-    size_t dist = fr.walkLength(fr);
-    if (dist >= size_t.max) {
-      throw new Exception("insert-range overflow");
-    }
-    resizeDelta(dist);
-    foreach (f; fr) {
-      insertNoResize(f);
-    }
-  }
-
-  // (2) Arbitrary iterator, can't tell how much to resize
-  void insert(Range)(Range r)
-  if (isInputRange!Range) {
-    foreach (f; r)
-      insert(f);
+  void insert(Iterator f, Iterator l) {
+    for (; f != l; f++)
+      insert(*f);
   }
 
   // DefaultValue is a functor that takes a key and returns a value_type
