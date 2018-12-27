@@ -269,12 +269,12 @@ public:
   // These are public so the iterators can use them
   // True if the item at position bucknum is "empty" marker
   bool testEmpty(size_t bucknum) const {
-    assert(_settings.useEmpty);  // we always need to know what's empty!
+    assert(_settings.useEmpty, "HashTable must call setEmpty() before use!");
     return getKey(_keyValInfo.emptyValue) == getKey(_table[bucknum]);
   }
 
   bool testEmpty(in Iterator it) const {
-    assert(_settings.useEmpty);  // we always need to know what's empty!
+    assert(_settings.useEmpty, "HashTable must call setEmpty() before use!");
     return getKey(_keyValInfo.emptyValue) == getKey(*it);
   }
 
@@ -978,7 +978,8 @@ public:
   in {
     assert(!_data.empty(), "Iterator is already at end!");
   } body {
-    return _data.front();
+    // return _data.front(); -- Bug: See https://issues.dlang.org/show_bug.cgi?id=19518
+    return _data[0];
   }
 
   // Arithmetic.  The only hard part is making sure that

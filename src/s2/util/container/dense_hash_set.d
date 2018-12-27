@@ -104,7 +104,7 @@ import s2.util.container.dense_hash_table;
 // Default functions for initializing the contained DenseHashTable.
 
 size_t hash(ValueT)(ValueT value)
-if (is(typeid(value.toHash()) : size_t)) {
+if (is(typeof(value.toHash()) : size_t)) {
   return value.toHash();
 }
 
@@ -112,8 +112,8 @@ size_t hash(ValueT)(ValueT value) {
   return typeid(value).getHash(&value);
 }
 
-class DenseHashSet(Value, HashFcn = hash!Value) {
-private:
+class DenseHashSet(Value, alias HashFcn = hash!Value) {
+public:
   // Apparently identity is not stl-standard, so we define our own
   static Value identity(Value v) {
     return v;
@@ -125,32 +125,38 @@ private:
   }
 
   // The actual data
-  alias DenseHashTable = DenseHashTable!(Value, Value, HashFcn, identity, setKey)
-  DenseHashTable rep;
-
- public:
-  alias KeyType = DenseHashTable.KeyType;
-  alias ValueType = DenseHashTable.ValueType;
-  alias Iterator = DenseHashTable.Iterator;
-
+  alias HashTable = DenseHashTable!(Value, Value, HashFcn, identity, setKey);
+  HashTable rep;
   alias rep this;
+
+  alias KeyType = HashTable.KeyType;
+  alias ValueType = HashTable.ValueType;
+  alias Iterator = HashTable.Iterator;
 
   // Constructors
   this(size_t expected_max_items_in_table = 0) {
-    rep = new DenseHashTable(expected_max_items_in_table) {
+    rep = new HashTable(expected_max_items_in_table);
   }
 
-  // template <class InputIterator>
-  // dense_hash_set(InputIterator f, InputIterator l,
-  //                const key_type& empty_key_val,
-  //                size_type expected_max_items_in_table = 0,
-  //                const hasher& hf = hasher(),
-  //                const key_equal& eql = key_equal(),
-  //                const allocator_type& alloc = allocator_type())
-  //     : rep(expected_max_items_in_table, hf, eql, Identity(), SetKey(), alloc) {
-  //   set_empty_key(empty_key_val);
-  //   rep.insert(f, l);
-  // }
+  /**
+  A constructor based on interators which provide the values to add to the set.
+  With a DenseHashSet, the key and value types used for the DenseHashTable are the same.
+
+  Params:
+    InputIterator = Compile-time type parameter of the iterators that support the "*" operator.
+    f = Iterator for the first value.
+    l = Iterator for the last value.
+    empty_key_val = An unused value that can be used to represent an "empty" hash slot.
+    expected_max_items_in_table = Sets an initial size to help avoid additional memory allocations.
+  */
+  this(InputIterator)(
+      InputIterator f, InputIterator l,
+      Value empty_key_val, size_t expected_max_items_in_table = 0)
+  if (is(typeof(*(InputIterator.init)) : Value)) {
+    rep = new HashTable(expected_max_items_in_table);
+    set_empty_key(empty_key_val);
+    rep.insert(f, l);
+  }
 
   // We use the default copy constructor
   // We use the default operator=()
