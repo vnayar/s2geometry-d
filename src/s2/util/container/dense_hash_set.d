@@ -97,6 +97,8 @@
 // See /usr/(local/)?doc/sparsehash-*/dense_hash_set.html
 // for information about how to use this class.
 
+// Converted to D:  madric@gmail.com (Vijay Nayar)
+
 module s2.util.container.dense_hash_set;
 
 import s2.util.container.dense_hash_table;
