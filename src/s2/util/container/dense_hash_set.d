@@ -103,21 +103,39 @@ module s2.util.container.dense_hash_set;
 
 import s2.util.container.dense_hash_table;
 
+//import std.functional : equalTo;
+
 // Default functions for initializing the contained DenseHashTable.
 
-size_t hash(ValueT)(ValueT value)
+size_t hash(ValueT)(in ValueT value)
 if (is(typeof(value.toHash()) : size_t)) {
   return value.toHash();
 }
 
-size_t hash(ValueT)(ValueT value) {
+size_t hash(ValueT)(in ValueT value) {
   return typeid(value).getHash(&value);
 }
 
-class DenseHashSet(Value, alias HashFcn = hash!Value) {
+bool equalTo(ValueT)(in ValueT v1, in ValueT v2) {
+  return v1 == v2;
+}
+
+auto denseHashSet(
+    Value,
+    HashFcn = size_t function(in Value),
+    EqualKey = bool function(in Value, in Value))(
+
+    size_t expected_max_items_in_table = 0,
+    HashFcn hashFcn = (in Value v) => hash(v),
+    EqualKey equalKey = (in Value v1, in Value v2) => v1 == v2) {
+  return new DenseHashSet!(Value, HashFcn, EqualKey)(
+      expected_max_items_in_table, hashFcn, equalKey);
+}
+
+class DenseHashSet(Value, HashFcn, EqualKey) {
 public:
   // Apparently identity is not stl-standard, so we define our own
-  static Value identity(Value v) {
+  static Value identity(in Value v) {
     return v;
   }
 
@@ -127,7 +145,8 @@ public:
   }
 
   // The actual data
-  alias HashTable = DenseHashTable!(Value, Value, HashFcn, identity, setKey);
+  alias HashTable = DenseHashTable!(
+      Value, Value, HashFcn, Value function(in Value), void function(ref Value, Value), EqualKey);
   HashTable rep;
   alias rep this;
 
@@ -136,8 +155,9 @@ public:
   alias Iterator = HashTable.Iterator;
 
   // Constructors
-  this(size_t expected_max_items_in_table = 0) {
-    rep = new HashTable(expected_max_items_in_table);
+  this(
+      size_t expected_max_items_in_table, HashFcn hashFcn, EqualKey equalKey) {
+    rep = new HashTable(expected_max_items_in_table, hashFcn, &identity, &setKey, equalKey);
   }
 
   /**
@@ -152,11 +172,15 @@ public:
     expected_max_items_in_table = Sets an initial size to help avoid additional memory allocations.
   */
   this(InputIterator)(
-      InputIterator f, InputIterator l,
-      Value empty_key_val, size_t expected_max_items_in_table = 0)
+      InputIterator f,
+      InputIterator l,
+      Value empty_key_val,
+      size_t expected_max_items_in_table,
+      HashFcn hashFcn,
+      EqualKey equalKey)
   if (is(typeof(*(InputIterator.init)) : Value)) {
-    rep = new HashTable(expected_max_items_in_table);
-    set_empty_key(empty_key_val);
+    rep = new HashTable(expected_max_items_in_table, hashFcn, &identity, &setKey, equalKey);
+    setEmptyKey(empty_key_val);
     rep.insert(f, l);
   }
 
@@ -169,7 +193,7 @@ public:
     return size() * 1.0f / bucketCount();
   }
 
-  float max_load_factor() const {
+  float maxLoadFactor() const {
     float shrink, grow;
     rep.getResizingParameters(shrink, grow);
     return grow;

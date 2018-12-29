@@ -4,7 +4,7 @@ import s2.util.container.dense_hash_set;
 import fluent.asserts;
 
 @("int-set-insert") unittest {
-  auto intSet = new DenseHashSet!int();
+  auto intSet = denseHashSet!int();
 
   intSet.setEmptyKey(-1);
   intSet.insert(4);
@@ -14,7 +14,7 @@ import fluent.asserts;
 }
 
 @("char-set-insert") unittest {
-  auto charSet = new DenseHashSet!char();
+  auto charSet = denseHashSet!char();
 
   charSet.setEmptyKey(cast(char) 255);
   charSet.insert('c');
@@ -24,7 +24,7 @@ import fluent.asserts;
 }
 
 @("int-set-find") unittest {
-  auto hs = new DenseHashSet!int();
+  auto hs = denseHashSet!int();
   hs.setEmptyKey(-1);
   hs.insert(3);
   hs.insert(5);
@@ -36,7 +36,7 @@ import fluent.asserts;
 }
 
 @("int-set-erase") unittest {
-  auto hs = new DenseHashSet!int();
+  auto hs = denseHashSet!int();
   hs.setEmptyKey(-1);
   hs.setDeletedKey(-2);
   hs.insert(3);

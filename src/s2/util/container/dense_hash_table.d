@@ -93,6 +93,21 @@ import std.array;
 import std.range;
 import std.typecons;
 
+// Helper function that detects template types from the provided arguments.
+auto denseHashTable(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey)(
+    size_t expected_max_items_in_table,
+    HashFcn hashFcn,
+    ExtractKey extractKey,
+    SetKey setKey,
+    EqualKey equalKey) {
+  return new DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey)(
+      expected_max_items_in_table,
+      hashFcn,
+      extractKey,
+      setKey,
+      equalKey);
+}
+
 /**
 Hashtable class, used to implement the hashed associative containers
 hash_set and hash_map.
@@ -100,35 +115,41 @@ Params:
   Value = what is stored in the table (each bucket is a Value).
   Key = something in a 1-to-1 correspondence to a Value, that can be used
       to search for a Value in the table (find() takes a Key).
-  HashFcn = Takes a Key and returns an integer, the more unique the better.
-  ExtractKey = given a Value, returns the unique Key associated with it.
+  HashFcn = A callable type which when given a Key, returns an integer, the more unique the better.
+  ExtractKey = A callable type which when given a Value, returns the unique Key associated with it.
       Must inherit from unary_function, or at least have a
       result_type enum indicating the return type of operator().
-  SetKey = given a ref Value and a Key, modifies the value such that
+  SetKey = A callable type which when given a ref Value and a Key, modifies the value such that
       ExtractKey(value) == key.  We guarantee this is only called
       with key == deleted_key or key == empty_key.
+  EqualKey = A callable type which when given two Keys, says whether they are the same (that is,
+      if they are both associated with the same Value).
 */
-class DenseHashTable(Value, Key, alias HashFcn, alias ExtractKey, alias SetKey) {
+class DenseHashTable(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey) {
 public:
   // ACCESSOR FUNCTIONS for the things we templatize on, basically.
   // The functions validate at compile time that the accessor functions have the right signature.
-  static size_t hash(in Key key) {
-    return HashFcn(key);
+  size_t hash(in Key key) const {
+    return _keyValInfo.hashFcn(key);
   }
 
-  static Key getKey(in Value v) {
-    return ExtractKey(v);
+  Key getKey(in Value v) const {
+    return _keyValInfo.extractKey(v);
   }
 
-  static void setKey(ref Value v, Key k) {
-    SetKey(v, k);
+  void setKey(ref Value v, Key k) const {
+    _keyValInfo.setKey(v, k);
+  }
+
+  bool equalKey(in Key a, in Key b) const {
+    return _keyValInfo.equalKey(a, b);
   }
 
   alias KeyType = Key;
   alias ValueType = Value;
 
-  alias ThisT = DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey);
-  alias Iterator = DenseHashTableIterator!(Value, Key, HashFcn, ExtractKey, SetKey);
+  alias ThisT = DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey);
+  alias Iterator = DenseHashTableIterator!(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey);
 
   /**
   How full we let the table get before we resize.  Knuth says .8 is
@@ -201,14 +222,14 @@ private:
   // guarantees that key_info.delkey is valid.
   bool testDeletedKey(in Key key) const {
     assert(_numDeleted > 0);
-    return _keyValInfo.delKey == key;
+    return equalKey(_keyValInfo.delKey, key);
   }
 
 public:
   void setDeletedKey(in Key key) {
     // the empty indicator (if specified) and the deleted indicator
     // must be different
-    assert(!_settings.useEmpty || key != getKey(_keyValInfo.emptyValue),
+    assert(!_settings.useEmpty || !equalKey(key, getKey(_keyValInfo.emptyValue)),
         "The deleted-key must be distinct from the the empty-key.");
     // It's only safe to change what "deleted" means if we purge deleted guys
     squashDeleted();
@@ -270,12 +291,12 @@ public:
   // True if the item at position bucknum is "empty" marker
   bool testEmpty(size_t bucknum) const {
     assert(_settings.useEmpty, "HashTable must call setEmpty() before use!");
-    return getKey(_keyValInfo.emptyValue) == getKey(_table[bucknum]);
+    return equalKey(getKey(_keyValInfo.emptyValue), getKey(_table[bucknum]));
   }
 
   bool testEmpty(in Iterator it) const {
     assert(_settings.useEmpty, "HashTable must call setEmpty() before use!");
-    return getKey(_keyValInfo.emptyValue) == getKey(*it);
+    return equalKey(getKey(_keyValInfo.emptyValue), getKey(*it));
   }
 
 private:
@@ -291,10 +312,9 @@ public:
     assert(!_settings.useEmpty, "Calling setEmptyKey() multiple times, which is invalid!");
     // The deleted indicator (if specified) and the empty indicator
     // must be different.
-    assert(!_settings.useDeleted || getKey(val) != _keyValInfo.delKey,
+    assert(!_settings.useDeleted || !equalKey(getKey(val), _keyValInfo.delKey),
         "setEmptyKey() must be called with a key distinct from the deleted-key!");
     _settings.useEmpty = true;
-    _keyValInfo = new KeyValInfo();
     _keyValInfo.emptyValue = val;
 
     assert(_table is null);            // must set before first use
@@ -496,16 +516,28 @@ public:
   // but also let you specify a hashfunction, key comparator,
   // and key extractor.  We also define a copy constructor and =.
   // DESTRUCTOR -- needs to free the table
-  this(size_t expected_max_items_in_table = 0) {
-    _settings = new Settings();
+  this(size_t expected_max_items_in_table,
+      HashFcn hashFcn,
+      ExtractKey extractKey,
+      SetKey setKey,
+      EqualKey equalKey) {
     _numDeleted = 0;
     _numElements = 0;
     _numBuckets = expected_max_items_in_table == 0
         ? HT_DEFAULT_STARTING_BUCKETS
         : _settings.minBuckets(expected_max_items_in_table, 0);
     _table = null;
+
+    // Keep track of callable entities (functions, delegates, functors) used to work with keys.
+    _keyValInfo = new KeyValInfo();
+    _keyValInfo.hashFcn = hashFcn;
+    _keyValInfo.extractKey = extractKey;
+    _keyValInfo.setKey = setKey;
+    _keyValInfo.equalKey = equalKey;
+
     // table is NULL until emptyval is set.  However, we set num_buckets
     // here so we know how much space to allocate once emptyval is set
+    _settings = new Settings();
     _settings.resetThresholds(bucketCount());
   }
 
@@ -625,7 +657,7 @@ private:
         if ( insert_pos == ILLEGAL_BUCKET )
           insert_pos = bucknum;
 
-      } else if ( key == getKey(_table[bucknum]) ) {
+      } else if ( equalKey(key, getKey(_table[bucknum])) ) {
         return Pair!(size_t, size_t)(bucknum, ILLEGAL_BUCKET);
       }
       ++num_probes;                        // we're doing another probe
@@ -692,9 +724,9 @@ private:
   // If you know *this is big enough to hold obj, use this routine
   Pair!(Iterator, bool) insertNoResize(Value obj) {
     // First, double-check we're not inserting delkey or emptyval
-    assert(!_settings.useEmpty || getKey(obj) != getKey(_keyValInfo.emptyValue),
+    assert(!_settings.useEmpty || !equalKey(getKey(obj), getKey(_keyValInfo.emptyValue)),
         "Inserting the empty key");
-    assert(!_settings.useDeleted || getKey(obj) != _keyValInfo.delKey,
+    assert(!_settings.useDeleted || !equalKey(getKey(obj), _keyValInfo.delKey),
         "Inserting the deleted key");
     const Pair!(size_t, size_t) pos = findPosition(getKey(obj));
     if ( pos.first != ILLEGAL_BUCKET) {      // object was already there
@@ -709,7 +741,7 @@ private:
 public:
   // This is the normal insert routine, used by the outside world
   Pair!(Iterator, bool) insert(Value obj) {
-    resizeDelta(1);                      // adding an object, grow if need be
+    bool didResize = resizeDelta(1);            // adding an object, grow if need be
     return insertNoResize(obj);
   }
 
@@ -723,9 +755,9 @@ public:
   // representing the default value to be inserted if none is found.
   Value findOrInsert(Value function(Key) defaultValue)(in Key key) {
     // First, double-check we're not inserting emptykey or delkey
-    assert(!_settings.useEmpty || key != getKey(_keyValInfo.emptyValue),
+    assert(!_settings.useEmpty || !equalKey(key, getKey(_keyValInfo.emptyValue)),
         "Inserting the empty key");
-    assert(!_settings.useDeleted || key != _keyValInfo.delKey,
+    assert(!_settings.useDeleted || !equalKey(key, _keyValInfo.delKey),
         "Inserting the deleted key");
     Pair!(size_t,size_t) pos = findPosition(key);
     if (pos.first != ILLEGAL_BUCKET) {  // object was already there
@@ -741,9 +773,9 @@ public:
   // DELETION ROUTINES
   size_t erase(in Key key) {
     // First, double-check we're not trying to erase delkey or emptyval.
-    assert(!_settings.useEmpty || key != getKey(_keyValInfo.emptyValue),
+    assert(!_settings.useEmpty || !equalKey(key, getKey(_keyValInfo.emptyValue)),
         "Erasing the empty key");
-    assert(!_settings.useDeleted || key != _keyValInfo.delKey,
+    assert(!_settings.useDeleted || !equalKey(key, _keyValInfo.delKey),
         "Erasing the deleted key");
     Iterator pos = find(key);   // shrug: shouldn't need to be const
     if ( pos != end() ) {
@@ -942,6 +974,10 @@ private:
   static class KeyValInfo {
     Value emptyValue;
     Key delKey;
+    HashFcn hashFcn;
+    ExtractKey extractKey;
+    SetKey setKey;
+    EqualKey equalKey;
   }
 
 private:
@@ -961,12 +997,14 @@ private:
  *
  * TODO(vnayar): Coonvert DenseHashTable to be range based after S2Builder is modified to use it.
  */
-struct DenseHashTableIterator(Value, Key, alias HashFcn, alias ExtractKey, alias SetKey) {
+struct DenseHashTableIterator(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey) {
 public:
-  alias Iterator = DenseHashTableIterator!(Value, Key, HashFcn, ExtractKey, SetKey);
+  alias Iterator = DenseHashTableIterator!(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey);
 
   // "Real" constructor and default constructor
-  this(in DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey) h, Value[] data, bool advance) {
+  this(
+      in DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey) h,
+      Value[] data, bool advance) {
     _ht = h;
     _data = data;
     if (advance) advancePastEmptyAndDeleted();
@@ -1004,6 +1042,6 @@ public:
   }
 
   // The actual data
-  Rebindable!(const DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey)) _ht;
+  Rebindable!(const DenseHashTable!(Value, Key, HashFcn, ExtractKey, SetKey, EqualKey)) _ht;
   Value[] _data;
 }
