@@ -68,8 +68,9 @@ import std.exception;
 // 3. The values must be 32-bit non-negative integers (only).
 class IdSetLexicon {
 public:
-  this() {}
-  ~this() {}
+  this() {
+    _idSets = new SequenceLexicon!int();
+  }
 
   // IdSetLexicon is movable and copyable.
   this(IdSetLexicon x) {
@@ -89,7 +90,7 @@ public:
   //
   // REQUIRES: All values in [begin, end) are non-negative 32-bit integers.
   int add(ForwardRange)(ForwardRange fr)
-  if (isForwardRange!ForwardRange && is(typeof(range.front) : int)) {
+  if (isForwardRange!ForwardRange && is(typeof(fr.front) : int)) {
     _tmp.length = 0;
     foreach (v; fr) {
       enforce(v >= 0);
