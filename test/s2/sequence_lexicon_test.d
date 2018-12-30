@@ -47,60 +47,20 @@ alias Seq = long[];
   expectSequence(lex.sequence(4), [0x7fffffffffffffffL]);
 }
 
-/+
-TEST(SequenceLexicon, Clear) {
-  SequenceLexicon<int64> lex;
-  EXPECT_EQ(0, lex.Add(Seq{1}));
-  EXPECT_EQ(1, lex.Add(Seq{2}));
-  lex.Clear();
-  EXPECT_EQ(0, lex.Add(Seq{2}));
-  EXPECT_EQ(1, lex.Add(Seq{1}));
+@("SequenceLexicon.Clear") unittest {
+  auto lex = new SequenceLexicon!long();
+  Assert.equal(lex.add([1L]), 0);
+  Assert.equal(lex.add([2L]), 1);
+  lex.clear();
+  Assert.equal(lex.add([2L]), 0);
+  Assert.equal(lex.add([1L]), 1);
 }
 
-TEST(SequenceLexicon, CopyConstructor) {
-  auto original = make_unique<SequenceLexicon<int64>>();
-  EXPECT_EQ(0, original->Add(Seq{1, 2}));
-  auto lex = *original;
-  original.reset(nullptr);
-  EXPECT_EQ(1, lex.Add(Seq{3, 4}));
-  ExpectSequence(Seq{1, 2}, lex.sequence(0));
-  ExpectSequence(Seq{3, 4}, lex.sequence(1));
+@("SequenceLexicon.CopyConstructor") unittest {
+  auto original = new SequenceLexicon!long();
+  Assert.equal(original.add([1L, 2L]), 0);
+  auto lex = new SequenceLexicon!long(original);
+  Assert.equal(lex.add([3L, 4L]), 1);
+  expectSequence(lex.sequence(0), [1L, 2L]);
+  expectSequence(lex.sequence(1), [3L, 4L]);
 }
-
-TEST(SequenceLexicon, MoveConstructor) {
-  auto original = make_unique<SequenceLexicon<int64>>();
-  EXPECT_EQ(0, original->Add(Seq{1, 2}));
-  auto lex = std::move(*original);
-  original.reset(nullptr);
-  EXPECT_EQ(1, lex.Add(Seq{3, 4}));
-  ExpectSequence(Seq{1, 2}, lex.sequence(0));
-  ExpectSequence(Seq{3, 4}, lex.sequence(1));
-}
-
-TEST(SequenceLexicon, CopyAssignmentOperator) {
-  auto original = make_unique<SequenceLexicon<int64>>();
-  EXPECT_EQ(0, original->Add(Seq{1, 2}));
-  SequenceLexicon<int64> lex;
-  EXPECT_EQ(0, lex.Add(Seq{3, 4}));
-  EXPECT_EQ(1, lex.Add(Seq{5, 6}));
-  lex = *original;
-  original.reset(nullptr);
-  lex = lex;  // Tests self-assignment.
-  EXPECT_EQ(1, lex.Add(Seq{7, 8}));
-  ExpectSequence(Seq{1, 2}, lex.sequence(0));
-  ExpectSequence(Seq{7, 8}, lex.sequence(1));
-}
-
-TEST(SequenceLexicon, MoveAssignmentOperator) {
-  auto original = make_unique<SequenceLexicon<int64>>();
-  EXPECT_EQ(0, original->Add(Seq{1, 2}));
-  SequenceLexicon<int64> lex;
-  EXPECT_EQ(0, lex.Add(Seq{3, 4}));
-  EXPECT_EQ(1, lex.Add(Seq{5, 6}));
-  lex = std::move(*original);
-  original.reset(nullptr);
-  EXPECT_EQ(1, lex.Add(Seq{7, 8}));
-  ExpectSequence(Seq{1, 2}, lex.sequence(0));
-  ExpectSequence(Seq{7, 8}, lex.sequence(1));
-}
-+/
