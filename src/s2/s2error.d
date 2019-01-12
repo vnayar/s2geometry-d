@@ -20,11 +20,13 @@ module s2.s2error;
 
 import std.format : format;
 
-// S2Error is a simple class consisting of an error code and a human-readable
-// error message.
-
-// This class is intended to be copied by value as desired.  It uses
-// the default copy constructor and assignment operator.
+/**
+ * S2Error is a simple class consisting of an error code and a human-readable
+ * error message.
+ *
+ * This class is intended to be copied by value as desired.  It uses
+ * the default copy constructor and assignment operator.
+ */
 struct S2Error {
 private:
   Code _code = Code.OK;

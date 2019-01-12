@@ -27,9 +27,6 @@ void expectIdSet(in int[] actual, in int[] expected) {
   Assert.equal(actual, expected);
 }
 
-//using IdSet = IdSetLexicon::IdSet;
-//using Seq = std::vector<int32>;
-
 @("IdSetLexicon.EmptySet") unittest {
   auto lexicon = new IdSetLexicon();
   expectIdSet(lexicon.idSet(lexicon.add(new int[0])), []);

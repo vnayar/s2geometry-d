@@ -31,6 +31,7 @@ import s2.s2wedge_relations : getWedgeRelation, WedgeRelation;
 import s2.shapeutil.range_iterator;
 import s2.shapeutil.shape_edge;
 
+
 /**
  * A function that is called with pairs of crossing edges.  The function may
  * return false in order to request that the algorithm should be terminated,
