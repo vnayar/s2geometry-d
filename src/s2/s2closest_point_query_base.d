@@ -92,7 +92,7 @@ public:
     return _maxDistance;
   }
 
-  void set_max_distance(Distance max_distance) {
+  void setMaxDistance(Distance max_distance) {
     _maxDistance = max_distance;
   }
 
@@ -156,6 +156,15 @@ public:
 
   void set_use_brute_force(bool use_brute_force) {
     _useBruteForce = use_brute_force;
+  }
+
+  ThisT dup(this ThisT)() {
+    ThisT d = new ThisT();
+    d._maxDistance = _maxDistance;
+    d._maxError = _maxError;
+    d._region = _region;
+    d._maxPoints = _maxPoints;
+    d._useBruteForce = _useBruteForce;
   }
 
 private:
