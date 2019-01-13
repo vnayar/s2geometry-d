@@ -20,6 +20,7 @@
 
 module s2.s2closest_point_query_base;
 
+import s2.logger;
 import s2.s1chord_angle;
 import s2.s2cap;
 import s2.s2cell;
@@ -27,8 +28,17 @@ import s2.s2cell_id;
 import s2.s2cell_union;
 import s2.s2distance_target;
 import s2.s2edge_distances;
+import s2.s2point;
 import s2.s2point_index;
+import s2.s2region;
 import s2.s2region_coverer;
+
+import std.algorithm : reverse, uniq;
+import std.container.rbtree;
+import std.exception;
+import std.range;
+import std.typecons : Rebindable;
+
 
 /**
  * Options that control the set of points returned.  Note that by default
@@ -107,7 +117,7 @@ public:
    * DEFAULT: Distance::Delta::Zero()
    */
   Delta maxError() const {
-    return _maxCrror;
+    return _maxError;
   }
 
   void setMaxError(Delta max_error) {
@@ -125,11 +135,11 @@ public:
    * both methods, e.g. to set a maximum distance and also require that points
    * lie within a given rectangle.
    */
-  const(S2Region) region() const {
+  inout(S2Region) region() inout {
     return _region;
   }
 
-  void setRegion(const(S2Region) region) {
+  void setRegion(S2Region region) {
     _region = region;
   }
 
@@ -151,7 +161,7 @@ public:
 private:
   Distance _maxDistance = Distance.infinity();
   Delta _maxError = Delta.zero();
-  Rebindable!(const(S2Region)) _region = null;
+  S2Region _region = null;
   int _maxPoints = MAX_MAX_POINTS;
   bool _useBruteForce = false;
 }
@@ -226,7 +236,7 @@ class S2ClosestPointQueryBase(Distance, Data) {
 public:
   alias Delta = Distance.Delta;
   alias Index = S2PointIndex!Data;
-  alias PointData = Index!PointData;
+  alias PointData = Index.PointData;
   alias Options = S2ClosestPointQueryBaseOptions!Distance;
 
   /**
@@ -243,17 +253,8 @@ public:
   /// Each "Result" object represents a closest point.
   struct Result {
   public:
-    /**
-     * The default constructor creates an "empty" result, with a distance() of
-     * Infinity() and non-dereferencable point() and data() values.
-     */
-    this() {
-      _distance = Distance.infinity();
-      _pointData = null;
-    }
-
     /// Constructs a Result object for the given point.
-    this(Distance distance, const(PointData) point_data) {
+    this(Distance distance, PointData point_data) {
       _distance = distance;
       _pointData = point_data;
     }
@@ -265,7 +266,7 @@ public:
      * specified criteria.)
      */
     bool isEmpty() const {
-      return _pointData == null;
+      return _pointData is null;
     }
 
     /// The distance from the target to this point.
@@ -285,12 +286,11 @@ public:
 
     /// Returns true if two Result objects are identical.
     bool opEquals(in Result y) const {
-      if (y is null) return false;
       return _distance == y._distance && _pointData == y._pointData;
     }
 
     /// Compares two Result objects first by distance, then by point_data().
-    int opCmp(const Result y,) const {
+    int opCmp(in Result y) const {
       if (_distance < y._distance) return -1;
       if (_distance > y._distance) return 1;
       if (_pointData < y._pointData) return -1;
@@ -310,7 +310,9 @@ public:
   enum int MIN_POINTS_TO_ENQUEUE = 13;
 
   /// Default constructor; requires initialize() to be called.
-  this() {}
+  this() {
+    _resultSet = new RedBlackTree!Result();
+  }
 
   /// Convenience constructor that calls Init().
   this(Index index) {
@@ -327,42 +329,48 @@ public:
     reInitialize();
   }
 
-  // Reinitializes the query.  This method must be called whenever the
-  // underlying index is modified.
+  /**
+   * Reinitializes the query.  This method must be called whenever the
+   * underlying index is modified.
+   */
   void reInitialize() {
     _iter.initialize(_index);
-    _indexCovering.clear();
+    _indexCovering.length = 0;
   }
 
-  // Return a reference to the underlying S2PointIndex.
+  /// Return a reference to the underlying S2PointIndex.
   const(Index) index() const {
     return _index;
   }
 
-  // Returns the closest points to the given target that satisfy the given
-  // options.  This method may be called multiple times.
-  Result[] findClosestPoints(Target target, const(Options) options) {
+  /**
+   * Returns the closest points to the given target that satisfy the given
+   * options.  This method may be called multiple times.
+   */
+  Result[] findClosestPoints(Target target, Options options) {
     Result[] results;
     findClosestPoints(target, options, results);
     return results;
   }
 
-  // This version can be more efficient when this method is called many times,
-  // since it does not require allocating a new vector on each call.
-  void findClosestPoints(Target target, const(Options) options, ref Result[] results) {
+  /**
+   * This version can be more efficient when this method is called many times,
+   * since it does not require allocating a new vector on each call.
+   */
+  void findClosestPoints(Target target, Options options, ref Result[] results) {
     findClosestPointsInternal(target, options);
-    results.clear();
+    results.length = 0;
     if (options.maxPoints() == 1) {
       if (!_resultSingleton.isEmpty()) {
         results ~= _resultSingleton;
       }
     } else if (options.maxPoints() == Options.MAX_MAX_POINTS) {
       sort(_resultVector);
-      results = _resultVector.unique().array;
-      _resultVector.clear();
+      results = _resultVector.uniq.array;
+      _resultVector.length = 0;
     } else {
       results.reserve(_resultSet.length);
-      for (; !_resultSet.empty(); _resultSet.pop()) {
+      for (; !_resultSet.empty(); _resultSet.removeBack()) {
         results ~= _resultSet.back();  // The highest-priority result.
       }
       // The priority queue returns the largest elements first.
@@ -378,7 +386,7 @@ public:
    *
    * REQUIRES: options.max_points() == 1
    */
-  Result findClosestPoint(Target target, const(Options) options)
+  Result findClosestPoint(Target target, Options options)
   in {
     assert(options.maxPoints() == 1);
   } body {
@@ -389,11 +397,11 @@ public:
 private:
   alias Iterator = Index.Iterator;
 
-  const(Options) options() const {
+  inout(Options) options() inout {
     return _options;
   }
 
-  void findClosestPointsInternal(Target target, const(Options) options) {
+  void findClosestPointsInternal(Target target, Options options) {
     _target = target;
     _options = options;
 
@@ -435,7 +443,7 @@ private:
       // We need to copy the top entry before removing it, and we need to remove
       // it before adding any new entries to the queue.
       QueueEntry entry = _queue.back();
-      _queue.popBack();
+      _queue.removeBack();
       // Work around weird parse error in gcc 4.9 by using a local variable for
       // entry.distance.
       Distance distance = entry.distance;
@@ -490,7 +498,7 @@ private:
     // We start with a covering of the set of indexed points, then intersect it
     // with the given region (if any) and maximum search radius disc (if any).
     if (_indexCovering.empty()) initCovering();
-    const(S2CellId[]) initial_cells = _indexCovering;
+    const(S2CellId)[] initial_cells = _indexCovering;
     if (options().region()) {
       auto coverer = new S2RegionCoverer();
       coverer.mutableOptions().setMaxCells(4);
@@ -515,7 +523,6 @@ private:
     }
   }
 
-  // TODO: Resume here.
   void initCovering() {
     // Compute the "index covering", which is a small number of S2CellIds that
     // cover the indexed points.  There are two cases:
@@ -535,7 +542,7 @@ private:
     _indexCovering.reserve(6);
     _iter.finish();
     if (!_iter.prev()) return;  // Empty index.
-    S2CellId index_last_id = iter_.id();
+    S2CellId index_last_id = _iter.id();
     _iter.begin();
     if (_iter.id() != index_last_id) {
       // The index has at least two cells.  Choose a level such that the entire
@@ -574,11 +581,10 @@ private:
     _indexCovering ~= first_id.parent(level);
   }
 
-  void maybeAddResult(PointData[] point_data) {
+  void maybeAddResult(PointData point_data) {
     Distance distance = _distanceLimit;
     if (!_target.updateMinDistance(point_data.point(), distance)) return;
-
-    const(S2Region) region = options().region();
+    S2Region region = options().region();
     if (region && !region.contains(point_data.point())) return;
 
     auto result = Result(distance, point_data);
@@ -594,7 +600,7 @@ private:
       // case where max_points() == 1, see InitQueue for details), so we don't
       // need to worry about possibly adding a duplicate entry here.
       if (_resultSet.length >= options().maxPoints()) {
-        _resultSet.popBack();  // Replace the furthest result point.
+        _resultSet.removeBack();  // Replace the furthest result point.
       }
       _resultSet.insert(result);
       if (_resultSet.length >= options().maxPoints()) {
@@ -631,67 +637,75 @@ private:
         // We check "region_" second because it may be relatively expensive.
         if (_target.updateMinDistance(cell, distance)
             && !options().region() || options().region().mayIntersect(cell)) {
-          _queue ~= QueueEntry(distance, id);
+          _queue.insert(QueueEntry(distance, id));
         }
         return true;  // Seek to next child.
       }
       _tmpPointData[num_points++] = iter.pointData();
     }
     // There were few enough points that we might as well process them now.
-    for (int i = 0; i < numPoints; ++i) {
+    for (int i = 0; i < num_points; ++i) {
       maybeAddResult(_tmpPointData[i]);
     }
     return false;  // No need to seek to next child.
   }
 
-  // The maximum number of points to process without subdividing further.
+  /// The maximum number of points to process without subdividing further.
   enum int MAX_LEAF_POINTS = 12;
 
   Index _index;
-  const(Options) _options;
+  Options _options;
   Target _target;
 
-  // For the optimized algorihm we precompute the top-level S2CellIds that
-  // will be added to the priority queue.  There can be at most 6 of these
-  // cells.  Essentially this is just a covering of the indexed points.
+  /**
+   * For the optimized algorihm we precompute the top-level S2CellIds that
+   * will be added to the priority queue.  There can be at most 6 of these
+   * cells.  Essentially this is just a covering of the indexed points.
+   */
   S2CellId[] _indexCovering;
 
-  // The distance beyond which we can safely ignore further candidate points.
-  // (Candidates that are exactly at the limit are ignored; this is more
-  // efficient for UpdateMinDistance() and should not affect clients since
-  // distance measurements have a small amount of error anyway.)
-  //
-  // Initially this is the same as the maximum distance specified by the user,
-  // but it can also be updated by the algorithm (see MaybeAddResult).
+  /**
+   * The distance beyond which we can safely ignore further candidate points.
+   * (Candidates that are exactly at the limit are ignored; this is more
+   * efficient for UpdateMinDistance() and should not affect clients since
+   * distance measurements have a small amount of error anyway.)
+   *
+   * Initially this is the same as the maximum distance specified by the user,
+   * but it can also be updated by the algorithm (see MaybeAddResult).
+   */
   Distance _distanceLimit;
 
-  // The current result set is stored in one of three ways:
-  //
-  //  - If max_points() == 1, the best result is kept in result_singleton_.
-  //
-  //  - If max_points() == "infinity", results are appended to result_vector_
-  //    and sorted/uniqued at the end.
-  //
-  //  - Otherwise results are kept in a priority queue so that we can
-  //    progressively reduce the distance limit once max_points() results have
-  //    been found.
+  /**
+   * The current result set is stored in one of three ways:
+   *
+   *  - If max_points() == 1, the best result is kept in result_singleton_.
+   *
+   *  - If max_points() == "infinity", results are appended to result_vector_
+   *    and sorted/uniqued at the end.
+   *
+   *  - Otherwise results are kept in a priority queue so that we can
+   *    progressively reduce the distance limit once max_points() results have
+   *    been found.
+   */
   Result _resultSingleton;
   Result[] _resultVector;
 
   /// Used as a priority queue for the results.
   RedBlackTree!Result _resultSet;
 
-  // The algorithm maintains a priority queue of unprocessed S2CellIds, sorted
-  // in increasing order of distance from the target point.
+  /**
+   * The algorithm maintains a priority queue of unprocessed S2CellIds, sorted
+   * in increasing order of distance from the target point.
+   */
   struct QueueEntry {
-    // A lower bound on the distance from the target point to any point
-    // within "id".  This is the key of the priority queue.
+    /// A lower bound on the distance from the target point to any point
+    /// within "id".  This is the key of the priority queue.
     Distance distance;
 
-    // The cell being queued.
+    /// The cell being queued.
     S2CellId id;
 
-    int opCmp(in QueueEntry o) const {
+    int opCmp(in QueueEntry other) const {
       if (distance < other.distance)
         return -1;
       else if (distance > other.distance)
@@ -700,7 +714,7 @@ private:
     }
   }
 
-  using CellQueue = RedBlackTree!QueueEntry;
+  alias CellQueue = RedBlackTree!QueueEntry;
   CellQueue _queue;
 
   // Temporaries, defined here to avoid multiple allocations / initializations.

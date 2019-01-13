@@ -46,13 +46,13 @@ public:
 
   void add(in S2Point point, int data) {
     _index.add(point, data);
-    _contents.insert(PointData(point, data));
+    _contents.insert(new PointData(point, data));
   }
 
   void remove(in S2Point point, int data) {
     _index.remove(point, data);
     // If there are multiple copies, remove only one.
-    _contents.remove(PointData(point, data));
+    _contents.remove(new PointData(point, data));
   }
 
   void verify() {

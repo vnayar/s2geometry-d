@@ -79,7 +79,7 @@ class S2PointIndex(DataT) {
 public:
   // PointData is essentially std::pair with named fields.  It stores an
   // S2Point and its associated client data.
-  static struct PointData {
+  static class PointData {
   public:
 
     this(in S2Point point, in DataT data) {
@@ -95,17 +95,23 @@ public:
       return _data;
     }
 
-    bool opEquals(PointData other) const {
+    bool opEquals(in PointData other) const {
       return _point == other._point && _data == other._data;
     }
 
     // Not required by S2PointIndex but useful for tests.
-    int opCmp(PointData other) const {
+    int opCmp(in PointData other) const {
       if (_point < other._point) return -1;
       if (_point != other._point) return 1;
       if (_data < other._data) return -1;
       if (_data != other._data) return 1;
       return 0;
+    }
+
+    override
+    string toString() const {
+      import std.conv;
+      return "PointData[point=" ~ point.toString ~ ", data=" ~ to!string(data) ~ "]";
     }
 
   private:
@@ -125,10 +131,10 @@ public:
 
   // Adds the given point to the index.  Invalidates all iterators.
   void add(in S2Point point, in DataT data) {
-    add(PointData(point, data));
+    add(new PointData(point, data));
   }
 
-  void add(in PointData point_data) {
+  void add(PointData point_data) {
     auto id = S2CellId(point_data.point());
     _map.insert(id, point_data);
   }
@@ -137,7 +143,7 @@ public:
   // fields must match the point to be removed.  Returns false if the given
   // point was not present.  Invalidates all iterators.
   bool remove(in S2Point point, in DataT data) {
-    return remove(PointData(point, data));
+    return remove(new PointData(point, data));
   }
 
   bool remove(in PointData point_data) {
@@ -203,7 +209,7 @@ public:
 
     // The client-supplied data associated with the current index entry.
     // REQUIRES: !done()
-    const(DataT) data() const
+    inout(DataT) data() inout
     in {
       assert(!done());
     } body {
@@ -212,7 +218,7 @@ public:
 
 
     // The (S2Point, data) pair associated with the current index entry.
-    const(PointData) pointData() const
+    inout(PointData) pointData() inout
     in {
       assert(!done());
     } body {
