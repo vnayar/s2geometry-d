@@ -107,7 +107,7 @@ public:
 
   /// See S2ClosestPointQueryBaseOptions for documentation.
   // using Base::set_max_error;              // S1Chordangle version
-  void set_max_error(S1Angle max_error) {
+  void setMaxError(S1Angle max_error) {
     super.setMaxError(S1ChordAngle(max_error));
   }
 
@@ -314,18 +314,21 @@ public:
   alias CellTarget = S2ClosestPointQueryCellTarget;
   alias ShapeIndexTarget = S2ClosestPointQueryShapeIndexTarget;
 
+  /// Default constructor; requires initialize() to be called.
+  this() {
+    _base = new Base();
+  }
+
   /**
    * Convenience constructor that calls Init().  Options may be specified here
    * or changed at any time using the mutable_options() accessor method.
    */
-  this(Index index, in Options options) {
+  this(Index index, Options options = null) {
+    this();
     if (options is null)
       options = new Options();
     initialize(index, options);
   }
-
-  /// Default constructor; requires initialize() to be called.
-  this() {}
 
   /**
    * Initializes the query.  Options may be specified here or changed at any
@@ -388,9 +391,9 @@ public:
    * is_empty() == true is returned.
    */
   Result findClosestPoint(Target target) {
-    static assert(__traits(classInstanceSize, Options) <= 32, "Consider not copying Options here");
+    static assert(__traits(classInstanceSize, Options) <= 48, "Consider not copying Options here");
     Options tmp_options = _options.dup;
-    tmp_options.setMmaxPoints(1);
+    tmp_options.setMaxPoints(1);
     return _base.findClosestPoint(target, tmp_options);
   }
 
@@ -413,11 +416,11 @@ public:
    * threshold than it is to calculate the actual minimum distance.
    */
   bool isDistanceLess(Target target, S1ChordAngle limit) {
-    static assert(__traits(classInstanceSize, Options) <= 32, "Consider not copying Options here");
+    static assert(__traits(classInstanceSize, Options) <= 48, "Consider not copying Options here");
     Options tmp_options = _options.dup;
     tmp_options.setMaxPoints(1);
     tmp_options.setMaxDistance(limit);
-    tmp_options.setMaxError(S1ChordAngle.straight());
+    tmp_options.setMaxError(S1ChordAngle.straight().toS1Angle());
     return !_base.findClosestPoint(target, tmp_options).isEmpty();
   }
 
@@ -428,11 +431,11 @@ public:
    * is exactly equal to "limit".
    */
   bool isDistanceLessOrEqual(Target target, S1ChordAngle limit) {
-    static assert(__traits(classInstanceSize, Options) <= 32, "Consider not copying Options here");
+    static assert(__traits(classInstanceSize, Options) <= 48, "Consider not copying Options here");
     Options tmp_options = _options.dup;
     tmp_options.setMaxPoints(1);
     tmp_options.setInclusiveMaxDistance(limit);
-    tmp_options.setMaxError(S1ChordAngle.straight());
+    tmp_options.setMaxError(S1ChordAngle.straight().toS1Angle());
     return !_base.findClosestPoint(target, tmp_options).isEmpty();
   }
 
@@ -451,11 +454,11 @@ public:
    * are guaranteed to not intersect after snapping.
    */
   bool isConservativeDistanceLessOrEqual(Target target, S1ChordAngle limit) {
-    static_assert(sizeof(Options) <= 32, "Consider not copying Options here");
+    static assert(__traits(classInstanceSize, Options) <= 48, "Consider not copying Options here");
     Options tmp_options = _options;
     tmp_options.setMaxPoints(1);
     tmp_options.setConservativeMaxDistance(limit);
-    tmp_options.setMaxError(S1ChordAngle.straight());
+    tmp_options.setMaxError(S1ChordAngle.straight().toS1Angle());
     return !_base.findClosestPoint(target, tmp_options).isEmpty();
   }
 

@@ -33,8 +33,8 @@ import s2.s2point_index;
 import s2.s2region;
 import s2.s2region_coverer;
 
-import std.algorithm : reverse, uniq;
-import std.container.rbtree;
+import std.algorithm : isSorted, reverse, sort, uniq;
+import std.container.binaryheap;
 import std.exception;
 import std.range;
 import std.typecons : Rebindable;
@@ -154,7 +154,7 @@ public:
     return _useBruteForce;
   }
 
-  void set_use_brute_force(bool use_brute_force) {
+  void setUseBruteForce(bool use_brute_force) {
     _useBruteForce = use_brute_force;
   }
 
@@ -165,9 +165,21 @@ public:
     d._region = _region;
     d._maxPoints = _maxPoints;
     d._useBruteForce = _useBruteForce;
+    return d;
   }
 
-private:
+  override
+  string toString() const {
+    import std.conv;
+    return "S2ClosestPointQueryBaseOptions"
+        ~ "[ maxDistance=" ~ _maxDistance.to!string
+        ~ ", maxError=" ~ _maxError.to!string
+        ~ ", region=" ~ _region.to!string
+        ~ ", maxPoints=" ~ _maxPoints.to!string
+        ~ ", useBruteForce=" ~ _useBruteForce.to!string ~ " ]";
+  }
+
+protected:
   Distance _maxDistance = Distance.infinity();
   Delta _maxError = Delta.zero();
   S2Region _region = null;
@@ -320,7 +332,8 @@ public:
 
   /// Default constructor; requires initialize() to be called.
   this() {
-    _resultSet = new RedBlackTree!Result();
+    _queue = CellQueue(new QueueEntry[0]);
+    _resultSet = BinaryHeap!(Result[])(new Result[0]);
   }
 
   /// Convenience constructor that calls Init().
@@ -378,9 +391,9 @@ public:
       results = _resultVector.uniq.array;
       _resultVector.length = 0;
     } else {
-      results.reserve(_resultSet.length);
-      for (; !_resultSet.empty(); _resultSet.removeBack()) {
-        results ~= _resultSet.back();  // The highest-priority result.
+      results.reserve(_resultSet.length());
+      for (; !_resultSet.empty(); _resultSet.popFront()) {
+        results ~= _resultSet.front();  // The highest-priority result.
       }
       // The priority queue returns the largest elements first.
       reverse(results);
@@ -451,8 +464,8 @@ private:
     while (!_queue.empty()) {
       // We need to copy the top entry before removing it, and we need to remove
       // it before adding any new entries to the queue.
-      QueueEntry entry = _queue.back();
-      _queue.removeBack();
+      QueueEntry entry = _queue.front();
+      _queue.popFront();
       // Work around weird parse error in gcc 4.9 by using a local variable for
       // entry.distance.
       Distance distance = entry.distance;
@@ -608,12 +621,12 @@ private:
       // each candidate point is considered at most once (except for one special
       // case where max_points() == 1, see InitQueue for details), so we don't
       // need to worry about possibly adding a duplicate entry here.
-      if (_resultSet.length >= options().maxPoints()) {
-        _resultSet.removeBack();  // Replace the furthest result point.
+      if (_resultSet.length() >= options().maxPoints()) {
+        _resultSet.popFront();  // Replace the furthest result point.
       }
       _resultSet.insert(result);
-      if (_resultSet.length >= options().maxPoints()) {
-        _distanceLimit = _resultSet.back().distance() - options().maxError();
+      if (_resultSet.length() >= options().maxPoints()) {
+        _distanceLimit = _resultSet.front().distance() - options().maxError();
       }
     }
   }
@@ -627,7 +640,7 @@ private:
    * processed immediately, in which case "iter" is left positioned at the next
    * cell in S2CellId order.
    */
-  bool enqueueCell(S2CellId id, Iterator iter, bool seek) {
+  bool enqueueCell(S2CellId id, ref Iterator iter, bool seek) {
     if (seek) iter.seek(id.rangeMin());
     if (id.isLeaf()) {
       // Leaf cells can't be subdivided.
@@ -645,7 +658,7 @@ private:
         Distance distance = _distanceLimit;
         // We check "region_" second because it may be relatively expensive.
         if (_target.updateMinDistance(cell, distance)
-            && !options().region() || options().region().mayIntersect(cell)) {
+            && (!options().region() || options().region().mayIntersect(cell))) {
           _queue.insert(QueueEntry(distance, id));
         }
         return true;  // Seek to next child.
@@ -700,7 +713,7 @@ private:
   Result[] _resultVector;
 
   /// Used as a priority queue for the results.
-  RedBlackTree!Result _resultSet;
+  BinaryHeap!(Result[]) _resultSet;
 
   /**
    * The algorithm maintains a priority queue of unprocessed S2CellIds, sorted
@@ -714,16 +727,18 @@ private:
     /// The cell being queued.
     S2CellId id;
 
+    /// The priority queue returns the largest elements first, so we want the
+    /// "largest" entry to have the smallest distance.
     int opCmp(in QueueEntry other) const {
-      if (distance < other.distance)
+      if (distance > other.distance)
         return -1;
-      else if (distance > other.distance)
+      else if (distance < other.distance)
         return 1;
       return 0;
     }
   }
 
-  alias CellQueue = RedBlackTree!QueueEntry;
+  alias CellQueue = BinaryHeap!(QueueEntry[]);
   CellQueue _queue;
 
   // Temporaries, defined here to avoid multiple allocations / initializations.
