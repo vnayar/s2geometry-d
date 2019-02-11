@@ -23,49 +23,51 @@ import s2.sequence_lexicon;
 import std.range;
 import std.exception;
 
-// IdSetLexicon is a class for compactly representing sets of non-negative
-// integers such as array indices ("id sets").  It is especially suitable when
-// either (1) there are many duplicate sets, or (2) there are many singleton
-// or empty sets.  See also ValueLexicon and SequenceLexicon.
-//
-// Each distinct id set is mapped to a 32-bit integer.  Empty and singleton
-// sets take up no additional space whatsoever; the set itself is represented
-// by the unique id assigned to the set. Sets of size 2 or more occupy about
-// 11 bytes per set plus 4 bytes per element (as compared to 24 bytes per set
-// plus 4 bytes per element for std::vector).  Duplicate sets are
-// automatically eliminated.  Note also that id sets are referred to using
-// 32-bit integers rather than 64-bit pointers.
-//
-// This class is especially useful in conjunction with ValueLexicon<T>.  For
-// example, suppose that you want to label objects with a set of strings.  You
-// could use a ValueLexicon<string> to map the strings to "label ids" (32-bit
-// integers), and then use IdSetLexicon to map each set of labels to a "label
-// set id".  Each reference to that label set then takes up only 4 bytes.
-//
-// Example usage:
-//
-//   ValueLexicon<string> labels_;
-//   IdSetLexicon label_sets_;
-//
-//   int32 GetLabelSet(const vector<string>& label_strings) {
-//     vector<int32> label_ids;
-//     for (const auto& str : label_strings) {
-//       label_ids.push_back(labels_.Add(str));
-//     }
-//     return label_sets_.Add(label_ids);
-//   }
-//
-//   int label_set_id = GetLabelSet(...);
-//   for (auto id : label_sets_.id_set(label_set_id)) {
-//     LOG(INFO) << id;
-//   }
-//
-// This class is similar to SequenceLexicon, except:
-//
-// 1. Empty and singleton sets are represented implicitly; they use no space.
-// 2. Sets are represented rather than sequences; the ordering of values is
-//    not important and duplicates are removed.
-// 3. The values must be 32-bit non-negative integers (only).
+/**
+ * IdSetLexicon is a class for compactly representing sets of non-negative
+ * integers such as array indices ("id sets").  It is especially suitable when
+ * either (1) there are many duplicate sets, or (2) there are many singleton
+ * or empty sets.  See also ValueLexicon and SequenceLexicon.
+ *
+ * Each distinct id set is mapped to a 32-bit integer.  Empty and singleton
+ * sets take up no additional space whatsoever; the set itself is represented
+ * by the unique id assigned to the set. Sets of size 2 or more occupy about
+ * 11 bytes per set plus 4 bytes per element (as compared to 24 bytes per set
+ * plus 4 bytes per element for std::vector).  Duplicate sets are
+ * automatically eliminated.  Note also that id sets are referred to using
+ * 32-bit integers rather than 64-bit pointers.
+ *
+ * This class is especially useful in conjunction with ValueLexicon<T>.  For
+ * example, suppose that you want to label objects with a set of strings.  You
+ * could use a ValueLexicon<string> to map the strings to "label ids" (32-bit
+ * integers), and then use IdSetLexicon to map each set of labels to a "label
+ * set id".  Each reference to that label set then takes up only 4 bytes.
+ *
+ * Example usage:
+ *
+ *   ValueLexicon<string> labels_;
+ *   IdSetLexicon label_sets_;
+ *
+ *   int32 GetLabelSet(const vector<string>& label_strings) {
+ *     vector<int32> label_ids;
+ *     for (const auto& str : label_strings) {
+ *       label_ids.push_back(labels_.Add(str));
+ *     }
+ *     return label_sets_.Add(label_ids);
+ *   }
+ *
+ *   int label_set_id = GetLabelSet(...);
+ *   for (auto id : label_sets_.id_set(label_set_id)) {
+ *     LOG(INFO) << id;
+ *   }
+ *
+ * This class is similar to SequenceLexicon, except:
+ *
+ * 1. Empty and singleton sets are represented implicitly; they use no space.
+ * 2. Sets are represented rather than sequences; the ordering of values is
+ *    not important and duplicates are removed.
+ * 3. The values must be 32-bit non-negative integers (only).
+ */
 class IdSetLexicon {
 public:
   this() {
@@ -153,8 +155,10 @@ public:
   //   int32 singleton_id_;
   // }
 
+  alias IdSet = int[];
+
   // Return the set of integers corresponding to an id returned by Add().
-  const(int[]) idSet(int set_id) const {
+  const(IdSet) idSet(int set_id) const {
     if (set_id >= 0) {
       return [set_id];
     } else if (set_id == EMPTY_SET_ID) {
