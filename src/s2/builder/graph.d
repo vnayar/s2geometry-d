@@ -1420,7 +1420,7 @@ private:
       return _idSetLexicon.add(_tmpIds);
     }
 
-    GraphOptions _options;
+    const(GraphOptions) _options;
     Edge[] _edges;
     InputEdgeIdSetId[] _inputIds;
     IdSetLexicon _idSetLexicon;
