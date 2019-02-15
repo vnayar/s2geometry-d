@@ -72,8 +72,8 @@ import format = std.format;
  */
 struct S1Angle {
 private:
-  // The default constructor yields a zero angle.  This is useful for STL
-  // containers and class methods with output arguments.
+  /// The default constructor yields a zero angle.  This is useful for STL
+  /// containers and class methods with output arguments.
   double _radians = 0;
 
   this(double radians) {
@@ -84,8 +84,7 @@ public:
   static immutable double PI = math.PI;
   static immutable double PI_2 = math.PI_2;
 
-  // These methods construct S1Angle objects from their measure in radians
-  // or degrees.
+  /// These methods construct S1Angle objects from their measure in radians or degrees.
   static S1Angle fromRadians(double radians) {
     return S1Angle(radians);
   }

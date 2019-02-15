@@ -98,8 +98,8 @@ class GraphAppendingLayer : Layer {
 public:
   this(
       GraphOptions graph_options,
-      Graph[] graphs,
-      GraphClone[] clones) {
+      Graph[]* graphs,
+      GraphClone[]* clones) {
     _graphOptions = graph_options;
     _graphs = graphs;
     _clones = clones;
@@ -112,12 +112,12 @@ public:
 
   override
   void build(Graph g, ref S2Error error) {
-    _clones ~= new GraphClone(g);
-    _graphs ~= _clones.back().graph();
+    *_clones ~= new GraphClone(g);
+    *_graphs ~= (*_clones).back().graph();
   }
 
 private:
   GraphOptions _graphOptions;
-  Graph[] _graphs;
-  GraphClone[] _clones;
+  Graph[]* _graphs;
+  GraphClone[]* _clones;
 }

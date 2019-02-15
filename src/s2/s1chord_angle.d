@@ -57,8 +57,8 @@ private:
   double _length2 = 0;
 
 public:
-  // Construct the S1ChordAngle corresponding to the distance between the two
-  // given points.  The points must be unit length.
+  /// Construct the S1ChordAngle corresponding to the distance between the two
+  /// given points.  The points must be unit length.
   this(in S2Point x, in S2Point y)
   in {
     assert(s2pointutil.isUnitLength(x));
@@ -75,18 +75,20 @@ public:
     _length2 = chordAngle.length2();
   }
 
-  // Conversion from an S1Angle.  Angles outside the range [0, Pi] are handled
-  // as follows: Infinity() is mapped to Infinity(), negative angles are
-  // mapped to Negative(), and finite angles larger than Pi are mapped to
-  // Straight().
-  //
-  // Note that this operation is relatively expensive and should be avoided.
-  // To use S1ChordAngle effectively, you should structure your code so that
-  // input arguments are converted to S1ChordAngles at the beginning of your
-  // algorithm, and results are converted back to S1Angles only at the end.
+  /**
+   * Conversion from an S1Angle.  Angles outside the range [0, Pi] are handled
+   * as follows: Infinity() is mapped to Infinity(), negative angles are
+   * mapped to Negative(), and finite angles larger than Pi are mapped to
+   * Straight().
+   *
+   * Note that this operation is relatively expensive and should be avoided.
+   * To use S1ChordAngle effectively, you should structure your code so that
+   * input arguments are converted to S1ChordAngles at the beginning of your
+   * algorithm, and results are converted back to S1Angles only at the end.
+   */
   this(in S1Angle angle)
   out {
-    assert(isValid());
+    assert(isValid(), toString() ~ " is invalid.");
   } body {
     if (angle.radians() < 0) {
       this = negative();
@@ -94,43 +96,50 @@ public:
       this = infinity();
     } else {
       // The chord length is 2 * sin(angle / 2).
-      double length = 2 * math.sin(0.5 * algorithm.min(math.PI, angle.radians()));
+          algorithm.min(math.PI, angle.radians()));
+      double length = 2 * math.sin(0.5 * algorithm.min(
+              cast(double) math.PI,
+              math.isFinite(angle.radians()) ? angle.radians() : double.max));
       _length2 = length * length;
     }
   }
 
 
-  // Return the zero chord angle.
+  /// Return the zero chord angle.
   static S1ChordAngle zero() {
     return S1ChordAngle(0);
   }
 
-  // Return a chord angle of 90 degrees (a "right angle").
+  /// Return a chord angle of 90 degrees (a "right angle").
   static S1ChordAngle right() {
     return S1ChordAngle(2);
   }
 
-  // Return a chord angle of 180 degrees (a "straight angle").  This is the
-  // maximum finite chord angle.
+  /// Return a chord angle of 180 degrees (a "straight angle").  This is the
+  /// maximum finite chord angle.
   static S1ChordAngle straight() {
     return S1ChordAngle(4);
   }
 
-  // Return a chord angle larger than any finite chord angle.  The only valid
-  // operations on Infinity() are comparisons, S1Angle conversions, and
-  // Successor() / Predecessor().
+  /**
+   * Return a chord angle larger than any finite chord angle.  The only valid
+   * operations on Infinity() are comparisons, S1Angle conversions, and
+   * Successor() / Predecessor().
+   */
   static S1ChordAngle infinity() {
     return S1ChordAngle(double.infinity);
   }
 
-  // Return a chord angle smaller than Zero().  The only valid operations on
-  // Negative() are comparisons, S1Angle conversions, and Successor() /
-  // Predecessor().
+  /**
+   * Return a chord angle smaller than Zero().  The only valid operations on
+   * Negative() are comparisons, S1Angle conversions, and Successor() /
+   * Predecessor().
+   */
   static S1ChordAngle negative() {
     return S1ChordAngle(-1);
   }
 
-  // Convenience methods implemented by converting from an S1Angle.
+  /// Convenience methods implemented by converting from an S1Angle.
   static S1ChordAngle fromRadians(double radians) {
     return S1ChordAngle(S1Angle.fromRadians(radians));
   }
@@ -151,30 +160,36 @@ public:
     return S1ChordAngle(S1Angle.fromE7(e7));
   }
 
-  // Construct an S1ChordAngle that is an upper bound on the given S1Angle,
-  // i.e. such that FastUpperBoundFrom(x).ToAngle() >= x.  Unlike the S1Angle
-  // constructor above, this method is very fast, and the bound is accurate to
-  // within 1% for distances up to about 3100km on the Earth's surface.
+  /**
+   * Construct an S1ChordAngle that is an upper bound on the given S1Angle,
+   * i.e. such that FastUpperBoundFrom(x).ToAngle() >= x.  Unlike the S1Angle
+   * constructor above, this method is very fast, and the bound is accurate to
+   * within 1% for distances up to about 3100km on the Earth's surface.
+   */
   static S1ChordAngle fastUpperBoundFrom(in S1Angle angle) {
     // This method uses the distance along the surface of the sphere as an upper
     // bound on the distance through the sphere's interior.
     return S1ChordAngle.fromLength2(angle.radians() * angle.radians());
   }
 
-  // Construct an S1ChordAngle from the squared chord length.  Note that the
-  // argument is automatically clamped to a maximum of 4.0 to handle possible
-  // roundoff errors.  The argument must be non-negative.
+  /**
+   * Construct an S1ChordAngle from the squared chord length.  Note that the
+   * argument is automatically clamped to a maximum of 4.0 to handle possible
+   * roundoff errors.  The argument must be non-negative.
+   */
   static S1ChordAngle fromLength2(double length2) {
     return S1ChordAngle(algorithm.min(4.0, length2));
   }
 
-  // Converts to an S1Angle.
-  //
-  // Infinity() is converted to S1Angle::Infinity(), and Negative() is
-  // converted to an unspecified negative S1Angle.
-  //
-  // Note that the conversion uses trigonometric functions and therefore
-  // should be avoided in inner loops.
+  /**
+   * Converts to an S1Angle.
+   *
+   * Infinity() is converted to S1Angle::Infinity(), and Negative() is
+   * converted to an unspecified negative S1Angle.
+   *
+   * Note that the conversion uses trigonometric functions and therefore
+   * should be avoided in inner loops.
+   */
   S1Angle toS1Angle() const {
     if (isNegative()) {
       return S1Angle.fromRadians(-1);
@@ -185,10 +200,12 @@ public:
     return S1Angle.fromRadians(2 * math.asin(0.5 * math.sqrt(_length2)));
   }
 
-  // Convenience methods implemented by calling ToAngle() first.  Note that
-  // because of the S1Angle conversion these methods are relatively expensive
-  // (despite their lowercase names), so the results should be cached if they
-  // are needed inside loops.
+  /**
+   * Convenience methods implemented by calling ToAngle() first.  Note that
+   * because of the S1Angle conversion these methods are relatively expensive
+   * (despite their lowercase names), so the results should be cached if they
+   * are needed inside loops.
+   */
   double radians() const {
     return toS1Angle().radians();
   }
@@ -224,7 +241,7 @@ public:
     return length2() < x.length2() ? -1 : 1;
   }
 
-  // Comparison predicates.
+  /// Comparison predicates.
   bool isZero() const {
     return _length2 == 0;
   }
@@ -238,17 +255,19 @@ public:
     return _length2 == double.infinity;
   }
 
-  // Negative or infinity.
+  /// Negative or infinity.
   bool isSpecial() const {
     return isNegative() || isInfinity();
   }
 
-  // Only addition and subtraction of S1ChordAngles is supported.  These
-  // methods add or subtract the corresponding S1Angles, and clamp the result
-  // to the range [0, Pi].  Both arguments must be non-negative and
-  // non-infinite.
-  //
-  // REQUIRES: !a.is_special() && !b.is_special()
+  /**
+   * Only addition and subtraction of S1ChordAngles is supported.  These
+   * methods add or subtract the corresponding S1Angles, and clamp the result
+   * to the range [0, Pi].  Both arguments must be non-negative and
+   * non-infinite.
+   *
+   * REQUIRES: !a.is_special() && !b.is_special()
+   */
   S1ChordAngle opBinary(string op)(S1ChordAngle b) const
   if (op == "+")
   in {
@@ -306,8 +325,8 @@ public:
     return this = mixin("this " ~ op ~ "a");
   }
 
-  // Trigonmetric functions.  It is more accurate and efficient to call these
-  // rather than first converting to an S1Angle.
+  /// Trigonmetric functions.  It is more accurate and efficient to call these
+  /// rather than first converting to an S1Angle.
   double sin() const {
     return math.sqrt(sin2());
   }
@@ -324,7 +343,7 @@ public:
     return sin() / cos();
   }
 
-  // Returns sin(a)**2, but computed more efficiently.
+  /// Returns sin(a)**2, but computed more efficiently.
   double sin2() const
   in {
     assert(!isSpecial());
@@ -338,26 +357,28 @@ public:
   }
 
 
-  // The squared length of the chord.  (Most clients will not need this.)
+  /// The squared length of the chord.  (Most clients will not need this.)
   @property
   double length2() const {
     return _length2;
   }
 
-  // Returns the smallest representable S1ChordAngle larger than this object.
-  // This can be used to convert a "<" comparison to a "<=" comparison.  For
-  // example:
-  //
-  //   S2ClosestEdgeQuery query(...);
-  //   S1ChordAngle limit = ...;
-  //   if (query.IsDistanceLess(target, limit.Successor())) {
-  //     // Distance to "target" is less than or equal to "limit".
-  //   }
-  //
-  // Note the following special cases:
-  //   Negative().Successor() == Zero()
-  //   Straight().Successor() == Infinity()
-  //   Infinity().Successor() == Infinity()
+  /**
+   * Returns the smallest representable S1ChordAngle larger than this object.
+   * This can be used to convert a "<" comparison to a "<=" comparison.  For
+   * example:
+   *
+   *   S2ClosestEdgeQuery query(...);
+   *   S1ChordAngle limit = ...;
+   *   if (query.IsDistanceLess(target, limit.Successor())) {
+   *     // Distance to "target" is less than or equal to "limit".
+   *   }
+   *
+   * Note the following special cases:
+   *   Negative().Successor() == Zero()
+   *   Straight().Successor() == Infinity()
+   *   Infinity().Successor() == Infinity()
+   */
   S1ChordAngle successor() const {
     if (_length2 >= MAX_LENGTH2) {
       return infinity();
@@ -368,13 +389,15 @@ public:
     return S1ChordAngle(math.nextafter(_length2, 10.0));
   }
 
-  // Like Successor(), but returns the largest representable S1ChordAngle less
-  // than this object.
-  //
-  // Note the following special cases:
-  //   Infinity().Predecessor() == Straight()
-  //   Zero().Predecessor() == Negative()
-  //   Negative().Predecessor() == Negative()
+  /**
+   * Like Successor(), but returns the largest representable S1ChordAngle less
+   * than this object.
+   *
+   * Note the following special cases:
+   *   Infinity().Predecessor() == Straight()
+   *   Zero().Predecessor() == Negative()
+   *   Negative().Predecessor() == Negative()
+   */
   S1ChordAngle predecessor() const {
     if (_length2 <= 0.0) {
       return negative();
@@ -386,11 +409,13 @@ public:
   }
 
 
-  // Returns a new S1ChordAngle that has been adjusted by the given error
-  // bound (which can be positive or negative).  "error" should be the value
-  // returned by one of the error bound methods below.  For example:
-  //    S1ChordAngle a(x, y);
-  //    S1ChordAngle a1 = a.PlusError(a.GetS2PointConstructorMaxError());
+  /**
+   * Returns a new S1ChordAngle that has been adjusted by the given error
+   * bound (which can be positive or negative).  "error" should be the value
+   * returned by one of the error bound methods below.  For example:
+   *    S1ChordAngle a(x, y);
+   *    S1ChordAngle a1 = a.PlusError(a.GetS2PointConstructorMaxError());
+   */
   S1ChordAngle plusError(double error) const {
     // If angle is Negative() or Infinity(), don't change it.
     // Otherwise clamp it to the valid range.
@@ -400,11 +425,13 @@ public:
     return S1ChordAngle(algorithm.max(0.0, algorithm.min(MAX_LENGTH2, _length2 + error)));
   }
 
-  // Return the maximum error in length2() for the S1ChordAngle(x, y)
-  // constructor, assuming that "x" and "y" are normalized to within the
-  // bounds guaranteed by S2Point::Normalize().  (The error is defined with
-  // respect to the true distance after the points are projected to lie
-  // exactly on the sphere.)
+  /**
+   * Return the maximum error in length2() for the S1ChordAngle(x, y)
+   * constructor, assuming that "x" and "y" are normalized to within the
+   * bounds guaranteed by S2Point::Normalize().  (The error is defined with
+   * respect to the true distance after the points are projected to lie
+   * exactly on the sphere.)
+   */
   double getS2PointConstructorMaxError() const {
     // There is a relative error of 2.5 * DBL_EPSILON when computing the squared
     // distance, plus a relative error of 2 * DBL_EPSILON and an absolute error
@@ -414,15 +441,15 @@ public:
     return 4.5 * double.epsilon * _length2 + 16 * double.epsilon * double.epsilon;
   }
 
-  // Return the maximum error in length2() for the S1Angle constructor.
+  /// Return the maximum error in length2() for the S1Angle constructor.
   double getS1AngleConstructorMaxError() const {
     // Assuming that an accurate math library is being used, the sin() call and
     // the multiply each have a relative error of 0.5 * DBL_EPSILON.
     return double.epsilon * _length2;
   }
 
-  // Return true if the internal representation is valid.  Negative() and
-  // Infinity() are both considered valid.
+  /// Return true if the internal representation is valid.  Negative() and
+  /// Infinity() are both considered valid.
   bool isValid() const {
     return (_length2 >= 0 && _length2 <= MAX_LENGTH2) || isSpecial();
   }

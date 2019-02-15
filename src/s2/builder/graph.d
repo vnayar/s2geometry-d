@@ -139,7 +139,7 @@ public:
     _inputEdgeIdSetLexicon = input_edge_id_set_lexicon;
     _labelSetIds = label_set_ids;
     _labelSetLexicon = label_set_lexicon;
-    _isFullPolygonPredicate = isFullPolygonPredicate;
+    _isFullPolygonPredicate = is_full_polygon_predicate;
     debug enforce(isSorted(edges));
   }
 
@@ -481,7 +481,7 @@ public:
    * siblings.  This is because only the original edge of the sibling pair has
    * labels; the automatically generated sibling edge does not.
    */
-  class LabelFetcher {
+  static class LabelFetcher {
   public:
     /**
      * Prepares to fetch labels associated with the given edge type.  For

@@ -317,9 +317,15 @@ public:
 
     // Returns a deep copy of this SnapFunction.
     abstract SnapFunction clone() const;
+
+    override
+    string toString() const {
+      import std.conv;
+      return "SnapFunction[]";
+    }
   }
 
-  class Options {
+  static class Options {
   public:
     this() {
       _snapFunction = new IdentitySnapFunction(S1Angle.zero());
@@ -504,7 +510,9 @@ public:
   alias IsFullPolygonPredicate = bool function(in Graph g, out S2Error error);
 
   /// Default constructor; requires Init() to be called.
-  this() { }
+  this() {
+    _labelSetLexicon = new IdSetLexicon();
+  }
 
   /**
    * Convenience constructor that calls Init().  Note that to use the default
@@ -513,11 +521,15 @@ public:
    *   S2Builder builder((S2Builder::Options()));
    */
   this(Options options) {
+    this();
     initialize(options);
   }
 
   /// Initializes an S2Builder with the given options.
   void initialize(Options options) {
+    import std.stdio;
+    import core.stdc.stdio;
+
     _options = options;
     const(SnapFunction) snap_function = options.snapFunction();
     S1Angle snap_radius = snap_function.snapRadius();
@@ -1516,7 +1528,7 @@ private:
     // InputEdgeIds can be retrieved using "input_edge_id_set_lexicon".
     Edge[][] layer_edges;
     InputEdgeIdSetId[][] layer_input_edge_ids;
-    IdSetLexicon input_edge_id_set_lexicon;
+    IdSetLexicon input_edge_id_set_lexicon = new IdSetLexicon();
     buildLayerEdges(layer_edges, layer_input_edge_ids, input_edge_id_set_lexicon);
 
     // At this point we have no further need for the input geometry or nearby
@@ -1575,7 +1587,9 @@ private:
     // snapped to that site.
     InputVertexId[][] site_vertices;
     bool simplify = _snappingNeeded && _options.simplifyEdgeChains();
-    if (simplify) site_vertices.length = _sites.length;
+    if (simplify) {
+      site_vertices.length = _sites.length;
+    }
 
     layer_edges.length = _layers.length;
     layer_input_edge_ids.length = _layers.length;
@@ -1635,7 +1649,7 @@ private:
    * "v".  Duplicate entries are allowed.
    */
   void maybeAddInputVertex(InputVertexId v, SiteId id, ref InputVertexId[][] site_vertices) const {
-    if (site_vertices.length) return;
+    if (site_vertices.empty) return;
 
     // Optimization: check if we just added this vertex.  This is worthwhile
     // because the input edges usually form a continuous chain, i.e. the

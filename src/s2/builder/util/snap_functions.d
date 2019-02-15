@@ -98,6 +98,12 @@ public:
     return new IdentitySnapFunction(this);
   }
 
+  override
+  string toString() const {
+    import std.conv;
+    return "IdentitySnapFunction[_snapRadius=" ~ _snapRadius.to!string ~ "]";
+  }
+
 private:
   // Copying and assignment are allowed.
   S1Angle _snapRadius;
