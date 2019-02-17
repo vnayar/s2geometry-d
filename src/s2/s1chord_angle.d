@@ -96,7 +96,6 @@ public:
       this = infinity();
     } else {
       // The chord length is 2 * sin(angle / 2).
-          algorithm.min(math.PI, angle.radians()));
       double length = 2 * math.sin(0.5 * algorithm.min(
               cast(double) math.PI,
               math.isFinite(angle.radians()) ? angle.radians() : double.max));
