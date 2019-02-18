@@ -112,8 +112,9 @@ if (is(typeof(value.toHash()) : size_t)) {
   return value.toHash();
 }
 
-size_t hash(ValueT)(in ValueT value) {
-  return typeid(value).getHash(&value);
+size_t hash(ValueT)(in ValueT value)
+if (!is(typeof(value.toHash()) : size_t)) {
+  return typeid(ValueT).getHash(&value);
 }
 
 bool equalTo(ValueT)(in ValueT v1, in ValueT v2) {
