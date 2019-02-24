@@ -168,7 +168,7 @@ public:
   }
 
   /// Returns the endpoints of the given edge (as vertex indices).
-  const(Edge) edge(EdgeId e) const {
+  Edge edge(EdgeId e) const {
     return edges()[e];
   }
 
