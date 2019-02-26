@@ -36,7 +36,8 @@ private:
 
 public:
   // Construct a new RangeIterator positioned at the first cell of the index.
-  this(in S2ShapeIndex index) {
+  this(S2ShapeIndex index) {
+    _it = new S2ShapeIndex.Iterator(index, S2ShapeIndex.InitialPosition.BEGIN);
     refresh();
   }
 
