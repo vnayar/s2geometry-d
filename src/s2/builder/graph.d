@@ -607,6 +607,7 @@ public:
    */
   bool getLeftTurnMap(
       in EdgeId[] in_edge_ids, ref EdgeId[] left_turn_map, ref S2Error error) const {
+    left_turn_map.length = numEdges();
     left_turn_map[] = -1;
     if (numEdges() == 0) return true;
 
@@ -830,8 +831,6 @@ public:
     canonicalizeVectorOrder(min_input_ids, loops);
     return true;
   }
-
-  // TODO: Resume here.
 
   /**
    * Builds loops from a set of directed edges, turning left at each vertex
@@ -1172,9 +1171,9 @@ public:
    * the description of S2Builder::GraphOptions).
    */
   static void processEdges(
-      GraphOptions options, Edge[] edges, InputEdgeIdSetId[] input_ids,
+      GraphOptions options, ref Edge[] edges, ref InputEdgeIdSetId[] input_ids,
       IdSetLexicon id_set_lexicon, ref S2Error error) {
-    auto processor = new EdgeProcessor(options, edges, input_ids, id_set_lexicon);
+    auto processor = new EdgeProcessor(options, &edges, &input_ids, id_set_lexicon);
     processor.run(error);
     // Certain values of sibling_pairs() discard half of the edges and change
     // the edge_type() to DIRECTED (see the description of GraphOptions).
@@ -1250,9 +1249,9 @@ private:
   static class EdgeProcessor {
   public:
     this(
-        GraphOptions options,
-        Edge[] edges,
-        InputEdgeIdSetId[] input_ids,
+        in GraphOptions options,
+        Edge[]* edges,
+        InputEdgeIdSetId[]* input_ids,
         IdSetLexicon id_set_lexicon) {
       _options = options;
       _edges = edges;
@@ -1264,20 +1263,20 @@ private:
       // Sort the outgoing and incoming edges in lexigraphic order.  We use a
       // stable sort to ensure that each undirected edge becomes a sibling pair,
       // even if there are multiple identical input edges.
-      _outEdges = iota(0, cast(int) _edges.length).array;
+      _outEdges = iota(0, cast(int) (*_edges).length).array;
       sort!((EdgeId a, EdgeId b) {
-            return stableLessThan(_edges[a], _edges[b], a, b);
+            return stableLessThan((*_edges)[a], (*_edges)[b], a, b);
           })(_outEdges);
-      _inEdges = iota(0, cast(int) _edges.length).array;
+      _inEdges = iota(0, cast(int) (*_edges).length).array;
       sort!((EdgeId a, EdgeId b) {
-            return stableLessThan(reverse(_edges[a]), reverse(_edges[b]), a, b);
+            return stableLessThan(reverse((*_edges)[a]), reverse((*_edges)[b]), a, b);
           })(_inEdges);
-      _newEdges.reserve(_edges.length);
-      _newInputIds.reserve(_edges.length);
+      _newEdges.reserve((*_edges).length);
+      _newInputIds.reserve((*_edges).length);
     }
 
     void run(ref S2Error error) {
-      int num_edges = cast(int) _edges.length;
+      int num_edges = cast(int) (*_edges).length;
       if (num_edges == 0) return;
 
       // Walk through the two sorted arrays performing a merge join.  For each
@@ -1286,8 +1285,8 @@ private:
       // how many copies of the edge there are in each direction.
       int outId = 0;
       int inId = 0;
-      Edge out_edge = _edges[_outEdges[outId]];
-      Edge in_edge = _edges[_inEdges[inId]];
+      Edge out_edge = (*_edges)[_outEdges[outId]];
+      Edge in_edge = (*_edges)[_inEdges[inId]];
       Edge sentinel = tuple(VertexId.max, VertexId.max);
       for (;;) {
         Edge edge = min(out_edge, reverse(in_edge));
@@ -1296,10 +1295,10 @@ private:
         int out_begin = outId;
         int in_begin = inId;
         while (out_edge == edge) {
-          out_edge = (++outId == num_edges) ? sentinel : _edges[_outEdges[outId]];
+          out_edge = (++outId == num_edges) ? sentinel : (*_edges)[_outEdges[outId]];
         }
         while (reverse(in_edge) == edge) {
-          in_edge = (++inId == num_edges) ? sentinel : _edges[_inEdges[inId]];
+          in_edge = (++inId == num_edges) ? sentinel : (*_edges)[_inEdges[inId]];
         }
         int n_out = outId - out_begin;
         int n_in = inId - in_begin;
@@ -1309,10 +1308,10 @@ private:
             continue;
           }
           if (_options.degenerateEdges() == DegenerateEdges.DISCARD_EXCESS
-              && ((out_begin > 0 && _edges[_outEdges[out_begin - 1]][0] == edge[0])
-                  || (outId < num_edges && _edges[_outEdges[outId]][0] == edge[0])
-                  || (in_begin > 0 && _edges[_inEdges[in_begin - 1]][1] == edge[0])
-                  || (inId < num_edges && _edges[_inEdges[inId]][1] == edge[0]))) {
+              && ((out_begin > 0 && (*_edges)[_outEdges[out_begin - 1]][0] == edge[0])
+                  || (outId < num_edges && (*_edges)[_outEdges[outId]][0] == edge[0])
+                  || (in_begin > 0 && (*_edges)[_inEdges[in_begin - 1]][1] == edge[0])
+                  || (inId < num_edges && (*_edges)[_inEdges[inId]][1] == edge[0]))) {
             continue;  // There were non-degenerate incident edges, so discard.
           }
           if (_options.edgeType() == EdgeType.UNDIRECTED
@@ -1385,8 +1384,8 @@ private:
           }
         }
       }
-      _edges = _newEdges;
-      _inputIds = _newInputIds;
+      *_edges = _newEdges;
+      *_inputIds = _newInputIds;
     }
 
   private:
@@ -1403,17 +1402,17 @@ private:
 
     void copyEdges(int out_begin, int out_end) {
       for (int i = out_begin; i < out_end; ++i) {
-        addEdge(_edges[_outEdges[i]], _inputIds[_outEdges[i]]);
+        addEdge((*_edges)[_outEdges[i]], (*_inputIds)[_outEdges[i]]);
       }
     }
 
     InputEdgeIdSetId mergeInputIds(int out_begin, int out_end) {
       if (out_end - out_begin == 1) {
-        return _inputIds[_outEdges[out_begin]];
+        return (*_inputIds)[_outEdges[out_begin]];
       }
       _tmpIds.length = 0;
       for (int i = out_begin; i < out_end; ++i) {
-        foreach (id; _idSetLexicon.idSet(_inputIds[_outEdges[i]])) {
+        foreach (id; _idSetLexicon.idSet((*_inputIds)[_outEdges[i]])) {
           _tmpIds ~= id;
         }
       }
@@ -1421,8 +1420,8 @@ private:
     }
 
     const(GraphOptions) _options;
-    Edge[] _edges;
-    InputEdgeIdSetId[] _inputIds;
+    Edge[]* _edges;
+    InputEdgeIdSetId[]* _inputIds;
     IdSetLexicon _idSetLexicon;
     EdgeId[] _outEdges;
     EdgeId[] _inEdges;
@@ -1442,7 +1441,8 @@ private:
       _minInputIds = g.getMinInputEdgeIds();
       _directed = _g.options().edgeType() == Graph.EdgeType.DIRECTED;
       _edgesLeft = g.numEdges() / (_directed ? 1 : 2);
-      _used = [g.numEdges() != 0, false];
+      _used.length = g.numEdges();
+      _used[] = false;
       if (!_directed) {
         _siblingMap = _in.inEdgeIds().dup;
         g.makeSiblingMap(_siblingMap);
@@ -1502,6 +1502,7 @@ private:
         VertexId v = _g.edge(e)[0];
         int excess = excessDegree(v);
         if (excess <= 0) continue;
+        if (v !in _excessUsed) _excessUsed[v] = 0;
         excess -= _excessUsed[v];
         if (_directed ? (excess <= 0) : (excess % 2 == 0)) continue;
         ++_excessUsed[v];
@@ -1513,7 +1514,7 @@ private:
       // into loops.  We first try to expand the existing polylines if possible by
       // adding loops to them.
       if (_edgesLeft > 0) {
-        foreach (Graph.EdgePolyline polyline; polylines) {
+        foreach (ref Graph.EdgePolyline polyline; polylines) {
           maximizeWalk(polyline);
         }
       }
@@ -1606,6 +1607,7 @@ private:
         // For idempotency when there are multiple input polylines, we stop the
         // walk early if "best_edge" might be a continuation of a different
         // incoming edge.
+        if (v !in _excessUsed) _excessUsed[v] = 0;
         int excess = excessDegree(v) - _excessUsed[v];
         if (_directed ? (excess < 0) : (excess % 2) == 1) {
           foreach (EdgeId e; _in.edgeIds(v)) {

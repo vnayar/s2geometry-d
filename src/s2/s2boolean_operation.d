@@ -587,7 +587,7 @@ private:
       // expect vertices closer than the full "snap_radius" to be snapped.
       options.setIdempotent(false);
       _builder = new S2Builder(options);
-      _builder.startLayer(new EdgeClippingLayer(_op._layers, _inputDimensions, _inputCrossings));
+      _builder.startLayer(new EdgeClippingLayer(_op._layers, &_inputDimensions, &_inputCrossings));
 
       // Polygons with no edges are assumed to be empty.  It is the responsibility
       // of clients to fix this if desired (e.g. S2Polygon has code for this).
@@ -736,13 +736,14 @@ private:
        */
       this(
           in PolygonModel polygon_model, in PolylineModel polyline_model, S2Builder builder,
-          ref byte[] input_dimensions, ref InputEdgeCrossings input_crossings) {
+          byte[]* input_dimensions, InputEdgeCrossings* input_crossings) {
         _polygonModel = polygon_model;
         _polylineModel = polyline_model;
         _builder = builder;
         _inputDimensions = input_dimensions;
         _inputCrossings = input_crossings;
         _prevInside = false;
+        _sourceIdMap = new SourceIdMap();
       }
 
       /**
@@ -818,11 +819,11 @@ private:
         _sourceIdMap[SourceId(SET_INSIDE)] = SET_INSIDE;
         _sourceIdMap[SourceId(SET_INVERT_B)] = SET_INVERT_B;
         _sourceIdMap[SourceId(SET_REVERSE_A)] = SET_REVERSE_A;
-        _inputCrossings.reserve(_inputCrossings.length + _sourceEdgeCrossings.length);
+        (*_inputCrossings).reserve(_inputCrossings.length + _sourceEdgeCrossings.length);
         foreach (tmp; _sourceEdgeCrossings) {
           auto eqRange = _sourceIdMap.equalRange(tmp[1][0]);
           debug enforce(!eqRange.empty());
-          _inputCrossings ~= tuple(tmp[0], CrossingInputEdge(eqRange.front.value, tmp[1][1]));
+          *_inputCrossings ~= tuple(tmp[0], CrossingInputEdge(eqRange.front.value, tmp[1][1]));
         }
         _sourceEdgeCrossings.length = 0;
         _sourceIdMap.clear();
@@ -940,7 +941,7 @@ private:
         }
         // Set the GraphEdgeClipper's "inside" state to match ours.
         if (_inside != _prevInside) setClippingState(SET_INSIDE, _inside);
-        _inputDimensions ~= cast(byte) dimension;
+        *_inputDimensions ~= cast(byte) dimension;
         _builder.addEdge(a.v0, a.v1);
         _inside ^= (interior_crossings & 1);
         _prevInside = _inside;
@@ -952,7 +953,7 @@ private:
       bool addPointEdge(in S2Point p, int dimension) {
         if (_builder is null) return false;  // Boolean output.
         if (!_prevInside) setClippingState(SET_INSIDE, true);
-        _inputDimensions ~= cast(byte) dimension;
+        *_inputDimensions ~= cast(byte) dimension;
         _builder.addEdge(p, p);
         _prevInside = true;
         return true;
@@ -1302,8 +1303,8 @@ private:
       // dimension of each input edge, and set of input edges from the other
       // region that cross each input input edge.
       S2Builder _builder;
-      byte[] _inputDimensions;
-      InputEdgeCrossings _inputCrossings;
+      byte[]* _inputDimensions;
+      InputEdgeCrossings* _inputCrossings;
 
       // Fields set by StartBoundary:
 
@@ -1412,7 +1413,7 @@ private:
               uint, "", 5));
 
       // All flags are "false" by default.
-      this(ShapeEdgeId _a, ShapeEdgeId _b) {
+      this(ShapeEdgeId a, ShapeEdgeId b) {
         this.a = a;
         this.b = b;
         this.isInteriorCrossing = false;
@@ -1748,7 +1749,7 @@ private:
       // CrossingProcessor does the real work of emitting the output edges.
       auto cp = new CrossingProcessor(_op._options.polygonModel(),
           _op._options.polylineModel(),
-          _builder, _inputDimensions, _inputCrossings);
+          _builder, &_inputDimensions, &_inputCrossings);
       final switch (op_type) {
         case OpType.UNION:
           // A | B == ~(~A & ~B)
@@ -1996,8 +1997,8 @@ public:
   // are returned in "new_edges" and "new_input_edge_ids".  (These can be used
   // to construct a new S2Builder::Graph.)
   this(
-      Graph g, byte[] input_dimensions,
-      InputEdgeCrossings input_crossings,
+      in Graph g, in byte[] input_dimensions,
+      in InputEdgeCrossings input_crossings,
       Graph.Edge[]* new_edges,
       InputEdgeIdSetId[]* new_input_edge_ids) {
     _g = g;
@@ -2372,11 +2373,11 @@ private:
     return sum > 0;
   }
 
-  Graph _g;
+  const(Graph) _g;
   Graph.VertexInMap _in;
   Graph.VertexOutMap _out;
-  byte[] _inputDimensions;
-  InputEdgeCrossings _inputCrossings;
+  const(byte[]) _inputDimensions;
+  const(InputEdgeCrossings) _inputCrossings;
   Graph.Edge[]* _newEdges;
   InputEdgeIdSetId[]* _newInputEdgeIds;
 
@@ -2400,7 +2401,7 @@ private:
  */
 class EdgeClippingLayer : Layer {
 public:
-  this(Layer[] layers, byte[] input_dimensions, InputEdgeCrossings input_crossings) {
+  this(Layer[] layers, in byte[]* input_dimensions, in InputEdgeCrossings* input_crossings) {
     _layers = layers;
     _inputDimensions = input_dimensions;
     _inputCrossings = input_crossings;
@@ -2423,7 +2424,7 @@ public:
     Graph.Edge[] new_edges;
     InputEdgeIdSetId[] new_input_edge_ids;
     // Destroy the GraphEdgeClipper immediately to save memory.
-    new GraphEdgeClipper(g, _inputDimensions, _inputCrossings, &new_edges, &new_input_edge_ids)
+    new GraphEdgeClipper(g, *_inputDimensions, *_inputCrossings, &new_edges, &new_input_edge_ids)
         .run();
     if (s2builderVerbose) {
       writeln("Edges after clipping: ");
@@ -2450,7 +2451,7 @@ public:
       layer_graphs.reserve(3);
       // Separate the edges according to their dimension.
       for (int i = 0; i < new_edges.length; ++i) {
-        int d = _inputDimensions[new_input_edge_ids[i]];
+        int d = (*_inputDimensions)[new_input_edge_ids[i]];
         layer_edges[d] ~= new_edges[i];
         layer_input_edge_ids[d] ~= new_input_edge_ids[i];
       }
@@ -2493,8 +2494,8 @@ private:
   }
 
   Layer[] _layers;
-  byte[] _inputDimensions;
-  InputEdgeCrossings _inputCrossings;
+  const(byte[])* _inputDimensions;
+  const(InputEdgeCrossings)* _inputCrossings;
 }
 
 /**

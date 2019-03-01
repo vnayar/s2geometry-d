@@ -961,7 +961,7 @@ private:
       addEdgeCrossings(input_edge_index);
     }
     if (_snappingRequested) {
-      S2PointIndex!SiteId site_index;
+      auto site_index = new S2PointIndex!SiteId();
       addForcedSites(site_index);
       chooseInitialSites(site_index);
       collectSiteEdges(site_index);
@@ -1202,10 +1202,10 @@ private:
       }
       auto target = new S2ClosestPointQueryEdgeTarget(v0, v1);
       site_query.findClosestPoints(target, results);
-      auto sites = _edgeSites[e];
-      sites.reserve(results.length);
+      auto sites = &_edgeSites[e];
+      (*sites).reserve(results.length);
       foreach (const result; results) {
-        sites ~= result.data();
+        *sites ~= result.data();
         if (!_snappingNeeded
             && result.distance() < _minEdgeSiteSeparationCaLimit
             && result.point() != v0
@@ -1214,7 +1214,7 @@ private:
           _snappingNeeded = true;
         }
       }
-      sortSitesByDistance(v0, sites);
+      sortSitesByDistance(v0, *sites);
     }
   }
 
