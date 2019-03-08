@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: debian:stretch
+
+    steps:
+      - checkout
+
+      - run:
+          name: Build
+          command: dub
+      
+      - run:
+          name: Test
+          command: dub test
+
+      - run:
+          name: Print the Current Time
+          command: date
