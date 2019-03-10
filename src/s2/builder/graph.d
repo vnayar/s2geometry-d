@@ -967,6 +967,8 @@ public:
     return true;
   }
 
+  alias UndirectedComponent = EdgeLoop[][2];
+
   /**
    * Builds loops from a set of undirected edges, turning left at each vertex
    * until either a repeated vertex (for LoopType::SIMPLE) or a repeated edge
@@ -1004,7 +1006,6 @@ public:
    * REQUIRES: options.siblings_pairs() == { DISCARD, DISCARD_EXCESS, KEEP }
    *           [since REQUIRE, CREATE convert the edge_type() to DIRECTED]
    */
-  alias UndirectedComponent = EdgeLoop[][2];
   bool getUndirectedComponents(
       LoopType loop_type, ref UndirectedComponent[] components, ref S2Error error) const
   in {

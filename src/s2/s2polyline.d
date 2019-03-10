@@ -82,12 +82,12 @@ public:
    */
   this(S2Point[] vertices, S2Debug s2debugOverride) {
     _s2debugOverride = s2debugOverride;
-    init(vertices);
+    initialize(vertices);
   }
 
   this(S2LatLng[] vertices, S2Debug s2debugOverride) {
     _s2debugOverride = s2debugOverride;
-    init(vertices);
+    initialize(vertices);
   }
 
   /**
@@ -95,7 +95,7 @@ public:
    * allowed.  Adjacent vertices should not be identical or antipodal.  All
    * vertices should be unit length.
    */
-  void init(S2Point[] vertices) {
+  void initialize(S2Point[] vertices) {
     _vertices.length = vertices.length;
     copy(vertices, _vertices);
     if (flagsS2Debug && _s2debugOverride == S2Debug.ALLOW) {
@@ -107,7 +107,7 @@ public:
    * Convenience initialization function that accepts latitude-longitude
    * coordinates rather than S2Points.
    */
-  void init(S2LatLng[] vertices) {
+  void initialize(S2LatLng[] vertices) {
     _vertices.length = vertices.length;
     for (int i = 0; i < _vertices.length; ++i) {
       _vertices[i] = vertices[i].toS2Point();
@@ -131,12 +131,10 @@ public:
    * Without the call to set_s2debug_override(), invalid data would cause a
    * fatal error in Init() whenever the --s2debug flag is enabled.
    */
-  @property
-  void s2debugOverride(S2Debug s2debugOverride) {
+  void setS2debugOverride(S2Debug s2debugOverride) {
     _s2debugOverride = s2debugOverride;
   }
 
-  @property
   S2Debug s2debugOverride() const {
     return _s2debugOverride;
   }

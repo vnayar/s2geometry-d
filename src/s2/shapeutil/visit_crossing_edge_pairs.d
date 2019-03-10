@@ -235,7 +235,7 @@ class IndexCrosser {
     foreach (const ShapeEdge a; a_edges) {
       auto crosser = new S2EdgeCrosser(a.v0(), a.v1());
       foreach (const ShapeEdge b; b_edges) {
-        if (*crosser.c() != b.v0()) {
+        if (crosser.c() is null || *crosser.c() != b.v0()) {
           crosser.restartAt(b.v0());
         }
         int sign = crosser.crossingSign(b.v1());

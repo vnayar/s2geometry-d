@@ -38,6 +38,7 @@ import s2.s2error;
 import s2.s2loop;
 import s2.s2point;
 import s2.s2point_index;
+import s2.s2polygon;
 import s2.s2polyline;
 import s2.s2polyline_simplifier;
 import s2.s2predicates;
@@ -731,12 +732,11 @@ public:
    * that this method does not distinguish between the empty and full polygons,
    * i.e. adding a full polygon has the same effect as adding an empty one.
    */
-  // TODO: Add when S2Polygon is complete.
-  // void addPolygon(in S2Polygon polygon) {
-  //   for (int i = 0; i < polygon.numLoops(); ++i) {
-  //     addLoop(polygon.loop(i));
-  //   }
-  // }
+  void addPolygon(in S2Polygon polygon) {
+    for (int i = 0; i < polygon.numLoops(); ++i) {
+      addLoop(polygon.loop(i));
+    }
+  }
 
   /// Adds the edges of the given shape to the current layer.
   void addShape(in S2Shape shape) {
@@ -844,7 +844,10 @@ public:
    * have been created.  Automatically resets the S2Builder state so that it
    * can be reused.
    */
-  bool build(out S2Error error) {
+  bool build(ref S2Error error) {
+    writeln("S2Builder.build >");
+    scope(exit) writeln("S2Builder.build <");
+    writeln("S2Builder.build 0: _inputEdges.length=", _inputEdges.length);
     error.clear();
     _error = error;
 
@@ -855,9 +858,13 @@ public:
     if (_snappingRequested && !_options.idempotent()) {
       _snappingNeeded = true;
     }
+    writeln("S2Builder.build 1: _error=", _error);
     chooseSites();
+    writeln("S2Builder.build 2: _error=", _error);
     buildLayers();
+    writeln("S2Builder.build 3: _error=", _error);
     reset();
+    writeln("S2Builder.build 4: _error=", _error);
     return _error.ok();
   }
 
@@ -1523,13 +1530,17 @@ private:
   }
 
   void buildLayers() {
+    writeln("S2Builder.buildLayers >");
+    scope(exit) writeln("S2Builder.buildLayers <");
     // Each output edge has an "input edge id set id" (an int32) representing
     // the set of input edge ids that were snapped to this edge.  The actual
     // InputEdgeIds can be retrieved using "input_edge_id_set_lexicon".
     Edge[][] layer_edges;
     InputEdgeIdSetId[][] layer_input_edge_ids;
     IdSetLexicon input_edge_id_set_lexicon = new IdSetLexicon();
+    writeln("S2Builder.buildLayers 1: _error=", _error);
     buildLayerEdges(layer_edges, layer_input_edge_ids, input_edge_id_set_lexicon);
+    writeln("S2Builder.buildLayers 2: _error=", _error);
 
     // At this point we have no further need for the input geometry or nearby
     // site data, so we clear those fields to save space.
@@ -1566,7 +1577,9 @@ private:
           layer_input_edge_ids[i], input_edge_id_set_lexicon,
           _labelSetIds, _labelSetLexicon,
           _layerIsFullPolygonPredicates[i]);
+      writeln("S2Builder.buildLayers 3: _error=", _error);
       _layers[i].build(graph, _error);
+      writeln("S2Builder.buildLayers 4: _error=", _error);
       // Don't free the layer data until all layers have been built, in order to
       // support building multiple layers at once (e.g. ClosedSetNormalizer).
     }

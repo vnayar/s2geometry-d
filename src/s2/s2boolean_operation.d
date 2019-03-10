@@ -327,6 +327,7 @@ public:
   struct Options {
   public:
     this(this) {
+      _sourceIdLexicon = new ValueLexicon!SourceId();
       _snapFunction = new IdentitySnapFunction(S1Angle.zero());
       _polygonModel = PolygonModel.SEMI_OPEN;
       _polylineModel = PolylineModel.CLOSED;
@@ -334,6 +335,7 @@ public:
 
     /// Convenience constructor that calls set_snap_function().
     this(in S2Builder.SnapFunction snap_function) {
+      _sourceIdLexicon = new ValueLexicon!SourceId();
       _snapFunction = snap_function.clone();
       _polygonModel = PolygonModel.SEMI_OPEN;
       _polylineModel = PolylineModel.CLOSED;
@@ -341,6 +343,7 @@ public:
 
     // Options may be assigned and copied.
     this(in Options options) {
+      _sourceIdLexicon = new ValueLexicon!SourceId();
       _snapFunction = options._snapFunction.clone();
       _polygonModel = options._polygonModel;
       _polylineModel = options._polylineModel;
@@ -522,6 +525,8 @@ public:
    * itself, but the S2Builder::Layer might.)
    */
   bool build(S2ShapeIndex a, S2ShapeIndex b, ref S2Error error) {
+    writeln("S2BooleanOperation.build >");
+    scope(exit) writeln("S2BooleanOperation.build <");
     _regions[0] = a;
     _regions[1] = b;
     return new Impl(this).build(error);
@@ -569,6 +574,8 @@ private:
     }
 
     bool build(ref S2Error error) {
+      writeln("Impl.build >");
+      scope(exit) writeln("Impl.build <");
       error.clear();
       if (isBooleanOutput()) {
         // BuildOpType() returns true if and only if the result is empty.
@@ -597,6 +604,7 @@ private:
       // (It is possible to do this 100% robustly, but tricky.)
       _builder.addIsFullPolygonPredicate(&isFullPolygonNever);
       buildOpType(_op.opType());
+      writeln("impl.build 1:");
       return _builder.build(error);
     }
 
@@ -1469,6 +1477,8 @@ private:
         bool invert_result,
         in ShapeEdgeId[] a_chain_starts,
         CrossingProcessor cp) {
+      writeln("Impl.addBoundary >");
+      scope (exit) writeln("Impl.addBoundary <");
       S2ShapeIndex a_index = _op._regions[a_region_id];
       S2ShapeIndex b_index = _op._regions[1 - a_region_id];
       if (!getIndexCrossings(a_region_id)) return false;
@@ -1686,6 +1696,8 @@ private:
     /// Supports "early exit" in the case of boolean results by returning false
     /// as soon as the result is known to be non-empty.
     bool addBoundaryPair(bool invert_a, bool invert_b, bool invert_result, CrossingProcessor cp) {
+      writeln("Impl.addBoundaryPair >");
+      scope (exit) writeln("Impl.addBoundaryPair <");
       // Optimization: if the operation is DIFFERENCE or SYMMETRIC_DIFFERENCE,
       // it is worthwhile checking whether the two regions are identical (in which
       // case the output is empty).
@@ -1746,6 +1758,8 @@ private:
     /// Supports "early exit" in the case of boolean results by returning false
     /// as soon as the result is known to be non-empty.
     bool buildOpType(OpType op_type) {
+      writeln("Impl.buildOpType >");
+      scope (exit) writeln("Impl.buildOpType <");
       // CrossingProcessor does the real work of emitting the output edges.
       auto cp = new CrossingProcessor(_op._options.polygonModel(),
           _op._options.polylineModel(),

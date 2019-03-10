@@ -215,6 +215,57 @@ public:
     return (findValidationErrorNoIndex(error) || findSelfIntersection(_index, error));
   }
 
+  // Like FindValidationError(), but skips any checks that would require
+  // building the S2ShapeIndex (i.e., self-intersection tests).  This is used
+  // by the S2Polygon implementation, which uses its own index to check for
+  // loop self-intersections.
+  bool findValidationErrorNoIndex(S2Error error) const
+  in {
+    // subregion_bound_ must be at least as large as bound_.  (This is an
+    // internal consistency check rather than a test of client data.)
+    assert(_subregionBound.contains(_bound));
+  } body {
+    import s2.s2pointutil : isUnitLength;
+    // All vertices must be unit length.  (Unfortunately this check happens too
+    // late in debug mode, because S2Loop construction calls s2pred::Sign which
+    // expects vertices to be unit length.  But it is still a useful check in
+    // optimized builds.)
+    for (int i = 0; i < numVertices(); ++i) {
+      if (!isUnitLength(vertex(i))) {
+        error.initialize(S2Error.Code.NOT_UNIT_LENGTH, "Vertex %d is not unit length", i);
+        return true;
+      }
+    }
+    // Loops must have at least 3 vertices (except for "empty" and "full").
+    if (numVertices() < 3) {
+      if (isEmptyOrFull()) {
+        return false;  // Skip remaining tests.
+      }
+      error.initialize(S2Error.Code.LOOP_NOT_ENOUGH_VERTICES,
+          "Non-empty, non-full loops must have at least 3 vertices");
+      return true;
+    }
+    // Loops are not allowed to have any duplicate vertices or edge crossings.
+    // We split this check into two parts.  First we check that no edge is
+    // degenerate (identical endpoints).  Then we check that there are no
+    // intersections between non-adjacent edges (including at vertices).  The
+    // second part needs the S2ShapeIndex, so it does not fall within the scope
+    // of this method.
+    for (int i = 0; i < numVertices(); ++i) {
+      if (vertex(i) == vertex(i+1)) {
+        error.initialize(
+            S2Error.Code.DUPLICATE_VERTICES, "Edge %d is degenerate (duplicate vertex)", i);
+        return true;
+      }
+      if (vertex(i) == -vertex(i + 1)) {
+        error.initialize(S2Error.Code.ANTIPODAL_VERTICES,
+            "Vertices %d and %d are antipodal", i, (i + 1) % numVertices());
+        return true;
+      }
+    }
+    return false;
+  }
+
   int numVertices() const {
     return cast(int) _vertices.length;
   }
@@ -1086,7 +1137,7 @@ public:
   //
   // REQUIRES: neither loop is empty.
   // REQUIRES: if b->is_full(), then reverse_b == false.
-  bool containsNonCrossingBoundary(in S2Loop b, bool reverse_b)
+  package bool containsNonCrossingBoundary(in S2Loop b, bool reverse_b)
   in {
     assert(!isEmpty() && !b.isEmpty());
     assert(!b.isFull() || !reverse_b);
@@ -1190,6 +1241,11 @@ public:
   //
   // Not needed in GC languages.
   // class OwningShape : public Shape { ... }
+
+  int opCmp(in S2Loop other) const {
+    import std.algorithm : cmp;
+    return cmp(_vertices, other._vertices);
+  }
 
 package:
   // Return true if this loop contains S2::Origin().
@@ -1329,7 +1385,7 @@ private:
 
   // A version of Contains(S2Point) that does not use the S2ShapeIndex.
   // Used by the S2Polygon implementation.
-  bool bruteForceContains(in S2Point p) const {
+  package bool bruteForceContains(in S2Point p) const {
     // Empty and full loops don't need a special case, but invalid loops with
     // zero vertices do, so we might as well handle them all at once.
     if (numVertices() < 3) return _originInside;
@@ -1341,57 +1397,6 @@ private:
       inside ^= crosser.edgeOrVertexCrossing(vertex(i));
     }
     return inside;
-  }
-
-  // Like FindValidationError(), but skips any checks that would require
-  // building the S2ShapeIndex (i.e., self-intersection tests).  This is used
-  // by the S2Polygon implementation, which uses its own index to check for
-  // loop self-intersections.
-  bool findValidationErrorNoIndex(S2Error error) const
-  in {
-    // subregion_bound_ must be at least as large as bound_.  (This is an
-    // internal consistency check rather than a test of client data.)
-    assert(_subregionBound.contains(_bound));
-  } body {
-    import s2.s2pointutil : isUnitLength;
-    // All vertices must be unit length.  (Unfortunately this check happens too
-    // late in debug mode, because S2Loop construction calls s2pred::Sign which
-    // expects vertices to be unit length.  But it is still a useful check in
-    // optimized builds.)
-    for (int i = 0; i < numVertices(); ++i) {
-      if (!isUnitLength(vertex(i))) {
-        error.initialize(S2Error.Code.NOT_UNIT_LENGTH, "Vertex %d is not unit length", i);
-        return true;
-      }
-    }
-    // Loops must have at least 3 vertices (except for "empty" and "full").
-    if (numVertices() < 3) {
-      if (isEmptyOrFull()) {
-        return false;  // Skip remaining tests.
-      }
-      error.initialize(S2Error.Code.LOOP_NOT_ENOUGH_VERTICES,
-          "Non-empty, non-full loops must have at least 3 vertices");
-      return true;
-    }
-    // Loops are not allowed to have any duplicate vertices or edge crossings.
-    // We split this check into two parts.  First we check that no edge is
-    // degenerate (identical endpoints).  Then we check that there are no
-    // intersections between non-adjacent edges (including at vertices).  The
-    // second part needs the S2ShapeIndex, so it does not fall within the scope
-    // of this method.
-    for (int i = 0; i < numVertices(); ++i) {
-      if (vertex(i) == vertex(i+1)) {
-        error.initialize(
-            S2Error.Code.DUPLICATE_VERTICES, "Edge %d is degenerate (duplicate vertex)", i);
-        return true;
-      }
-      if (vertex(i) == -vertex(i + 1)) {
-        error.initialize(S2Error.Code.ANTIPODAL_VERTICES,
-            "Vertices %d and %d are antipodal", i, (i + 1) % numVertices());
-        return true;
-      }
-    }
-    return false;
   }
 
   // Internal implementation of the Decode and DecodeWithinScope methods above.
@@ -1495,7 +1500,7 @@ private:
   // the loop vertices to be traversed in a canonical order.  The return
   // values are chosen such that (first, ..., first+n*dir) are in the range
   // [0, 2*n-1] as expected by the vertex() method.
-  int getCanonicalFirstVertex(out int dir) const {
+  package int getCanonicalFirstVertex(out int dir) const {
     int first = 0;
     int n = numVertices();
     for (int i = 1; i < n; ++i) {
