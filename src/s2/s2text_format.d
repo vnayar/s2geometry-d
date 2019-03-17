@@ -30,6 +30,7 @@ import s2.s2lax_polyline_shape;
 import s2.s2loop;
 import s2.s2point;
 import s2.s2point_vector_shape;
+import s2.s2polygon;
 import s2.s2polyline;
 import s2.s2shape;
 import s2.s2shape_index;
@@ -248,14 +249,37 @@ S2LaxPolylineShape makeLaxPolyline(string str) {
 //     ""       // the empty polygon (consisting of no loops)
 //     "empty"  // the empty polygon (consisting of no loops)
 //     "full"   // the full polygon (consisting of one full loop).
-//std::unique_ptr<S2Polygon> MakePolygonOrDie(absl::string_view str);
+S2Polygon makePolygonOrDie(string str) {
+  S2Polygon polygon;
+  enforce(internalMakePolygon(str, true, polygon), ": str == \"" ~ str ~ "\"");
+  return polygon;
+}
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
 //ABSL_MUST_USE_RESULT bool MakePolygon(absl::string_view str, std::unique_ptr<S2Polygon>* polygon);
 
-//ABSL_DEPRECATED("Use MakePolygonOrDie.")
-//std::unique_ptr<S2Polygon> MakePolygon(absl::string_view str);
+bool makePolygon(string str, ref S2Polygon polygon) {
+  return internalMakePolygon(str, true, polygon);
+}
+
+// TODO: Resume here.
+private bool internalMakePolygon(string str, bool normalize_loops, ref S2Polygon polygon) {
+  polygon = new S2Polygon();
+  if (str == "empty") str = "";
+  string[] loop_strs = str.split(';');
+  S2Loop[] loops;
+  foreach (loop_str; loop_strs) {
+    S2Loop loop;
+    if (!makeLoop(loop_str, loop)) return false;
+    // Don't normalize loops that were explicitly specified as "full".
+    if (normalize_loops && !loop.isFull()) loop.normalize();
+    loops ~= loop;
+  }
+  polygon = new S2Polygon(loops);
+  return true;
+}
+
 
 // Like MakePolygon(), except that it does not normalize loops (i.e., it
 // gives you exactly what you asked for).
@@ -393,7 +417,6 @@ string toString(in S2LatLng latlng) {
   return val;
 }
 
-// TODO: Resume when S2Loop is complete.
 string toString(in S2Loop loop) {
   if (loop.isEmpty()) {
     return "empty";
@@ -415,21 +438,20 @@ string toString(in S2Polyline polyline) {
   return val;
 }
 
-// TODO: Resume when S2Polygon is complete.
-// string toString(in S2Polygon polygon) {
-//   if (polygon.isEmpty()) {
-//     return "empty";
-//   } else if (polygon.isFull()) {
-//     return "full";
-//   }
-//   string val;
-//   for (int i = 0; i < polygon.numLoops(); ++i) {
-//     if (i > 0) val += ";\n";
-//     const(S2Loop) loop = polygon.loop(i);
-//     appendVertices(loop.vertex(0), loop.numVertices(), val);
-//   }
-//   return val;
-// }
+string toString(in S2Polygon polygon) {
+  if (polygon.isEmpty()) {
+    return "empty";
+  } else if (polygon.isFull()) {
+    return "full";
+  }
+  string val;
+  for (int i = 0; i < polygon.numLoops(); ++i) {
+    if (i > 0) val ~= ";\n";
+    const(S2Loop) loop = polygon.loop(i);
+    appendVertices(loop.vertices(), val);
+  }
+  return val;
+}
 
 string toString(in S2Point[] points) {
   string val;

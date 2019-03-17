@@ -78,23 +78,25 @@ public:
   /** Append the vertices of "loop" to "vertices". */
   //static void AppendLoopVertices(const S2Loop& loop, std::vector<S2Point>* vertices);
 
-  // A simple class that generates "Koch snowflake" fractals (see Wikipedia
-  // for an introduction).  There is an option to control the fractal
-  // dimension (between 1.0 and 2.0); values between 1.02 and 1.50 are
-  // reasonable simulations of various coastlines.  The default dimension
-  // (about 1.26) corresponds to the standard Koch snowflake.  (The west coast
-  // of Britain has a fractal dimension of approximately 1.25.)
-  //
-  // The fractal is obtained by starting with an equilateral triangle and
-  // recursively subdividing each edge into four segments of equal length.
-  // Therefore the shape at level "n" consists of 3*(4**n) edges.  Multi-level
-  // fractals are also supported: if you set min_level() to a non-negative
-  // value, then the recursive subdivision has an equal probability of
-  // stopping at any of the levels between the given min and max (inclusive).
-  // This yields a fractal where the perimeter of the original triangle is
-  // approximately equally divided between fractals at the various possible
-  // levels.  If there are k distinct levels {min,..,max}, the expected number
-  // of edges at each level "i" is approximately 3*(4**i)/k.
+  /**
+   * A simple class that generates "Koch snowflake" fractals (see Wikipedia
+   * for an introduction).  There is an option to control the fractal
+   * dimension (between 1.0 and 2.0); values between 1.02 and 1.50 are
+   * reasonable simulations of various coastlines.  The default dimension
+   * (about 1.26) corresponds to the standard Koch snowflake.  (The west coast
+   * of Britain has a fractal dimension of approximately 1.25.)
+   *
+   * The fractal is obtained by starting with an equilateral triangle and
+   * recursively subdividing each edge into four segments of equal length.
+   * Therefore the shape at level "n" consists of 3*(4**n) edges.  Multi-level
+   * fractals are also supported: if you set min_level() to a non-negative
+   * value, then the recursive subdivision has an equal probability of
+   * stopping at any of the levels between the given min and max (inclusive).
+   * This yields a fractal where the perimeter of the original triangle is
+   * approximately equally divided between fractals at the various possible
+   * levels.  If there are k distinct levels {min,..,max}, the expected number
+   * of edges at each level "i" is approximately 3*(4**i)/k.
+   */
   static class Fractal {
   public:
     // You must call set_max_level() or SetLevelForApproxMaxEdges() before
@@ -324,7 +326,10 @@ public:
     z = randomPoint();
     getRandomFrameAt(z, x, y);
   }
-  //static Matrix3x3_d GetRandomFrame();
+
+  static Matrix3x3_d getRandomFrame() {
+    return getRandomFrameAt(randomPoint());
+  }
 
   // Given a unit-length z-axis, compute x- and y-axes such that (x,y,z) is a
   // right-handed coordinate frame (three orthonormal vectors).

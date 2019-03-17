@@ -58,6 +58,8 @@ import std.math;
 import std.range;
 import std.typecons;
 
+import std.stdio;
+
 enum double M_PI = cast(double) PI;
 enum double M_PI_2 = cast(double) PI_2;
 
@@ -131,6 +133,8 @@ public:
    * non-empty by calling Init(), Decode(), etc.
    */
   this() {
+    _bound = new const S2LatLngRect();
+    _index = new MutableS2ShapeIndex();
     _s2debugOverride = S2Debug.ALLOW;
     _errorInconsistentLoopOrientations = false;
     _numVertices = 0;
@@ -159,6 +163,8 @@ public:
    *   polygon->InitNested(loops);
    */
   this(S2Loop[] loops, S2Debug s2debugOverride = S2Debug.ALLOW) {
+    _bound = new const S2LatLngRect();
+    _index = new MutableS2ShapeIndex();
     _s2debugOverride = s2debugOverride;
     initializeNested(loops);
   }
@@ -168,6 +174,8 @@ public:
    * corresponding to the given cell.
    */
   this(in S2Cell cell) {
+    _bound = new const S2LatLngRect();
+    _index = new MutableS2ShapeIndex();
     _s2debugOverride = S2Debug.ALLOW;
     initialize(new S2Loop(cell));
   }
@@ -179,6 +187,8 @@ public:
    * empty loops at all.
    */
   this(S2Loop loop, S2Debug s2debugOverride = S2Debug.ALLOW) {
+    _bound = new const S2LatLngRect();
+    _index = new MutableS2ShapeIndex();
     _s2debugOverride = s2debugOverride;
     initialize(loop);
   }
@@ -1361,7 +1371,10 @@ public:
    * appear in the same order, and corresponding loops must have the same
    * linear vertex ordering (i.e., cyclic rotations are not allowed).
    */
-  bool equals(in S2Polygon b) const {
+  override
+  bool opEquals(in Object o) const {
+    S2Polygon b = cast(S2Polygon) o;
+    if (b is null) return false;
     if (numLoops() != b.numLoops()) return false;
     for (int i = 0; i < numLoops(); ++i) {
       const S2Loop a_loop = loop(i);
@@ -1866,11 +1879,11 @@ private:
   alias LoopMap = S2Loop[][S2Loop];
 
   void insertLoop(S2Loop new_loop, S2Loop parent, LoopMap loop_map) {
-    S2Loop[] children;
+    S2Loop[]* children;
     for (bool done = false; !done; ) {
-      children = loop_map[parent];
+      children = &loop_map.require(parent, new S2Loop[0]);
       done = true;
-      foreach (S2Loop child; children) {
+      foreach (S2Loop child; *children) {
         if (child.containsNested(new_loop)) {
           parent = child;
           done = false;
@@ -1881,17 +1894,17 @@ private:
 
     // Some of the children of the parent loop may now be children of
     // the new loop.
-    S2Loop[] new_children = loop_map[new_loop];
+    S2Loop[]* new_children = &loop_map.require(new_loop, new S2Loop[0]);
     for (int i = 0; i < children.length;) {
-      S2Loop child = children[i];
+      S2Loop child = (*children)[i];
       if (new_loop.containsNested(child)) {
-        new_children ~= child;
-        children.remove(i);
+        *new_children ~= child;
+        (*children).remove(i);
       } else {
         ++i;
       }
     }
-    children ~= new_loop;
+    *children ~= new_loop;
   }
 
   void initializeLoops(LoopMap loop_map) {
@@ -1904,6 +1917,7 @@ private:
         depth = loop.depth();
         _loops ~= loop;
       }
+      if (loop !in loop_map) continue;
       S2Loop[] children = loop_map[loop];
       for (auto i = children.length - 1; i >= 0; --i) {
         S2Loop child = children[i];

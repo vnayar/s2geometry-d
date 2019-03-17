@@ -482,7 +482,10 @@ public:
   }
 
   /// Return true if two polylines are exactly the same.
-  bool equals(in S2Polyline b) const {
+  override
+  bool opEquals(in Object o) const {
+    const(S2Polyline) b = cast(S2Polyline) o;
+    if (b is null) return false;
     if (numVertices() != b.numVertices()) return false;
     for (int offset = 0; offset < numVertices(); ++offset) {
       if (vertex(offset) != b.vertex(offset)) return false;

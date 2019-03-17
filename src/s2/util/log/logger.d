@@ -54,6 +54,10 @@ public:
     log!(LogLevel.DEBUG)(args);
   }
 
+  static void logInfo(T...)(lazy T args) {
+    log!(LogLevel.INFO)(args);
+  }
+
   static void logTrace(T...)(lazy T args) {
     log!(LogLevel.TRACE)(args);
   }
@@ -74,6 +78,10 @@ public:
 
   static void logfWarn(T...)(lazy T args) {
     logf!(LogLevel.WARN)(args);
+  }
+
+  static void logfInfo(T...)(lazy T args) {
+    logf!(LogLevel.INFO)(args);
   }
 
   static void logfDebug(T...)(lazy T args) {

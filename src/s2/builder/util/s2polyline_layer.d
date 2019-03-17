@@ -54,18 +54,6 @@ class S2PolylineLayer : Layer {
 public:
   static struct Options {
   public:
-    /// Constructor that uses the default options (listed below).
-    this(this) {
-      _edgeType = S2Builder.EdgeType.DIRECTED;
-      _validate = false;
-    }
-
-    /// Constructor that specifies the edge type.
-    this(S2Builder.EdgeType edge_type) {
-      _edgeType = edge_type;
-      _validate = false;
-    }
-
     /**
      * Indicates whether the input edges provided to S2Builder are directed or
      * undirected.  Directed edges should be used whenever possible to avoid
@@ -99,8 +87,8 @@ public:
     }
 
   private:
-    S2Builder.EdgeType _edgeType;
-    bool _validate;
+    S2Builder.EdgeType _edgeType = S2Builder.EdgeType.DIRECTED;
+    bool _validate = false;
   }
 
   /// Specifies that a polyline should be constructed using the given options.

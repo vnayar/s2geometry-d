@@ -15,6 +15,7 @@
 
 // Original Author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
+
 module s2.s2polyline_simplifier;
 
 import s2.s1chord_angle;

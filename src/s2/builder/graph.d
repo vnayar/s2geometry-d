@@ -28,6 +28,8 @@ import std.exception;
 import std.range;
 import std.typecons;
 
+import std.stdio;
+
 /**
  * An S2Builder::Graph represents a collection of snapped edges that is passed
  * to a Layer for assembly.  (Example layers include polygons, polylines, and

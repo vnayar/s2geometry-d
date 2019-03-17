@@ -262,7 +262,7 @@ void checkS2ShapeIndex(in string str) {
           S2LatLng.fromDegrees(-20, 150).toS2Point(),
           S2LatLng.fromDegrees(-20, 151).toS2Point(),
           S2LatLng.fromDegrees(-19, 150).toS2Point()]);
-  Assert.equal(polyline.equals(expected), true);
+  Assert.equal(polyline, expected);
 }
 
 @("SafeMakePolyline.InvalidInput") unittest {

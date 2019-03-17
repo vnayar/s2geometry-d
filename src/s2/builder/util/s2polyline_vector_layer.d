@@ -30,6 +30,8 @@ import s2.s2polyline;
 
 import std.range;
 
+import std.stdio;
+
 alias DegenerateEdges = GraphOptions.DegenerateEdges;
 
 /**
@@ -48,28 +50,8 @@ alias DegenerateEdges = GraphOptions.DegenerateEdges;
  */
 class S2PolylineVectorLayer : Layer {
 public:
-  struct Options {
+  static struct Options {
   public:
-    /// Constructor that uses the default options (listed below).
-    this(this) {
-      _edgeType = S2Builder.EdgeType.DIRECTED;
-      _polylineType = PolylineType.PATH;
-      _duplicateEdges = DuplicateEdges.KEEP;
-      _siblingPairs = SiblingPairs.KEEP;
-      _validate = false;
-      _s2debugOverride = S2Debug.ALLOW;
-    }
-
-    /// Constructor that specifies the edge type.
-    this(S2Builder.EdgeType edge_type) {
-      _edgeType = edge_type;
-      _polylineType = PolylineType.PATH;
-      _duplicateEdges = DuplicateEdges.KEEP;
-      _siblingPairs = SiblingPairs.KEEP;
-      _validate = false;
-      _s2debugOverride = S2Debug.ALLOW;
-    }
-
     /**
      * Indicates whether the input edges provided to S2Builder are directed or
      * undirected.
@@ -198,12 +180,12 @@ public:
     }
 
   private:
-    S2Builder.EdgeType _edgeType;
-    PolylineType _polylineType;
-    DuplicateEdges _duplicateEdges;
-    SiblingPairs _siblingPairs;
-    bool _validate;
-    S2Debug _s2debugOverride;
+    S2Builder.EdgeType _edgeType = S2Builder.EdgeType.DIRECTED;
+    PolylineType _polylineType = PolylineType.PATH;
+    DuplicateEdges _duplicateEdges = DuplicateEdges.KEEP;
+    SiblingPairs _siblingPairs = SiblingPairs.KEEP;
+    bool _validate = false;
+    S2Debug _s2debugOverride = S2Debug.ALLOW;
   }
 
   /// Specifies that a vector of polylines should be constructed using the
@@ -242,7 +224,7 @@ public:
   void build(in Graph g, ref S2Error error) {
     Graph.EdgePolyline[] edge_polylines = g.getPolylines(_options.polylineType());
     (*_polylines).reserve(edge_polylines.length);
-    if (*_labelSetIds) (*_labelSetIds).reserve(edge_polylines.length);
+    if (_labelSetIds) (*_labelSetIds).reserve(edge_polylines.length);
     S2Point[] vertices;  // Temporary storage for vertices.
     Label[] labels;  // Temporary storage for labels.
     foreach (edge_polyline; edge_polylines) {
