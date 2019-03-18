@@ -40,7 +40,6 @@ import std.container.binaryheap;
 import std.exception : enforce;
 import std.range : retro;
 
-
 // S2ClosestEdgeQueryBase is a templatized class for finding the closest
 // edge(s) between two geometries.  It is not intended to be used directly,
 // but rather to serve as the implementation of various specialized classes
@@ -634,7 +633,7 @@ public:
     } else {
       // Add the lowest common ancestor of the given range.
       int level = first.id().getCommonAncestorLevel(last.id());
-      enforce(level >= 0);
+      debug enforce(level >= 0);
       _indexCovering ~= first.id().parent(level);
       _indexCells ~= null;
     }

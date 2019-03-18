@@ -244,7 +244,7 @@ public:
       _offsetFraction = sqrt(_edgeFraction - 0.25);
     }
 
-    void getR2Vertices(R2Point[] vertices) const {
+    void getR2Vertices(ref R2Point[] vertices) const {
       // The Koch "snowflake" consists of three Koch curves whose initial edges
       // form an equilateral triangle.
       auto v0 = R2Point(1.0, 0.0);
@@ -294,7 +294,10 @@ public:
 
   // Convert a distance on the Earth's surface to an angle.
   // Do not use these methods in non-testing code; use s2earth.h instead.
-  //static S1Angle MetersToAngle(double meters);
+  static S1Angle metersToAngle(double meters) {
+    return kmToAngle(0.001 * meters);
+  }
+
   static S1Angle kmToAngle(double km) {
     return S1Angle.fromRadians(km / EARTH_RADIUS_KM);
   }

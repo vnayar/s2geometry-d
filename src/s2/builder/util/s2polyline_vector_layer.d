@@ -30,8 +30,6 @@ import s2.s2polyline;
 
 import std.range;
 
-import std.stdio;
-
 alias DegenerateEdges = GraphOptions.DegenerateEdges;
 
 /**

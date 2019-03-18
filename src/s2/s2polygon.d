@@ -58,8 +58,6 @@ import std.math;
 import std.range;
 import std.typecons;
 
-import std.stdio;
-
 enum double M_PI = cast(double) PI;
 enum double M_PI_2 = cast(double) PI_2;
 
