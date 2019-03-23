@@ -20,7 +20,7 @@ module s2.s2closest_edge_query_test;
 
 import s2.s2closest_edge_query;
 
-//import s2.s2polygon;
+import s2.s2polygon;
 import s2.mutable_s2shape_index;
 import s2.s1angle;
 import s2.s1chord_angle;
@@ -232,32 +232,29 @@ import std.range;
   Assert.equal(full_query.getDistance(target), S1ChordAngle.zero());
 }
 
-/+ TODO: Add when S2Polygon is added.
 @("S2ClosestEdgeQuery.FullS2PolygonTarget") unittest {
   // Verifies that distances are measured correctly to full S2Polygon targets
   // (which use a different representation of "full" than LaxPolygon does).
   auto empty_polygon_index = makeIndexOrDie("# # empty");
   auto point_index = makeIndexOrDie("1:1 # #");
   auto full_polygon_index = makeIndexOrDie("# #");
-  full_polygon_index.add(new S2Polygon.OwningShape(
-      s2textformat::MakePolygonOrDie("full")));
+  full_polygon_index.add(new S2Polygon.Shape(makePolygonOrDie("full")));
 
-  S2ClosestEdgeQuery::ShapeIndexTarget target(full_polygon_index.get());
-  target.set_include_interiors(true);
+  auto target = new S2ClosestEdgeQuery.ShapeIndexTarget(full_polygon_index);
+  target.setIncludeInteriors(true);
 
-  S2ClosestEdgeQuery empty_query(empty_polygon_index.get());
-  empty_query.mutable_options()->set_include_interiors(true);
-  EXPECT_EQ(S1ChordAngle::Infinity(), empty_query.GetDistance(&target));
+  auto empty_query = new S2ClosestEdgeQuery(empty_polygon_index);
+  empty_query.mutableOptions().setIncludeInteriors(true);
+  Assert.equal(empty_query.getDistance(target), S1ChordAngle.infinity());
 
-  S2ClosestEdgeQuery point_query(point_index.get());
-  point_query.mutable_options()->set_include_interiors(true);
-  EXPECT_EQ(S1ChordAngle::Zero(), point_query.GetDistance(&target));
+  auto point_query = new S2ClosestEdgeQuery(point_index);
+  point_query.mutableOptions().setIncludeInteriors(true);
+  Assert.equal(point_query.getDistance(target), S1ChordAngle.zero());
 
-  S2ClosestEdgeQuery full_query(full_polygon_index.get());
-  full_query.mutable_options()->set_include_interiors(true);
-  EXPECT_EQ(S1ChordAngle::Zero(), full_query.GetDistance(&target));
+  auto full_query = new S2ClosestEdgeQuery(full_polygon_index);
+  full_query.mutableOptions().setIncludeInteriors(true);
+  Assert.equal(full_query.getDistance(target), S1ChordAngle.zero());
 }
-+/
 
 @("S2ClosestEdgeQuery.IsConservativeDistanceLessOrEqual") unittest {
   // Test

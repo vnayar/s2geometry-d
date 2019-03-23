@@ -44,6 +44,7 @@ import s2.s2polyline;
 import s2.s2predicates;
 import s2.s2testing;
 import s2.s2text_format;
+import s2.util.math.matrix3x3;
 
 import fluent.asserts;
 
@@ -1179,9 +1180,7 @@ S2Point choosePoint() {
 }
 
 @("S2Builder.FractalStressTest") unittest {
-  // TODO: This test fails on iteration 6 in S2ClosestEdgeQueryBase.addInitialRange().
-  //const int kIters = 100 * iterationMultiplier;
-  const int kIters = 5 * iterationMultiplier;
+  const int kIters = 100 * iterationMultiplier;
   for (int iter = 0; iter < kIters; ++iter) {
     S2Testing.rnd.reset(iter + 1);  // Easier to reproduce a specific case.
     auto fractal = new S2Testing.Fractal();
@@ -1198,8 +1197,9 @@ S2Point choosePoint() {
       int level = S2Testing.rnd.uniform(20);
       options.setSnapFunction(new S2CellIdSnapFunction(level));
     } else {
+      double randDouble = S2Testing.rnd.randDouble();
       options.setSnapFunction(new IdentitySnapFunction(
-          S1Angle.fromDegrees(10 * pow(1e-4, S2Testing.rnd.randDouble()))));
+          S1Angle.fromDegrees(10 * pow(1e-4, randDouble))));
     }
     auto builder = new S2Builder(options);
     auto output = new S2Polygon();
@@ -1213,7 +1213,7 @@ S2Point choosePoint() {
       writeln("S2Polygon: ", toString(output));
     }
     if (iter < 50) {
-      writefln("iter=%4d: in_vertices=%d, out_vertices=%d\n",
+      writefln("iter=%4d: in_vertices=%d, out_vertices=%d",
              iter, input.numVertices(), output.numVertices());
     }
   }

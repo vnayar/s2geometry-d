@@ -58,9 +58,6 @@ import std.math;
 import std.range;
 import std.typecons;
 
-enum double M_PI = cast(double) PI;
-enum double M_PI_2 = cast(double) PI_2;
-
 /**
  * Build the S2ShapeIndex only when it is first needed.  This can save
  * significant amounts of memory and time when geometry is constructed but

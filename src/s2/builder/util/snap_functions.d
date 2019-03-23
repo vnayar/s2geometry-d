@@ -216,8 +216,6 @@ public:
     return MAX_DIAG.getLevelForMaxValue(2 * (snap_radius.radians() - 4 * double.epsilon));
   }
 
-  // TODO: Resume here.
-
   /**
    * For S2CellId snapping, the minimum separation between vertices depends on
    * level() and snap_radius().  It can vary between 0.5 * snap_radius()

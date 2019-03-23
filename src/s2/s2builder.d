@@ -54,6 +54,8 @@ import std.range;
 import std.stdio;
 import std.typecons;
 
+import std.stdio;
+
 /// Internal flag intended to be set from within a debugger.
 bool s2builderVerbose = false;
 

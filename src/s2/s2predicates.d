@@ -1,3 +1,4 @@
+
 // Copyright 2016 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,8 +44,8 @@ import std.exception;
 import std.exception;
 import traits = std.traits;
 
-// A predefined S1ChordAngle representing (approximately) 45 degrees.
-private immutable S1ChordAngle DEGREES_45 = S1ChordAngle.fromLength2(2 - math.SQRT2);
+/// A predefined S1ChordAngle representing (approximately) 45 degrees.
+private immutable S1ChordAngle DEGREES_45 = S1ChordAngle.fromLength2(2 - M_SQRT2);
 
 // All error bounds in this file are expressed in terms of the maximum
 // rounding error for a floating-point type.  The rounding error is half of
@@ -327,10 +328,10 @@ int compareDistances(in S2Point x, in S2Point a, in S2Point b) {
   // making this decision because the fact that the test above failed means
   // that angles "a" and "b" are very close together.
   double cos_ax = a.dotProd(x);
-  if (cos_ax > math.SQRT1_2) {
+  if (cos_ax > M_SQRT1_2) {
     // Angles < 45 degrees.
     sign = compareSin2Distances(x, a, b);
-  } else if (cos_ax < -math.SQRT1_2) {
+  } else if (cos_ax < -M_SQRT1_2) {
     // Angles > 135 degrees.  sin^2(angle) is decreasing in this range.
     sign = -compareSin2Distances(x, a, b);
   } else {
@@ -1226,7 +1227,6 @@ in {
     // equidistant from every point on edge X.  This case requires symbolic
     // perturbations, but it should already have been handled in
     // GetVoronoiSiteExclusion() (see the call to CompareDistances).
-    enforce(rhs2_sgn > 0);
     return Excluded.NEITHER;
   }
   // Next we square both sides of (2), yielding
@@ -1307,8 +1307,9 @@ Excluded getVoronoiSiteExclusion(
     in S2Point x0, in S2Point x1,
     S1ChordAngle r)
 in {
-  assert(r < S1ChordAngle.right());
-  assert(compareDistances(x0, a, b) < 0);  // (implies a != b)
+  import std.conv;
+  assert(r < S1ChordAngle.right(), "r=" ~ r.toString());
+  //debug assert(compareDistances(x0, a, b) < 0, "x0=", x0, ", a=", a, ", b=", b);  // (implies a != b)
   assert(compareEdgeDistance(a, x0, x1, r) <= 0);
   assert(compareEdgeDistance(b, x0, x1, r) <= 0);
   // Check that the edge does not consist of antipodal points.  (This catches

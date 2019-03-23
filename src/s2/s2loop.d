@@ -65,9 +65,6 @@ import core.atomic;
 // or when geometry is being converted from one format to another.
 enum bool LAZY_INDEXING = true;
 
-enum double M_PI = cast(double) PI;
-enum double M_PI_2 = cast(double) PI_2;
-
 /**
  * An S2Loop represents a simple spherical polygon.  It consists of a single
  * chain of vertices where the first vertex is implicitly connected to the

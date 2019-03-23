@@ -599,7 +599,6 @@ public:
       // index can be spanned with at most 6 cells (if the index spans multiple
       // faces) or 4 cells (it the index spans a single face).
       int level = next.id().getCommonAncestorLevel(last.id()) + 1;
-
       // Visit each potential top-level cell except the last (handled below).
       S2CellId last_id = last.id().parent(level);
       for (S2CellId id = next.id().parent(level); id != last_id; id = id.next()) {
@@ -611,7 +610,8 @@ public:
         S2ShapeIndex.Iterator cell_first = new S2ShapeIndex.Iterator();
         cell_first.copy(next);
         next.seek(id.rangeMax().next());
-        S2ShapeIndex.Iterator cell_last = next;
+        S2ShapeIndex.Iterator cell_last = new S2ShapeIndex.Iterator();
+        cell_last.copy(next);
         cell_last.prev();
         addInitialRange(cell_first, cell_last);
       }
