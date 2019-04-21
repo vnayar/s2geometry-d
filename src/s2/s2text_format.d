@@ -42,6 +42,8 @@ import std.format : format;
 import std.range;
 import std.string;
 
+import std.stdio;
+
 // Returns an S2Point corresponding to the given a latitude-longitude
 // coordinate in degrees.  Example of the input format:
 //     "-20:150"
@@ -276,6 +278,7 @@ private bool internalMakePolygon(string str, bool normalize_loops, ref S2Polygon
     if (normalize_loops && !loop.isFull()) loop.normalize();
     loops ~= loop;
   }
+  writeln("s2text_format.internalMakePolygon: loops.length=", loops.length);
   polygon = new S2Polygon(loops);
   return true;
 }

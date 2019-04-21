@@ -453,8 +453,8 @@ public:
     // up to (sqrt(2) * 0.5 * to_degrees_) radians.
     double power = 1;
     for (int i = 0; i < exponent; ++i) power *= 10;
-    return (S1Angle.fromDegrees(SQRT1_2 / power) +
-        S1Angle.fromRadians((9 * SQRT2 + 1.5) * double.epsilon));
+    return (S1Angle.fromDegrees(M_SQRT1_2 / power) +
+        S1Angle.fromRadians((9 * M_SQRT2 + 1.5) * double.epsilon));
   }
 
   /**
@@ -472,9 +472,9 @@ public:
   static int exponentForMaxSnapRadius(S1Angle snap_radius) {
     // When choosing an exponent, we need to acount for the error bound of
     // (9 * sqrt(2) + 1.5) * DBL_EPSILON added by MinSnapRadiusForExponent().
-    snap_radius -= S1Angle.fromRadians((9 * SQRT2 + 1.5) * double.epsilon);
+    snap_radius -= S1Angle.fromRadians((9 * M_SQRT2 + 1.5) * double.epsilon);
     snap_radius = max(snap_radius, S1Angle.fromRadians(1e-30));
-    double exponent = log10(SQRT1_2 / snap_radius.degrees());
+    double exponent = log10(M_SQRT1_2 / snap_radius.degrees());
 
     // There can be small errors in the calculation above, so to ensure that
     // this function is the inverse of MinSnapRadiusForExponent() we subtract a
@@ -506,7 +506,7 @@ public:
     //    existing sites, and snapping a vertex can move it by up to
     //    ((1 / sqrt(2)) * to_degrees_) degrees.
     return max(0.471 * _snapRadius,        // sqrt(2) / 3 in the plane
-        _snapRadius - S1Angle.fromDegrees(SQRT1_2 * _toDegrees));
+        _snapRadius - S1Angle.fromDegrees(M_SQRT1_2 * _toDegrees));
   }
 
   /**

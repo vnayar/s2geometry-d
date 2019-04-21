@@ -219,6 +219,12 @@ public:
     return FaceSiTitoXYZ(_id.face(), 2 * i, 2 * j).normalize();
   }
 
+  override
+  string toString() const {
+    import std.conv;
+    return "S2PaddedCell(id=" ~ _id.toString() ~ ", padding=" ~ _padding.to!string
+        ~ ", bound=" ~ _bound.toString() ~ ")";
+  }
 
  private:
   const(S2CellId) _id;

@@ -535,6 +535,7 @@ public:
   }
 
   string toString() const {
+    import std.format;
     string val = "";
     int i, j;
     for (i = 0; i < 3; i++) {
@@ -544,7 +545,7 @@ public:
         val ~= " ";
       }
       for (j = 0; j < 3; j++) {
-        val ~= conv.to!string(_m[i][j]) ~ " ";
+        /**/val ~= format("%.15G", _m[i][j]) ~ " ";
       }
       if (i == 2) {
         val ~= "]";

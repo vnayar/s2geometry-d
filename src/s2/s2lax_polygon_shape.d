@@ -18,8 +18,9 @@
 
 module s2.s2lax_polygon_shape;
 
-//#include "s2/s2polygon.h"
+import s2.s2loop;
 import s2.s2point;
+import s2.s2polygon;
 import s2.s2shape;
 import s2.shapeutil.get_reference_point : getReferencePoint;
 
@@ -27,6 +28,8 @@ import std.algorithm : copy;
 import std.range : assumeSorted, enumerate, SortedRange;
 
 alias ChainPosition = S2Shape.ChainPosition;
+
+import std.stdio;
 
 /**
  * S2LaxPolygonShape represents a region defined by a collection of zero or
@@ -88,13 +91,17 @@ public:
     initialize(loops);
   }
 
-  // Constructs an S2LaxPolygonShape from an S2Polygon, by copying its data.
-  // Full and empty S2Polygons are supported.
-  // TODO: Add after S2Polygon is added.
-  // S2LaxPolygonShape(const S2Polygon& polygon);
+  /**
+   * Constructs an S2LaxPolygonShape from an S2Polygon, by copying its data.
+   * Full and empty S2Polygons are supported.
+   */
+  this(in S2Polygon polygon) {
+    initialize(polygon);
+  }
 
-  // Initializes an S2LaxPolygonShape from the given vertex loops.
+  /// Initializes an S2LaxPolygonShape from the given vertex loops.
   void initialize(in S2Point[][] loops) {
+    writeln("S2LaxPolygonShape 0: loops.length=", loops.length);
     _numLoops = cast(int) loops.length;
     if (_numLoops == 0) {
       _numVertices = 0;
@@ -103,6 +110,7 @@ public:
       _numVertices = cast(int) loops[0].length;
       _vertices = loops[0].dup;
     } else {
+      writeln("S2LaxPolygonShape 1: _numLoops=", _numLoops);
       _cumulativeVertices = new int[_numLoops + 1];
       int num_vertices = 0;
       for (int i = 0; i < _numLoops; ++i) {
@@ -111,16 +119,32 @@ public:
       }
       _cumulativeVertices[_numLoops] = num_vertices;
       _vertices = new S2Point[num_vertices];
+      writeln("S2LaxPolygonShape 2: _cumulativeVertices=", _cumulativeVertices);
       for (int i = 0; i < _numLoops; ++i) {
+        writeln("S2LaxPolygonShape 3: _vertices=", _vertices);
         copy(loops[i], _vertices[_cumulativeVertices[i] .. $]);
       }
     }
   }
 
-  // Initializes an S2LaxPolygonShape from an S2Polygon, by copying its data.
-  // Full and empty S2Polygons are supported.
-  // TODO: Add after S2Polygon is added.
-  // void Init(const S2Polygon& polygon);
+  /**
+   * Initializes an S2LaxPolygonShape from an S2Polygon, by copying its data.
+   * Full and empty S2Polygons are supported.
+   */
+  void initialize(in S2Polygon polygon) {
+    writeln("S2LaxPolygonShape.initialize >");
+    const(S2Point[])[] spans;
+    for (int i = 0; i < polygon.numLoops(); ++i) {
+      writeln("S2LaxPolygonShape.initialize 1:");
+      const S2Loop loop = polygon.loop(i);
+      if (loop.isFull()) {
+        spans ~= new S2Point[0];  // Empty span.
+      } else {
+        spans ~= loop.vertices();
+      }
+    }
+    initialize(spans);
+  }
 
   // Returns the number of loops.
   int numLoops() const {
@@ -196,14 +220,15 @@ public:
         while (_cumulativeVertices[nextIndex] <= e0) ++nextIndex;
       } else {
         //next = std::lower_bound(next, next + num_loops(), e1);
-        nextIndex = _cumulativeVertices[nextIndex .. $]
-            .assumeSorted!("a <= b")
+        nextIndex += _cumulativeVertices[nextIndex .. nextIndex + numLoops()]
+            .assumeSorted
             .lowerBound(e1)
-            .length + 1;
+            .length;
       }
       // Wrap around to the first vertex of the loop if necessary.
       if (e1 == _cumulativeVertices[nextIndex]) { e1 = _cumulativeVertices[nextIndex - 1]; }
     }
+    writeln("S2LaxPolygonShape 0: e0=", e0, ", e1=", e1);
     return Edge(_vertices[e0], _vertices[e1]);
   }
 

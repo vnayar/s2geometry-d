@@ -18,6 +18,7 @@
 
 module s2.mutable_s2shape_index_test;
 
+import s2.logger;
 import s2.mutable_s2shape_index;
 import s2.s2shape_index;
 import s2.r2point;
@@ -31,44 +32,58 @@ import s2.s2edge_clipping : clipToPaddedFace, intersectsRect, INTERSECTS_RECT_ER
 import s2.s2edge_crosser;
 import s2.s2edge_vector_shape;
 import s2.s2error;
-// import s2.s2loop;
+import s2.s2loop;
 import s2.s2point;
 import s2.s2pointutil;
-//import s2.s2polygon;
+import s2.s2polygon;
+import s2.s2polyline;
 import s2.s2shape;
 import s2.shapeutil.contains_brute_force : containsBruteForce;
 import s2.shapeutil.visit_crossing_edge_pairs;
 import s2.s2testing;
+import s2.s2text_format;
 
 import fluent.asserts;
 
 import std.range;
+import std.algorithm;
+import std.array;
 import core.thread : Thread;
 import core.sync.condition : Condition;
 import core.sync.mutex : Mutex;
 
+import std.stdio;
 
 // Verify that that every cell of the index contains the correct edges, and
 // that no cells are missing from the index.  The running time of this
 // function is quadratic in the number of edges.
 void quadraticValidate(MutableS2ShapeIndex index) {
+  import s2.s2text_format : toString;
+  static int callNum = 1;
+  writeln("quadraticValidate >: callNum=", callNum++);
+  scope(exit) writeln("quadraticValidate <");
+
   // Iterate through a sequence of nonoverlapping cell ids that cover the
   // sphere and include as a subset all the cell ids used in the index.  For
   // each cell id, verify that the expected set of edges is present.
 
   // "min_cellid" is the first S2CellId that has not been validated yet.
+  writeln("quadraticValidate 0: index=", toString(index));
   S2CellId min_cellid = S2CellId.begin(S2CellId.MAX_LEVEL);
   for (auto it = new MutableS2ShapeIndex.Iterator(index, S2ShapeIndex.InitialPosition.BEGIN); ;
        it.next()) {
+    writeln("quadraticValidate 0: index.numShapeIds()=", index.numShapeIds());
     // Generate a list of S2CellIds ("skipped cells") that cover the gap
     // between the last cell we validated and the next cell in the index.
     auto skipped = new S2CellUnion();
     if (!it.done()) {
       S2CellId cellid = it.id();
+      writeln("quadraticValidate 1: cellid=", cellid);
       Assert.notLessThan(cellid, min_cellid);
       skipped.initFromBeginEnd(min_cellid, cellid.rangeMin());
       min_cellid = cellid.rangeMax().next();
     } else {
+      writeln("quadraticValidate 2:");
       // Validate the empty cells beyond the last cell in the index.
       skipped.initFromBeginEnd(min_cellid, S2CellId.end(S2CellId.MAX_LEVEL));
     }
@@ -76,16 +91,28 @@ void quadraticValidate(MutableS2ShapeIndex index) {
     // index cell and all the skipped cells.
     int short_edges = 0;  // number of edges counted toward subdivision
     for (int id = 0; id < index.numShapeIds(); ++id) {
+      writeln("quadraticValidate 3: id=", id);
       const(S2Shape) shape = index.shape(id);
       const(S2ClippedShape)* clipped = null;
-      if (!it.done()) clipped = it.cell().findClipped(id);
+
+      if (!it.done()) {
+        writeln("quadraticValidate 4: id=", id);
+        clipped = it.cell().findClipped(id);
+      }
+      // writeln("quadraticValidate 5: it.cell().numClipped()=", it.cell().numClipped());
+      // writeln("quadraticValidate 5: it.cell()=", it.cell());
 
       // First check that contains_center() is set correctly.
       foreach (S2CellId skipped_id; skipped.cellIds()) {
+        writeln("quadraticValidate 6:");
         validateInterior(shape, skipped_id, false);
       }
       if (!it.done()) {
         bool contains_center = clipped && clipped.containsCenter();
+        writeln("quadraticValidate 7: clipped=", clipped);
+        if (clipped) {
+          writeln("quadraticValidate 8: clipped.containsCenter()=", clipped.containsCenter());
+        }
         validateInterior(shape, it.id(), contains_center);
       }
       // If this shape has been released, it should not be present at all.
@@ -94,9 +121,12 @@ void quadraticValidate(MutableS2ShapeIndex index) {
         continue;
       }
       // Otherwise check that the appropriate edges are present.
+      writeln("quadraticValidate 9: skipped.numCells()=", skipped.numCells());
       for (int e = 0; e < shape.numEdges(); ++e) {
         auto edge = shape.edge(e);
+        writeln("quadraticValidate 10: edge=", edge);
         for (int j = 0; j < skipped.numCells(); ++j) {
+          writeln("quadraticValidate 11: skipped.cellId(j)=", skipped.cellId(j));
           validateEdge(edge.v0, edge.v1, skipped.cellId(j), false);
         }
         if (!it.done()) {
@@ -119,22 +149,36 @@ void quadraticValidate(MutableS2ShapeIndex index) {
 void validateEdge(in S2Point a, in S2Point b, S2CellId id, bool index_has_edge) {
   // Expand or shrink the padding slightly to account for errors in the
   // function we use to test for intersection (IntersectsRect).
+  writeln("validateEdge 0: a=", a, ", b=", b, ", id=", id, ", index_has_edge=", index_has_edge);
   double padding = MutableS2ShapeIndex.CELL_PADDING;
   padding += (index_has_edge ? 1 : -1) * INTERSECTS_RECT_ERROR_UV_DIST;
   R2Rect bound = id.getBoundUV().expanded(padding);
   R2Point a_uv, b_uv;
-  Assert.equal(clipToPaddedFace(a, b, id.face(), padding, a_uv, b_uv)
-      && intersectsRect(a_uv, b_uv, bound),
-      index_has_edge);
+  // Assert.equal(clipToPaddedFace(a, b, id.face(), padding, a_uv, b_uv)
+  //     && intersectsRect(a_uv, b_uv, bound),
+  //     index_has_edge);
+  writeln("validateEdge 1: bound=", bound);
+  writeln("validateEdge 2: clipToPaddedFace=", clipToPaddedFace(a, b, id.face(), padding, a_uv, b_uv));
+  writeln("validateEdge 3: intersectsRect=", intersectsRect(a_uv, b_uv, bound));
+  assert(
+      (clipToPaddedFace(a, b, id.face(), padding, a_uv, b_uv) && intersectsRect(a_uv, b_uv, bound))
+      == index_has_edge);
 }
 
 // Given a shape and a cell id, determine whether or not the shape contains
 // the cell center and verify that this matches "index_contains_center".
 void validateInterior(in S2Shape shape, S2CellId id, bool index_contains_center) {
+  static int callNum = 1;
+  writeln("validateInterior >: callNum=", callNum++);
+  scope(exit) writeln("validateInterior <");
+
+  writeln("validateInterior 0: id=", id);
   if (shape is null) {
-    Assert.equal(index_contains_center, false);
+    writeln("validateInterior 1:");
+    assert(index_contains_center == false);
   } else {
-    Assert.equal(containsBruteForce(shape, id.toS2Point()), index_contains_center);
+    writeln("validateInterior 2: index_contains_center=", index_contains_center);
+    assert(containsBruteForce(shape, id.toS2Point()) == index_contains_center);
   }
 }
 
@@ -221,7 +265,6 @@ void checkIteratorMethods(MutableS2ShapeIndex index) {
   checkIteratorMethods(index);
 }
 
-/+ TODO: Implement when S2Loop is implemented.
 @("MutableS2ShapeIndexTest.ShrinkToFitOptimization") unittest {
   // This used to trigger a bug in the ShrinkToFit optimization.  The loop
   // below contains almost all of face 0 except for a small region in the
@@ -229,29 +272,28 @@ void checkIteratorMethods(MutableS2ShapeIndex index) {
   // This caused the index to be built only in that subcell.  However, all the
   // other cells on that face should also have index entries, in order to
   // indicate that they are contained by the loop.
-  unique_ptr<S2Loop> loop(S2Loop::MakeRegularLoop(
-      S2Point(1, 0.5, 0.5).Normalize(), S1Angle::Degrees(89), 100));
-  index_.Add(make_unique<S2Loop::Shape>(loop.get()));
-  QuadraticValidate();
+  auto index = new MutableS2ShapeIndex();
+  S2Loop loop = S2Loop.makeRegularLoop(
+      S2Point(1, 0.5, 0.5).normalize(), S1Angle.fromDegrees(89.0), 100);
+  index.add(new S2Loop.Shape(loop));
+  quadraticValidate(index);
 }
-+/
 
-/+ TODO: Implement when S2Polygon is implemented.
 @("MutableS2ShapeIndexTest.LoopsSpanningThreeFaces") unittest {
-  S2Polygon polygon;
+  auto index = new MutableS2ShapeIndex();
+  auto polygon = new S2Polygon();
   const int kNumEdges = 100;  // Validation is quadratic
   // Construct two loops consisting of kNumEdges vertices each, centered
   // around the cube vertex at the start of the Hilbert curve.
-  S2Testing::ConcentricLoopsPolygon(S2Point(1, -1, -1).Normalize(), 2,
-                                    kNumEdges, &polygon);
-  vector<unique_ptr<S2Loop>> loops = polygon.Release();
-  for (auto& loop : loops) {
-    index_.Add(make_unique<S2Loop::Shape>(&*loop));
+  S2Testing.concentricLoopsPolygon(
+      S2Point(1, -1, -1).normalize(), 2, kNumEdges, polygon);
+  S2Loop[] loops = polygon.release();
+  foreach (loop; loops) {
+    index.add(new S2Loop.Shape(loop));
   }
-  QuadraticValidate();
-  checkIteratorMethods(index_);
+  quadraticValidate(index);
+  checkIteratorMethods(index);
 }
-+/
 
 @("MutableS2ShapeIndexTest.ManyIdenticalEdges") unittest {
   auto index = new MutableS2ShapeIndex();
@@ -313,24 +355,22 @@ void checkIteratorMethods(MutableS2ShapeIndex index) {
   Assert.equal(it.done(), true);
 }
 
-/+ TODO: Implement when S2Polygon is implemented.
 @("MutableS2ShapeIndexTest.SimpleUpdates") unittest {
+  auto index = new MutableS2ShapeIndex();
   // Add 5 loops one at a time, then release them one at a time,
   // validating the index at each step.
   auto polygon = new S2Polygon();
-  S2Testing::ConcentricLoopsPolygon(S2Point(1, 0, 0), 5, 20, &polygon);
-  for (int i = 0; i < polygon.num_loops(); ++i) {
-    index_.Add(make_unique<S2Loop::Shape>(polygon.loop(i)));
-    QuadraticValidate();
+  S2Testing.concentricLoopsPolygon(S2Point(1, 0, 0), 5, 20, polygon);
+  for (int i = 0; i < polygon.numLoops(); ++i) {
+    index.add(new S2Loop.Shape(polygon.loop(i)));
+    quadraticValidate(index);
   }
-  for (int id = 0; id < polygon.num_loops(); ++id) {
-    index_.Release(id);
-    QuadraticValidate();
+  for (int id = 0; id < polygon.numLoops(); ++id) {
+    index.release(id);
+    quadraticValidate(index);
   }
 }
-+/
 
-/+ TODO: Implement when S2PolyLine is implemented.
 @("MutableS2ShapeIndexTest.RandomUpdates") unittest {
   auto index = new MutableS2ShapeIndex();
 
@@ -338,78 +378,82 @@ void checkIteratorMethods(MutableS2ShapeIndex index) {
   S2Testing.rnd.reset(s2RandomSeed);
 
   // A few polylines.
-  index.add(S2Polyline::OwningShape(
-      MakePolyline("0:0, 2:1, 0:2, 2:3, 0:4, 2:5, 0:6")));
-  index_.Add(make_unique<S2Polyline::OwningShape>(
-      MakePolyline("1:0, 3:1, 1:2, 3:3, 1:4, 3:5, 1:6")));
-  index_.Add(make_unique<S2Polyline::OwningShape>(
-      MakePolyline("2:0, 4:1, 2:2, 4:3, 2:4, 4:5, 2:6")));
+  writeln("Test 1:");
+  index.add(new S2Polyline.Shape(
+      makePolyline("0:0, 2:1, 0:2, 2:3, 0:4, 2:5, 0:6")));
+  index.add(new S2Polyline.Shape(
+      makePolyline("1:0, 3:1, 1:2, 3:3, 1:4, 3:5, 1:6")));
+  index.add(new S2Polyline.Shape(
+      makePolyline("2:0, 4:1, 2:2, 4:3, 2:4, 4:5, 2:6")));
 
   // A loop that used to trigger an indexing bug.
-  index_.Add(make_unique<S2Loop::OwningShape>(S2Loop::MakeRegularLoop(
-      S2Point(1, 0.5, 0.5).Normalize(), S1Angle::Degrees(89), 20)));
+  writeln("Test 2:");
+  index.add(new S2Loop.Shape(S2Loop.makeRegularLoop(
+      S2Point(1, 0.5, 0.5).normalize(), S1Angle.fromDegrees(89.0), 20)));
 
   // Five concentric loops.
-  S2Polygon polygon5;
-  S2Testing::ConcentricLoopsPolygon(S2Point(1, -1, -1).Normalize(),
-                                    5, 20, &polygon5);
-  for (int i = 0; i < polygon5.num_loops(); ++i) {
-    index_.Add(make_unique<S2Loop::Shape>(polygon5.loop(i)));
+  writeln("Test 3:");
+  auto polygon5 = new S2Polygon();
+  S2Testing.concentricLoopsPolygon(S2Point(1, -1, -1).normalize(), 5, 20, polygon5);
+  writeln("Test 3.1:");
+  for (int i = 0; i < polygon5.numLoops(); ++i) {
+    writeln("Test 3.2:");
+    index.add(new S2Loop.Shape(polygon5.loop(i)));
   }
 
   // Two clockwise loops around S2Cell cube vertices.
-  index_.Add(make_unique<S2Loop::OwningShape>(S2Loop::MakeRegularLoop(
-      S2Point(-1, 1, 1).Normalize(), S1Angle::Radians(M_PI - 0.001), 10)));
-  index_.Add(make_unique<S2Loop::OwningShape>(S2Loop::MakeRegularLoop(
-      S2Point(-1, -1, -1).Normalize(), S1Angle::Radians(M_PI - 0.001), 10)));
+  writeln("Test 4:");
+  index.add(new S2Loop.Shape(S2Loop.makeRegularLoop(
+      S2Point(-1, 1, 1).normalize(), S1Angle.fromRadians(M_PI - 0.001), 10)));
+  index.add(new S2Loop.Shape(S2Loop.makeRegularLoop(
+      S2Point(-1, -1, -1).normalize(), S1Angle.fromRadians(M_PI - 0.001), 10)));
 
   // A shape with no edges and no interior.
-  index_.Add(make_unique<S2Loop::OwningShape>(
-      make_unique<S2Loop>(S2Loop::kEmpty())));
+  writeln("Test 5:");
+  index.add(new S2Loop.Shape(new S2Loop(S2Loop.empty())));
 
   // A shape with no edges that covers the entire sphere.
-  index_.Add(make_unique<S2Loop::OwningShape>(
-      make_unique<S2Loop>(S2Loop::kFull())));
+  writeln("Test 6:");
+  index.add(new S2Loop.Shape(
+      new S2Loop(S2Loop.full())));
 
-  vector<unique_ptr<S2Shape>> released;
-  vector<int> added(index_.num_shape_ids());
-  std::iota(added.begin(), added.end(), 0);
-  QuadraticValidate();
+  writeln("Test 7:");
+  S2Shape[] released;
+  int[] added = iota(0, index.numShapeIds()).array;
+  quadraticValidate(index);
   for (int iter = 0; iter < 100; ++iter) {
-    VLOG(1) << "Iteration: " << iter;
+    writeln("Iteration: ", iter);
+    logger.logDebug("Iteration: ", iter);
     // Choose some shapes to add and release.
-    int num_updates = 1 + S2Testing::rnd.Skewed(5);
+    int num_updates = 1 + S2Testing.rnd.skewed(5);
     for (int n = 0; n < num_updates; ++n) {
-      if (S2Testing::rnd.OneIn(2) && !added.empty()) {
-        int i = S2Testing::rnd.Uniform(added.size());
-        VLOG(1) << "  Released shape " << added[i]
-                << " (" << index_.shape(added[i]) << ")";
-        released.push_back(index_.Release(added[i]));
-        added.erase(added.begin() + i);
+      if (S2Testing.rnd.oneIn(2) && !added.empty()) {
+        int i = S2Testing.rnd.uniform(cast(int) added.length);
+        writeln("  Released shape ", added[i], " (", index.shape(added[i]), ")");
+        logger.logDebug("  Released shape ", added[i], " (", index.shape(added[i]), ")");
+        released ~= index.release(added[i]);
+        added = added.remove(i);
       } else if (!released.empty()) {
-        int i = S2Testing::rnd.Uniform(released.size());
-        S2Shape* shape = released[i].get();
-        index_.Add(std::move(released[i]));  // Changes shape->id().
-        released.erase(released.begin() + i);
-        added.push_back(shape->id());
-        VLOG(1) << "  Added shape " << shape->id()
-                << " (" << shape << ")";
+        int i = S2Testing.rnd.uniform(cast(int) released.length);
+        S2Shape shape = released[i];
+        index.add(released[i]);  // Changes shape->id().
+        released = released.remove(i);
+        added ~= shape.id();
+        writeln("  Added shape ", shape.id(), " (", shape, ")");
+        logger.logDebug("  Added shape ", shape.id(), " (", shape, ")");
       }
     }
-    QuadraticValidate();
+    quadraticValidate(index);
   }
 }
-+/
-
-/+ TODO: Impelment when S2Polygon is implemented.
 
 // Return true if any loop crosses any other loop (including vertex crossings
 // and duplicate edges), or any loop has a self-intersection (including
 // duplicate vertices).
-static bool HasSelfIntersection(const MutableS2ShapeIndex& index) {
+private bool hasSelfIntersection(MutableS2ShapeIndex index) {
   S2Error error;
-  if (s2shapeutil::FindSelfIntersection(index, &error)) {
-    VLOG(1) << error;
+  if (findSelfIntersection(index, error)) {
+    logger.logDebug(error);
     return true;
   }
   return false;
@@ -418,51 +462,63 @@ static bool HasSelfIntersection(const MutableS2ShapeIndex& index) {
 // This function recursively verifies that HasCrossing returns the given
 // result for all possible cyclic permutations of the loop vertices for the
 // given set of loops.
-void TestHasCrossingPermutations(vector<unique_ptr<S2Loop>>* loops, int i,
-                                 bool has_crossing) {
-  if (i == loops->size()) {
-    MutableS2ShapeIndex index;
-    S2Polygon polygon(std::move(*loops));
-    index.Add(make_unique<S2Polygon::Shape>(&polygon));
-    EXPECT_EQ(has_crossing, HasSelfIntersection(index));
-    *loops = polygon.Release();
+void checkHasCrossingPermutations(S2Loop[] loops, int i, bool has_crossing) {
+  static int callNum = 1;
+  writeln("checkHasCrossingPermutations >: callNum=", callNum++);
+  scope(exit) writeln("checkHasCrossingPermutations <");
+  writeln("checkHasCrossingPermutations 0: i=", i, ", has_crossing=", has_crossing,
+      ", loops.length=", loops.length);
+  if (i == loops.length) {
+    writeln("checkHasCrossingPermutations 1:");
+    auto index = new MutableS2ShapeIndex();
+    auto polygon = new S2Polygon(loops);
+    index.add(new S2Polygon.Shape(polygon));
+    Assert.equal(has_crossing, hasSelfIntersection(index));
+    loops = polygon.release();
   } else {
-    unique_ptr<S2Loop> orig_loop = std::move((*loops)[i]);
-    for (int j = 0; j < orig_loop->num_vertices(); ++j) {
-      vector<S2Point> vertices;
-      for (int k = 0; k < orig_loop->num_vertices(); ++k) {
-        vertices.push_back(orig_loop->vertex(j + k));
+    writeln("checkHasCrossingPermutations 2:");
+    S2Loop orig_loop = loops[i];
+    for (int j = 0; j < orig_loop.numVertices(); ++j) {
+      writeln("checkHasCrossingPermutations 3:");
+      S2Point[] vertices;
+      for (int k = 0; k < orig_loop.numVertices(); ++k) {
+        writeln("checkHasCrossingPermutations 4:");
+        vertices ~= orig_loop.vertex(j + k);
       }
-      (*loops)[i] = make_unique<S2Loop>(vertices);
-      TestHasCrossingPermutations(loops, i+1, has_crossing);
+      loops[i] = new S2Loop(vertices);
+      checkHasCrossingPermutations(loops, i+1, has_crossing);
     }
-    (*loops)[i] = std::move(orig_loop);
+    loops[i] = orig_loop;
   }
 }
 
 // Given a string reprsenting a polygon, and a boolean indicating whether this
 // polygon has any self-intersections or loop crossings, verify that all
-// HasSelfIntersection returns the expected result for all possible cyclic
+// hasSelfIntersection returns the expected result for all possible cyclic
 // permutations of the loop vertices.
-void TestHasCrossing(const string& polygon_str, bool has_crossing) {
-  google::FlagSaver flag_saver;
-  FLAGS_s2debug = false;  // Allow invalid polygons (restored by gUnit)
-  unique_ptr<S2Polygon> polygon(s2textformat::MakePolygon(polygon_str));
-  vector<unique_ptr<S2Loop>> loops = polygon->Release();
-  TestHasCrossingPermutations(&loops, 0, has_crossing);
+void checkHasCrossing(string polygon_str, bool has_crossing) {
+  //google::FlagSaver flag_saver;
+  //FLAGS_s2debug = false;  // Allow invalid polygons (restored by gUnit)
+  auto polygon = makePolygonOrDie(polygon_str);
+  S2Loop[] loops = polygon.release();
+  checkHasCrossingPermutations(loops, 0, has_crossing);
 }
 
-TEST_F(MutableS2ShapeIndexTest, HasCrossing) {
+@("MutableS2ShapeIndexTest.HasCrossing") unittest {
   // Coordinates are (lat,lng), which can be visualized as (y,x).
-  TestHasCrossing("0:0, 0:1, 0:2, 1:2, 1:1, 1:0", false);
-  TestHasCrossing("0:0, 0:1, 0:2, 1:2, 0:1, 1:0", true);  // duplicate vertex
-  TestHasCrossing("0:0, 0:1, 1:0, 1:1", true);  // edge crossing
-  TestHasCrossing("0:0, 1:1, 0:1; 0:0, 1:1, 1:0", true);  // duplicate edge
-  TestHasCrossing("0:0, 1:1, 0:1; 1:1, 0:0, 1:0", true);  // reversed edge
-  TestHasCrossing("0:0, 0:2, 2:2, 2:0; 1:1, 0:2, 3:1, 2:0",
-                  true);  // vertex crossing
+  writeln("Test 1:");
+  checkHasCrossing("0:0, 0:1, 0:2, 1:2, 1:1, 1:0", false);
+  writeln("Test 2:");
+  checkHasCrossing("0:0, 0:1, 0:2, 1:2, 0:1, 1:0", true);  // duplicate vertex
+  writeln("Test 3:");
+  checkHasCrossing("0:0, 0:1, 1:0, 1:1", true);  // edge crossing
+  writeln("Test 4:");
+  checkHasCrossing("0:0, 1:1, 0:1; 0:0, 1:1, 1:0", true);  // duplicate edge
+  writeln("Test 5:");
+  checkHasCrossing("0:0, 1:1, 0:1; 1:1, 0:0, 1:0", true);  // reversed edge
+  writeln("Test 6:");
+  checkHasCrossing("0:0, 0:2, 2:2, 2:0; 1:1, 0:2, 3:1, 2:0", true);  // vertex crossing
 }
-+/
 
 // A test that repeatedly updates "index_" in one thread and attempts to
 // concurrently read the index_ from several other threads.  When all threads
@@ -575,29 +631,25 @@ class LazyUpdatesTest {
 }
 +/
 
-/+ TODO: Implement when S2Loop is done.
-
-TEST(MutableS2ShapeIndex, MixedGeometry) {
+@("MutableS2ShapeIndex.MixedGeometry") unittest {
   // This test used to trigger a bug where the presence of a shape with an
   // interior could cause shapes that don't have an interior to suddenly
   // acquire one.  This would cause extra S2ShapeIndex cells to be created
   // that are outside the bounds of the given geometry.
-  vector<unique_ptr<S2Polyline>> polylines;
-  polylines.push_back(MakePolyline("0:0, 2:1, 0:2, 2:3, 0:4, 2:5, 0:6"));
-  polylines.push_back(MakePolyline("1:0, 3:1, 1:2, 3:3, 1:4, 3:5, 1:6"));
-  polylines.push_back(MakePolyline("2:0, 4:1, 2:2, 4:3, 2:4, 4:5, 2:6"));
-  MutableS2ShapeIndex index;
-  for (auto& polyline : polylines) {
-    index.Add(make_unique<S2Polyline::OwningShape>(std::move(polyline)));
+  S2Polyline[] polylines;
+  polylines ~= makePolyline("0:0, 2:1, 0:2, 2:3, 0:4, 2:5, 0:6");
+  polylines ~= makePolyline("1:0, 3:1, 1:2, 3:3, 1:4, 3:5, 1:6");
+  polylines ~= makePolyline("2:0, 4:1, 2:2, 4:3, 2:4, 4:5, 2:6");
+  auto index = new MutableS2ShapeIndex();
+  foreach (polyline; polylines) {
+    index.add(new S2Polyline.Shape(polyline));
   }
-  S2Loop loop(S2Cell(S2CellId::Begin(S2CellId::kMaxLevel)));
-  index.Add(make_unique<S2Loop::Shape>(&loop));
-  MutableS2ShapeIndex::Iterator it(&index);
+  auto loop = new S2Loop(new S2Cell(S2CellId.begin(S2CellId.MAX_LEVEL)));
+  index.add(new S2Loop.Shape(loop));
+  auto it = new MutableS2ShapeIndex.Iterator(index);
   // No geometry intersects face 1, so there should be no index cells there.
-  EXPECT_EQ(S2ShapeIndex::DISJOINT, it.Locate(S2CellId::FromFace(1)));
+  Assert.equal(it.locate(S2CellId.fromFace(1)), S2ShapeIndex.CellRelation.DISJOINT);
 }
-
-+/
 
 @("S2Shape.user_data") unittest {
   struct MyData {

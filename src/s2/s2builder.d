@@ -670,6 +670,9 @@ public:
   in {
     assert(!_layers.empty(), "Call StartLayer before adding any edges");
   } body {
+    writeln("S2Builder.addEdge >");
+    scope(exit) writeln("S2Builder.addEdge <");
+    writeln("S2Builder.addEdge 1: v0=", v0, ", v1=", v1);
     if (v0 == v1
         && _layerOptions.back().degenerateEdges() == GraphOptions.DegenerateEdges.DISCARD) {
       return;
@@ -847,6 +850,8 @@ public:
    * can be reused.
    */
   bool build(ref S2Error error) {
+    writeln("S2Builder.build >");
+    scope(exit) writeln("S2Builder.build <");
     error.clear();
     _error = error;
 
@@ -1525,6 +1530,8 @@ private:
   }
 
   void buildLayers() {
+    writeln("S2Builder.buildLayers >");
+    scope(exit) writeln("S2Builder.buildLayers <");
     // Each output edge has an "input edge id set id" (an int32) representing
     // the set of input edge ids that were snapped to this edge.  The actual
     // InputEdgeIds can be retrieved using "input_edge_id_set_lexicon".
@@ -1532,6 +1539,8 @@ private:
     InputEdgeIdSetId[][] layer_input_edge_ids;
     IdSetLexicon input_edge_id_set_lexicon = new IdSetLexicon();
     buildLayerEdges(layer_edges, layer_input_edge_ids, input_edge_id_set_lexicon);
+
+    writeln("S2Builder.buildLayers 1: layer_edges=", layer_edges);
 
     // At this point we have no further need for the input geometry or nearby
     // site data, so we clear those fields to save space.
@@ -1546,6 +1555,7 @@ private:
     S2Point[][] layer_vertices;
     enum int kMinLayersForVertexFiltering = 10;
     if (_layers.length >= kMinLayersForVertexFiltering) {
+      writeln("S2Builder.buildLayers 2:");
       // Disable vertex filtering if it is disallowed by any layer.  (This could
       // be optimized, but in current applications either all layers allow
       // filtering or none of them do.)
@@ -1554,6 +1564,7 @@ private:
         allow_vertex_filtering &= options.allowVertexFiltering();
       }
       if (allow_vertex_filtering) {
+        writeln("S2Builder.buildLayers 3:");
         Graph.VertexId[] filter_tmp;  // Temporary used by FilterVertices.
         layer_vertices.length = _layers.length;
         for (int i = 0; i < _layers.length; ++i) {
@@ -1563,7 +1574,11 @@ private:
       }
     }
     for (int i = 0; i < _layers.length; ++i) {
+      writeln("S2Builder.buildLayers 4: i=", i);
       const S2Point[] vertices = layer_vertices.empty() ? _sites : layer_vertices[i];
+      writeln("S2Builder.buildLayers 5: _sites=", _sites);
+      writeln("S2Builder.buildLayers 5: layer_vertices.length=", layer_vertices.length);
+      writeln("S2Builder.buildLayers 5: vertices=", vertices);
       auto graph = new Graph(_layerOptions[i], vertices, layer_edges[i],
           layer_input_edge_ids[i], input_edge_id_set_lexicon,
           _labelSetIds, _labelSetLexicon,
@@ -1584,6 +1599,8 @@ private:
    */
   void buildLayerEdges(ref Edge[][] layer_edges, ref InputEdgeIdSetId[][] layer_input_edge_ids,
       IdSetLexicon input_edge_id_set_lexicon) {
+    writeln("S2Builder.BuildLayerEdges >");
+    scope(exit) writeln("S2Builder.BuildLayerEdges <");
     // Edge chains are simplified only when a non-zero snap radius is specified.
     // If so, we build a map from each site to the set of input vertices that
     // snapped to that site.
@@ -1593,12 +1610,18 @@ private:
       site_vertices.length = _sites.length;
     }
 
+    writeln("S2Builder.BuildLayerEdges 1: layer_edges.length=", layer_edges.length);
+    writeln("S2Builder.BuildLayerEdges 1: _layers=", _layers);
+    writeln("S2Builder.BuildLayerEdges 1: _layers.length=", _layers.length);
+
     layer_edges.length = _layers.length;
     layer_input_edge_ids.length = _layers.length;
     for (int i = 0; i < _layers.length; ++i) {
+      writeln("S2Builder.BuildLayerEdges 2: layer_edges[i].length=", layer_edges[i].length);
       addSnappedEdges(_layerBegins[i], _layerBegins[i + 1], _layerOptions[i],
           layer_edges[i], layer_input_edge_ids[i],
           input_edge_id_set_lexicon, site_vertices);
+      writeln("S2Builder.BuildLayerEdges 3: layer_edges[i].length=", layer_edges[i].length);
     }
     if (simplify) {
       simplifyEdgeChains(

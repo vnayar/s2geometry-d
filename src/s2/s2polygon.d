@@ -58,6 +58,8 @@ import std.math;
 import std.range;
 import std.typecons;
 
+import std.stdio;
+
 /**
  * Build the S2ShapeIndex only when it is first needed.  This can save
  * significant amounts of memory and time when geometry is constructed but
@@ -202,6 +204,8 @@ public:
    * loops are deleted before being replaced by the input loops.
    */
   void initializeNested(S2Loop[] loops) {
+    writeln("S2Polygon.initializeNested >");
+    scope(exit) writeln("S2Polygon.initializeNested <");
     clearLoops();
     _loops = loops;
 
@@ -210,10 +214,12 @@ public:
       return;
     }
     LoopMap loop_map;
+    writeln("S2Polygon.initializeNested 0: numLoops()=", numLoops());
     foreach (int i; 0 .. numLoops()) {
       insertLoop(loop(i), null, loop_map);
     }
     _loops.length = 0;
+    writeln("S2Polygon.initializeNested 1: loop_map.length=", loop_map.length);
     initializeLoops(loop_map);
 
     // Compute num_vertices_, bound_, subregion_bound_.
@@ -1873,12 +1879,15 @@ private:
    */
   alias LoopMap = S2Loop[][S2Loop];
 
-  void insertLoop(S2Loop new_loop, S2Loop parent, LoopMap loop_map) {
+  void insertLoop(S2Loop new_loop, S2Loop parent, ref LoopMap loop_map) {
     S2Loop[]* children;
+    writeln("S2Polygon.insertLoop 1:");
     for (bool done = false; !done; ) {
+      writeln("S2Polygon.insertLoop 2:");
       children = &loop_map.require(parent, new S2Loop[0]);
       done = true;
       foreach (S2Loop child; *children) {
+        writeln("S2Polygon.insertLoop 3:");
         if (child.containsNested(new_loop)) {
           parent = child;
           done = false;
@@ -1889,16 +1898,21 @@ private:
 
     // Some of the children of the parent loop may now be children of
     // the new loop.
+    writeln("S2Polygon.insertLoop 4:");
     S2Loop[]* new_children = &loop_map.require(new_loop, new S2Loop[0]);
     for (int i = 0; i < children.length;) {
+      writeln("S2Polygon.insertLoop 5:");
       S2Loop child = (*children)[i];
       if (new_loop.containsNested(child)) {
+        writeln("S2Polygon.insertLoop 6:");
         *new_children ~= child;
-        (*children).remove(i);
+        *children = (*children).remove(i);
       } else {
+        writeln("S2Polygon.insertLoop 7:");
         ++i;
       }
     }
+    writeln("S2Polygon.insertLoop 8:");
     *children ~= new_loop;
   }
 
@@ -1912,9 +1926,14 @@ private:
         depth = loop.depth();
         _loops ~= loop;
       }
-      if (loop !in loop_map) continue;
+      if (loop !in loop_map) {
+        writeln("S2Polygon.initializeLoops 1: loop not in loop_map.");
+        continue;
+      }
       S2Loop[] children = loop_map[loop];
-      for (auto i = children.length - 1; i >= 0; --i) {
+      writeln("S2Polygon.initializeLoops 2: children.length=", children.length);
+      for (int i = cast(int) children.length - 1; i >= 0; --i) {
+        writeln("S2Polygon.initializeLoops 3: i=", i);
         S2Loop child = children[i];
         enforce(child !is null);
         child.setDepth(depth + 1);
