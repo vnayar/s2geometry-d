@@ -66,15 +66,19 @@ public:
   void build(in Graph g, ref S2Error error) {
     S2Shape.Edge[] actual, expected;
     writeln("IndexMatchingLayer.build 0: g.numEdges()=", g.numEdges());
+    writeln("IndexMatchingLayer.build 0: g.numEdges()=", g.numEdges());
     for (int e = 0; e < g.numEdges(); ++e) {
       const(Graph.Edge) edge = g.edge(e);
       actual ~= S2Shape.Edge(g.vertex(edge[0]), g.vertex(edge[1]));
     }
+    writeln("IndexMatchingLayer.build 1: _index.numShapeIds()=", _index.numShapeIds());
     for (int s = 0; s < _index.numShapeIds(); ++s) {
       const(S2Shape) shape = _index.shape(s);
       if (shape is null || shape.dimension() != _dimension) {
+        writeln("IndexMatchingLayer.build 2:");
         continue;
       }
+      writeln("IndexMatchingLayer.build 3: shape.numEdges()=", shape.numEdges());
       for (int e = shape.numEdges(); --e >= 0; ) {
         expected ~= shape.edge(e);
       }
@@ -82,8 +86,8 @@ public:
     sort(actual);
     sort(expected);
 
-    writeln("IndexMatchingLayer.build 1: expected=", expected);
-    writeln("IndexMatchingLayer.build 2: actual=", actual);
+    writeln("IndexMatchingLayer.build 4: expected=", expected);
+    writeln("IndexMatchingLayer.build 4: actual=", actual);
 
     // The edges are a multiset, so we can't use std::set_difference.
     S2Shape.Edge[] missing, extra;
