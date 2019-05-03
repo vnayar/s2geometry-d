@@ -1222,7 +1222,7 @@ S2Point choosePoint() {
 void checkSnappingWithForcedVertices(
     string input_str, S1Angle snap_radius, string vertices_str, string expected_str) {
   auto builder = new S2Builder(new S2Builder.Options(new IdentitySnapFunction(snap_radius)));
-  S2Point[] vertices = parsePoints(vertices_str);
+  S2Point[] vertices = parsePointsOrDie(vertices_str);
   foreach (vertex; vertices) {
     builder.forceVertex(vertex);
   }

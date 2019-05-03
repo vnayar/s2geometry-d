@@ -33,8 +33,6 @@ import s2.shapeutil.shape_edge_id;
 
 import fluent.asserts;
 
-import std.stdio;
-
 @("S2ContainsPointQuery.VertexModelOpen") unittest {
   auto index = makeIndexOrDie("0:0 # 0:1, 0:2 # 0:5, 0:7, 2:6");
   auto options = new S2ContainsPointQueryOptions(S2VertexModel.OPEN);
@@ -114,21 +112,16 @@ import std.stdio;
     index.add(new S2Loop.Shape(loop));
   }
   auto query = makeS2ContainsPointQuery(index);
-  writeln("Test 0: index.numShapeIds()=", index.numShapeIds());
   for (int i = 0; i < 100; ++i) {
-    writeln("Test 1: i=", i);
     S2Point p = S2Testing.samplePoint(center_cap);
     S2Shape[] expected;
     for (int j = 0; j < index.numShapeIds(); ++j) {
       S2Shape shape = index.shape(j);
       S2Loop loop = (cast(S2Loop.Shape) shape).loop();
-      writeln("Test 2: j=", j);
       if (loop.contains(p)) {
-        writeln("Test 3:");
         Assert.equal(query.shapeContains(shape, p), true);
         expected ~= shape;
       } else {
-        writeln("Test 4:");
         Assert.equal(query.shapeContains(shape, p), false);
       }
     }

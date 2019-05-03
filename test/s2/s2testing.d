@@ -399,10 +399,6 @@ public:
   /// and vertices per loop.
   static void concentricLoopsPolygon(
       in S2Point center, int num_loops, int num_vertices_per_loop, S2Polygon polygon) {
-    writeln("s2testing.concentricLoopsPolygon >");
-    scope(exit) writeln("s2testing.concentricLoopsPolygon <");
-    writeln("s2testing.concentricLoopsPolygon 1: num_loops=", num_loops,
-        ", num_vertices_per_loop=", num_vertices_per_loop);
     Matrix3x3_d m;
     getFrame(center, m);
     /**/m = Matrix3x3_d(
@@ -410,20 +406,16 @@ public:
         0.816413146891386, -0.0116721998599441, -0.577350269189626,
         -0.398098151848932, 0.712870625121509, -0.577350269189626
     );
-    writeln("s2testing.concentricLoopsPolygon 2: m=", m);
     S2Loop[] loops;
     for (int li = 0; li < num_loops; ++li) {
-      writeln("s2testing.concentricLoopsPolygon 3:");
       S2Point[] vertices;
       double radius = 0.005 * (li + 1) / num_loops;
       double radian_step = 2 * M_PI / num_vertices_per_loop;
-      writeln("s2testing.concentricLoopsPolygon 4: radius=", radius, ", radian_step=", radian_step);
       for (int vi = 0; vi < num_vertices_per_loop; ++vi) {
         double angle = vi * radian_step;
         auto p = S2Point(radius * math.cos(angle), radius * math.sin(angle), 1);
         vertices ~= fromFrame(m, p.normalize());
       }
-      writeln("s2testing.concentricLoopsPolygon 5:");
       loops ~= new S2Loop(vertices);
     }
     polygon.initializeNested(loops);

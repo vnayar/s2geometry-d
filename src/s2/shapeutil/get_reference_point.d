@@ -26,8 +26,6 @@ import s2.s2shape_index;
 import std.algorithm : sort;
 import std.exception : enforce;
 
-import std.stdio;
-
 // This is a helper function for implementing S2Shape::GetReferencePoint().
 //
 // Given a shape consisting of closed polygonal loops, the interior of the
@@ -51,8 +49,6 @@ S2Shape.ReferencePoint getReferencePoint(in S2Shape shape)
 in {
   assert(shape.hasInterior());
 } body {
-  writeln("getReferencePoint >");
-  scope(exit) writeln("getReferencePoint <");
   if (shape.numEdges() == 0) {
     // A shape with no edges is defined to be "full" if and only if it
     // contains an empty loop.

@@ -30,7 +30,6 @@ import s2.s2cell_id;
 import s2.s2point;
 
 import std.conv : to;
-import std.stdio;
 
 /**
  * S2ClippedShape represents the part of a shape that intersects an S2Cell.
@@ -173,18 +172,14 @@ public:
   // Returns a pointer to the clipped shape corresponding to the given shape,
   // or nullptr if the shape does not intersect this cell.
   const(S2ClippedShape)* findClipped(in S2Shape shape) const {
-    writeln("S2ShapeIndex.findClipped 1:");
     return findClipped(shape.id());
   }
 
   const(S2ClippedShape)* findClipped(int shape_id) const {
-    writeln("S2ShapeIndex.findClipped 1: shape_id=", shape_id);
     // Linear search is fine because the number of shapes per cell is typically
     // very small (most often 1), and is large only for pathological inputs
     // (e.g. very deeply nested loops).
-    writeln("S2ShapeIndex.findClipped 2: _shapes.length=", _shapes.length);
     foreach (ref const s; _shapes) {
-      writeln("S2ShapeIndex.findClipped 3: s.shapeId()=", s.shapeId());
       if (s.shapeId() == shape_id) return &s;
     }
     return null;
@@ -213,7 +208,6 @@ package:
   // shapes will have a larger shape id than any current shape, and that shapes
   // will be added in increasing shape id order.
   RefAppender!(S2ClippedShape[]) addShapes(int n) {
-    writeln("S2ShapeIndexCell.addShapes >");
     _shapes.reserve(_shapes.length + n);
     return appender(&_shapes);
   }

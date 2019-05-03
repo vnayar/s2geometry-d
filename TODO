@@ -1,12 +1,13 @@
 * Dependency Tree
 
 + [TODO] s2polygon
-  + [FAIL] s2boolean_operation_test
-    + [TODO] s2.builder.util.snap_functions_test  <= Resume here.
-    + [OK] shapeutil.get_reference_point_test
-      + [OK] s2lax_polygon_shape_test
-        + [TODO] s2lax_loop_shape
-      
+  + [TODO] s2boolean_operation_test
+
+* Regressions:
+
+$ dub test -- -s -t -d s2.mutable_s2shape_index_test.MutableS2ShapeIndexTest.HasCrossing
+$ dub test -- -s -t -d s2.s2builder_test.S2Builder.FractalStressTest
+
 * Failing Tests
 
 D:

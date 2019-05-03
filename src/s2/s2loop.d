@@ -58,8 +58,6 @@ import std.math;
 import std.range : empty, back, isInputRange, popBack;
 import core.atomic;
 
-import std.stdio;
-
 // Build the S2ShapeIndex only when it is first needed.  This can save
 // significant amounts of memory and time when geometry is constructed but
 // never queried, for example when loops are passed directly to S2Polygon,
@@ -123,13 +121,11 @@ public:
   // kEmpty and kFull).  This method may be called multiple times.
   void initialize(RangeT)(RangeT vertexRange)
   if (isInputRange!RangeT /*&& is(ElementType!RangeT == Vector!(double, 3))*/) {
-    writeln("S2Loop.initialize >");
     clearIndex();
     _vertices.length = 0;
     _vertices ~= vertexRange;
     //copy(vertexRange, appender(_vertices));
     initOriginAndBound();
-    writeln("S2Loop.initialize <");
   }
 
   // A special vertex chain of length 1 that creates an empty loop (i.e., a
@@ -1373,20 +1369,15 @@ private:
   }
 
   void initIndex() {
-    writeln("S2Loop.initIndex >");
     import s2.s2debug : flagsS2Debug;
     _index.add(new Shape(this));
     if (!LAZY_INDEXING) {
-      writeln("S2Loop.initIndex 1:");
       _index.forceBuild();
     }
-    writeln("S2Loop.initIndex 1.5: flagsS2Debug=", flagsS2Debug, ", _s2DebugOverride=", _s2DebugOverride);
     if (flagsS2Debug && _s2DebugOverride == S2Debug.ALLOW) {
       // Note that FLAGS_s2debug is false in optimized builds (by default).
-      writeln("S2Loop.initIndex 2:");
       enforce(isValid());
     }
-    writeln("S2Loop.initIndex <");
   }
 
   // A version of Contains(S2Point) that does not use the S2ShapeIndex.

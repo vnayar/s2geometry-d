@@ -166,7 +166,7 @@ template FurthestPointQuery(Data) {
     index.add(points[i], i);
   }
   auto query = new FurthestPointQuery!int(index);
-  auto target = new FurthestPointQueryTarget(makePoint("4:0"));
+  auto target = new FurthestPointQueryTarget(makePointOrDie("4:0"));
   auto options = new FurthestPointQueryOptions();
   options.setMaxPoints(1);
   auto results = query.findClosestPoints(target, options);

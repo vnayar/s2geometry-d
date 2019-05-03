@@ -40,8 +40,6 @@ import std.algorithm : swap;
 import std.array;
 import std.exception : enforce;
 
-import std.stdio;
-
 // The default maximum number of edges per cell (not counting "long" edges).
 // If a cell has more than this many edges, and it is not a leaf cell, then it
 // is subdivided.  This flag can be overridden via MutableS2ShapeIndex::Options.
@@ -275,10 +273,7 @@ public:
     // easier just to declare a new iterator whenever required, since iterator
     // construction is cheap).
     void initialize(MutableS2ShapeIndex index, InitialPosition pos = InitialPosition.UNPOSITIONED) {
-      writeln("MutableS2ShapeIndex.Iterator.initialize >");
-      scope(exit) writeln("MutableS2ShapeIndex.Iterator.initialize <");
       index.maybeApplyUpdates();  // TODO: This method is why indexes and iterators cannot be const.
-      writeln("MutableS2ShapeIndex.Iterator.initialize 1:");
       initStale(index, pos);
     }
 
@@ -662,8 +657,6 @@ public:
      * REQUIRES: shape->has_interior()
      */
     void addShape(int shape_id, bool contains_focus) {
-      writeln("MutableS2ShapeIndex.InteriorTracker.addShape >");
-      scope(exit) writeln("MutableS2ShapeIndex.InteriorTracker.addShape <");
       _isActive = true;
       if (contains_focus) {
         toggleShape(shape_id);
@@ -694,9 +687,7 @@ public:
     // segment between the old and new focus locations (see DrawTo).
     // REQUIRES: shape->has_interior()
     void testEdge(int shape_id, in S2Shape.Edge edge) {
-      writeln("MutableS2ShapeIndex.testEdge 0: shape_id=", shape_id, ", edge=", edge);
       if (_crosser.edgeOrVertexCrossing(edge.v0, edge.v1)) {
-        writeln("MutableS2ShapeIndex.testEdge 1: toggle");
         toggleShape(shape_id);
       }
     }
@@ -867,20 +858,16 @@ public:
     // updating the status to be FRESH.  This guarantees that any thread that
     // sees a status of FRESH will also see the corresponding index updates.
     if (atomicLoad!(MemoryOrder.acq)(_indexStatus) != IndexStatus.FRESH) {
-      writeln("MutableS2ShapeIndex.maybeApplyUpdates 1:");
       this.applyUpdatesThreadSafe();
     }
   }
 
   // Apply any pending updates in a thread-safe way.
   void applyUpdatesThreadSafe() {
-    writeln("MutableS2ShapeIndex.applyUpdatesThreadSafe >");
     _lock.lock();
     if (atomicLoad!(MemoryOrder.raw)(_indexStatus) == IndexStatus.FRESH) {
-      writeln("MutableS2ShapeIndex.applyUpdatesThreadSafe 1:");
       _lock.unlock();
     } else if (atomicLoad!(MemoryOrder.raw)(_indexStatus) == IndexStatus.UPDATING) {
-      writeln("MutableS2ShapeIndex.applyUpdatesThreadSafe 2:");
       // Wait until the updating thread is finished.  We do this by attempting
       // to lock a mutex that is held by the updating thread.  When this mutex
       // is unlocked the index_status_ is guaranteed to be FRESH.
@@ -891,7 +878,6 @@ public:
       _updateState.numWaiting--;
       unlockAndSignal();  // Notify other waiting threads.
     } else {
-      writeln("MutableS2ShapeIndex.applyUpdatesThreadSafe 3:");
       enforce(_indexStatus == IndexStatus.STALE);
       atomicStore!(MemoryOrder.raw)(_indexStatus, IndexStatus.UPDATING);
       // Allocate the extra state needed for thread synchronization.  We keep
@@ -920,8 +906,6 @@ public:
   // This method updates the index by applying all pending additions and
   // removals.  It does *not* update index_status_ (see ApplyUpdatesThreadSafe).
   void applyUpdatesInternal() {
-    writeln("MutableS2ShapeIndex.applyUpdatesInternal >");
-    scope(exit) writeln("MutableS2ShapeIndex.applyUpdatesInternal <");
     // Check whether we have so many edges to process that we should process
     // them in multiple batches to save memory.  Building the index can use up
     // to 20x as much memory (per edge) as the final index size.
@@ -1244,11 +1228,6 @@ public:
   // all the edges from the index.  (An edge is added if shapes_[id] is not
   // nullptr, and removed otherwise.)
   void updateFaceEdges(int face, in FaceEdge[] face_edges, InteriorTracker tracker) {
-    writeln("MutableS2ShapeIndex.updateFaceEdges >");
-    scope(exit) writeln("MutableS2ShapeIndex.updateFaceEdges <");
-
-    writeln("MutableS2ShapeIndex.updateFaceEdges 0: face=", face,
-        ", face_edges=", face_edges);
     int num_edges = cast(int) face_edges.length;
     if (num_edges == 0 && tracker.shapeIds.length == 0) return;
 
@@ -1286,17 +1265,12 @@ public:
         // can save a lot of work by starting directly with that cell, but if we
         // are in the interior of at least one shape then we need to create
         // index entries for the cells we are skipping over.
-        writeln("updateFaceEdges 1: shrunk_id=", shrunk_id, ", pcell.id()=", pcell.id());
-        writeln("updateFaceEdges 1: tracker.shapeIds()=", tracker.shapeIds());
         skipCellRange(face_id.rangeMin(), shrunk_id.rangeMin(),
             tracker, alloc, disjoint_from_index);
-        writeln("updateFaceEdges 2: tracker.shapeIds()=", tracker.shapeIds());
         pcell = new S2PaddedCell(shrunk_id, CELL_PADDING);
         updateEdges(pcell, clipped_edges, tracker, alloc, disjoint_from_index);
-        writeln("updateFaceEdges 3: tracker.shapeIds()=", tracker.shapeIds());
         skipCellRange(shrunk_id.rangeMax().next(), face_id.rangeMax().next(),
             tracker, alloc, disjoint_from_index);
-        writeln("updateFaceEdges 4: tracker.shapeIds()=", tracker.shapeIds());
         return;
       }
     }
@@ -1323,8 +1297,6 @@ public:
   void skipCellRange(
       S2CellId begin, S2CellId end, InteriorTracker tracker, EdgeAllocator alloc,
       bool disjoint_from_index) {
-    writeln("MutableS2ShapeIndex.skipCellRange >");
-    scope(exit) writeln("MutableS2ShapeIndex.skipCellRange <");
     import s2.s2cell_union;
     // If we aren't in the interior of a shape, then skipping over cells is easy.
     if (tracker.shapeIds().empty()) return;
@@ -1351,11 +1323,6 @@ public:
     // Cases where an index cell is not needed should be detected before this.
     assert(edges.length != 0 || tracker.shapeIds().length != 0);
   } body {
-    writeln("MutableS2ShapeIndex.updateEdges >");
-    scope(exit) writeln("MutableS2ShapeIndex.updateEdges <");
-
-    writeln("MutableS2ShapeIndex.updateEdges 0: pcell=", pcell, ", edges.length=", edges.length);
-    writeln("MutableS2ShapeIndex.updateEdges 0: tracker.shapeIds()=", tracker.shapeIds());
     // This function is recursive with a maximum recursion depth of 30
     // (S2CellId::kMaxLevel).  Note that using an explicit stack does not seem
     // to be any faster based on profiling.
@@ -1399,7 +1366,6 @@ public:
         enforce(r == CellRelation.SUBDIVIDED);
       }
     }
-    writeln("MutableS2ShapeIndex.updateEdges 2: tracker.shapeIds()=", tracker.shapeIds());
 
     // If there are existing index cells below us, then we need to keep
     // subdividing so that we can merge with those cells.  Otherwise,
@@ -1417,7 +1383,6 @@ public:
           child_edges[i][j].reserve(num_edges);
         }
       }
-      writeln("MutableS2ShapeIndex.updateEdges 4: tracker.shapeIds()=", tracker.shapeIds());
 
       // Remember the current size of the EdgeAllocator so that we can free any
       // edges that are allocated during edge splitting.
@@ -1471,16 +1436,13 @@ public:
               tracker, alloc, disjoint_from_index);
         }
       }
-      writeln("MutableS2ShapeIndex.updateEdges 6: tracker.shapeIds()=", tracker.shapeIds());
       // Free any temporary edges that were allocated during clipping.
       alloc.reset(alloc_size);
     }
     if (index_cell_absorbed) {
       // Restore the state for any edges being removed that we are tracking.
-      writeln("MutableS2ShapeIndex.updateEdges 7: tracker.shapeIds()=", tracker.shapeIds());
       tracker.restoreStateBefore(_pendingAdditionsBegin);
     }
-    writeln("MutableS2ShapeIndex.updateEdges 8: tracker.shapeIds()=", tracker.shapeIds());
   }
 
   // Absorb an index cell by transferring its contents to "edges" and/or
@@ -1642,7 +1604,6 @@ public:
   // Attempt to build an index cell containing the given edges, and return true
   // if successful.  (Otherwise the edges should be subdivided further.)
   bool makeIndexCell(in S2PaddedCell pcell, in ClippedEdge[] edges, InteriorTracker tracker) {
-    writeln("MutableS2ShapeIndex.makeIndexCell >");
     if (edges.length == 0 && tracker.shapeIds().length == 0) {
       // No index cell is needed.  (In most cases this situation is detected
       // before we get to this point, but this can happen when all shapes in a
@@ -1682,7 +1643,6 @@ public:
     // one or more empty intervening cells, in which case the InteriorTracker
     // state is unchanged because the intervening cells have no edges.
 
-    writeln("MutableS2ShapeIndex.makeIndexCell 0: tracker.shapeIds()=", tracker.shapeIds());
     // Shift the InteriorTracker focus point to the center of the current cell.
     if (tracker.isActive() && edges.length != 0) {
       if (!tracker.atCellId(pcell.id())) {
@@ -1695,8 +1655,6 @@ public:
     // need to merge the shapes associated with the intersecting edges together
     // with the shapes that happen to contain the cell center.
     const ShapeIdSet cshape_ids = tracker.shapeIds();
-    writeln("MutableS2ShapeIndex.makeIndexCell 1: tracker=", tracker);
-    writeln("MutableS2ShapeIndex.makeIndexCell 1: cshape_ids=", cshape_ids);
     int num_shapes = countShapes(edges, cshape_ids);
     S2ShapeIndexCell cell = new S2ShapeIndexCell();
     auto shapesAppender = cell.addShapes(num_shapes);
@@ -1708,8 +1666,6 @@ public:
     // as we go along.  Both sets of shape ids are already sorted.
     int enext = 0;
     int cnext_pos = 0;
-    writeln("MutableS2ShapeIndex.makeIndexCell 2: pcell.id()=", pcell.id(),
-        ", num_shapes=", num_shapes);
     for (int i = 0; i < num_shapes; ++i) {
       S2ClippedShape clipped = S2ClippedShape();
       int eshape_id = numShapeIds(), cshape_id = eshape_id;  // Sentinels
@@ -1739,7 +1695,6 @@ public:
           ++cnext_pos;
         }
       }
-      //writeln("MutalbeS2ShapeIndex.makeIndexCell 1: clipped=", clipped);
       shapesAppender ~= clipped;
     }
     // UpdateEdges() visits cells in increasing order of S2CellId, so during
@@ -1749,17 +1704,12 @@ public:
     // during incremental updates, but this is probably not worth the effort.
     _cellMap[pcell.id()] = cell;
 
-    writeln("MutableS2ShapeIndex.makeIndexCell 3: tracker.shapeIds()=", tracker.shapeIds());
     // Shift the InteriorTracker focus point to the exit vertex of this cell.
     if (tracker.isActive() && edges.length != 0) {
       tracker.drawTo(pcell.getExitVertex());
-      writeln("MutableS2ShapeIndex.makeIndexCell 3.1: tracker.shapeIds()=", tracker.shapeIds());
       testAllEdges(edges, tracker);
-      writeln("MutableS2ShapeIndex.makeIndexCell 3.2: tracker.shapeIds()=", tracker.shapeIds());
       tracker.setNextS2CellId(pcell.id().next());
-      writeln("MutableS2ShapeIndex.makeIndexCell 3.3: tracker.shapeIds()=", tracker.shapeIds());
     }
-    writeln("MutableS2ShapeIndex.makeIndexCell 4: tracker.shapeIds()=", tracker.shapeIds());
     return true;
   }
 

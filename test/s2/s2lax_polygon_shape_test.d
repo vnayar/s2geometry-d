@@ -28,6 +28,7 @@ import s2.s2contains_point_query;
 import s2.s2latlng;
 import s2.s2loop;
 import s2.s2point;
+import s2.s2pointutil;
 import s2.s2polygon;
 import s2.s2shape;
 import s2.s2testing;
@@ -64,7 +65,7 @@ import std.stdio;
   // S2Polygon doesn't support single-vertex loops, so we need to construct
   // the S2LaxPolygonShape directly.
   S2Point[][] loops;
-  loops ~= parsePoints("0:0");
+  loops ~= parsePointsOrDie("0:0");
   auto shape = new S2LaxPolygonShape(loops);
   Assert.equal(shape.numLoops(), 1);
   Assert.equal(shape.numVertices(), 1);
@@ -83,7 +84,7 @@ import std.stdio;
 
 @("S2LaxPolygonShape.SingleLoopPolygon") unittest {
   // Test S2Polygon constructor.
-  S2Point[] vertices = parsePoints("0:0, 0:1, 1:1, 1:0");
+  S2Point[] vertices = parsePointsOrDie("0:0, 0:1, 1:1, 1:0");
   auto shape = new S2LaxPolygonShape(new S2Polygon(new S2Loop(vertices)));
   Assert.equal(shape.numLoops(), 1);
   Assert.equal(shape.numVertices(), cast(int) vertices.length);
@@ -109,8 +110,8 @@ import std.stdio;
   // Test vector<vector<S2Point>> constructor.  Make sure that the loops are
   // oriented so that the interior of the polygon is always on the left.
   S2LaxPolygonShape.Loop[] loops = [
-    parsePoints("0:0, 0:3, 3:3"),  // CCW
-    parsePoints("1:1, 2:2, 1:2")   // CW
+    parsePointsOrDie("0:0, 0:3, 3:3"),  // CCW
+    parsePointsOrDie("1:1, 2:2, 1:2")   // CW
   ];
   auto shape = new S2LaxPolygonShape(loops);
 
@@ -169,9 +170,9 @@ import std.stdio;
 
 @("S2LaxPolygonShape.DegenerateLoops") unittest {
   S2LaxPolygonShape.Loop[] loops = [
-    parsePoints("1:1, 1:2, 2:2, 1:2, 1:3, 1:2, 1:1"),
-    parsePoints("0:0, 0:3, 0:6, 0:9, 0:6, 0:3, 0:0"),
-    parsePoints("5:5, 6:6")
+    parsePointsOrDie("1:1, 1:2, 2:2, 1:2, 1:3, 1:2, 1:1"),
+    parsePointsOrDie("0:0, 0:3, 0:6, 0:9, 0:6, 0:3, 0:0"),
+    parsePointsOrDie("5:5, 6:6")
   ];
   auto shape = new S2LaxPolygonShape(loops);
   Assert.equal(shape.getReferencePoint().contained, false);
@@ -179,8 +180,8 @@ import std.stdio;
 
 @("S2LaxPolygonShape.InvertedLoops") unittest {
   S2LaxPolygonShape.Loop[] loops = [
-    parsePoints("1:2, 1:1, 2:2"),
-    parsePoints("3:4, 3:3, 4:4")
+    parsePointsOrDie("1:2, 1:1, 2:2"),
+    parsePointsOrDie("3:4, 3:3, 4:4")
   ];
   auto shape = new S2LaxPolygonShape(loops);
   Assert.equal(containsBruteForce(shape, origin()), true);

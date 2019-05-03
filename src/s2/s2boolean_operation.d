@@ -37,6 +37,7 @@ import s2.value_lexicon;
 
 import std.algorithm;
 import std.bitmanip;
+import std.conv;
 import std.exception;
 import std.range;
 import std.stdio;
@@ -514,8 +515,6 @@ public:
    * itself, but the S2Builder::Layer might.)
    */
   bool build(S2ShapeIndex a, S2ShapeIndex b, ref S2Error error) {
-    writeln("S2BooleanOperation.build >");
-    scope(exit) writeln("S2BooleanOperation <");
     _regions[0] = a;
     _regions[1] = b;
     return new Impl(this).build(error);
@@ -563,15 +562,12 @@ private:
     }
 
     bool build(ref S2Error error) {
-      writeln("S2BooleanOperation.Impl.build >");
-      scope(exit) writeln("S2BooleanOperation.Impl.build <");
       error.clear();
       if (isBooleanOutput()) {
         // BuildOpType() returns true if and only if the result is empty.
         *(_op._resultEmpty) = buildOpType(_op.opType());
         return true;
       }
-      writeln("S2BooleanOperation.Impl.build 1:");
 
       // TODO(ericv): Rather than having S2Builder split the edges, it would be
       // faster to call AddVertex() in this class and have a new S2Builder
@@ -584,7 +580,6 @@ private:
       // expect vertices closer than the full "snap_radius" to be snapped.
       options.setIdempotent(false);
       _builder = new S2Builder(options);
-      writeln("S2BooleanOperation.Impl.build 2: _inputCrossings=", _inputCrossings);
       _builder.startLayer(new EdgeClippingLayer(_op._layers, &_inputDimensions, &_inputCrossings));
 
       // Polygons with no edges are assumed to be empty.  It is the responsibility
@@ -593,13 +588,9 @@ private:
       // TODO(ericv): Implement a predicate that can determine whether a
       // degenerate polygon is empty or full based on the input S2ShapeIndexes.
       // (It is possible to do this 100% robustly, but tricky.)
-      writeln("S2BooleanOperation.Impl.build 3:");
       _builder.addIsFullPolygonPredicate(&isFullPolygonNever);
-      writeln("S2BooleanOperation.Impl.build 4: _inputCrossings=", _inputCrossings);
       buildOpType(_op.opType());
-      writeln("S2BooleanOperation.Impl.build 5:");
       bool result = _builder.build(error);
-      writeln("S2BooleanOperation.Impl.build 6: _inputCrossings");
       return result;
     }
 
@@ -612,7 +603,6 @@ private:
        * all edge crossings between the two regions (rather than a subset).
        */
       this(S2ShapeIndex b_index, IndexCrossings crossings, bool crossings_complete) {
-        writeln("S2BooleanOperation.CrossingIterator >: crossings=", crossings);
         _bIndex = b_index;
         _crossings = crossings;
         _bShapeId = -1;
@@ -780,9 +770,6 @@ private:
 
       /// Starts processing edges from the given chain.
       void startChain(int chain_id, S2Shape.Chain chain, bool inside) {
-        writeln("S2BooleanOperation.CrossingProcessor.startChain >");
-        scope(exit) writeln("S2BooleanOperation.CrossingProcessor.startChain <");
-        writeln("S2BooleanOperation.CrossingProcessor.startChain 1: inside=", inside);
         _chainId = chain_id;
         _chainStart = chain.start;
         _chainLimit = chain.start + chain.length;
@@ -799,18 +786,13 @@ private:
        * as soon as the result is known to be non-empty.
        */
       bool processEdge(ShapeEdgeId a_id, ref CrossingIterator it) {
-        writeln("S2BooleanOperation.CrossingProcessor.processEdge >");
-        scope(exit) writeln("S2BooleanOperation.CrossingProcessor.processEdge <");
         // chain_edge() is faster than edge() when there are multiple chains.
         auto a = _aShape.chainEdge(_chainId, a_id.edgeId - _chainStart);
         if (_aDimension == 0) {
-          writeln("S2BooleanOperation.CrossingProcessor.processEdge 1:");
           return processEdge0(a_id, a, it);
         } else if (_aDimension == 1) {
-          writeln("S2BooleanOperation.CrossingProcessor.processEdge 2:");
           return processEdge1(a_id, a, it);
         } else {
-          writeln("S2BooleanOperation.CrossingProcessor.processEdge 3:");
           debug enforce(_aDimension == 2);
           return processEdge2(a_id, a, it);
         }
@@ -832,13 +814,9 @@ private:
         _sourceIdMap[SourceId(SET_INVERT_B)] = SET_INVERT_B;
         _sourceIdMap[SourceId(SET_REVERSE_A)] = SET_REVERSE_A;
         (*_inputCrossings).reserve(_inputCrossings.length + _sourceEdgeCrossings.length);
-        writeln("S2BooleanOperation.Impl.doneBoundaryPair 1: _sourceEdgeCrossings=", _sourceEdgeCrossings);
         foreach (tmp; _sourceEdgeCrossings) {
-          writeln("S2BooleanOperation.Impl.doneBoundaryPair 2: tmp=", tmp);
           auto eqRange = _sourceIdMap.equalRange(tmp[1][0]);
           debug enforce(!eqRange.empty());
-          writeln("S2BooleanOperation.Impl.doneBoundaryPair 3: inputCrossing=",
-              tuple(tmp[0], CrossingInputEdge(eqRange.front.value, tmp[1][1])));
           *_inputCrossings ~= tuple(tmp[0], CrossingInputEdge(eqRange.front.value, tmp[1][1]));
         }
         _sourceEdgeCrossings.length = 0;
@@ -938,7 +916,6 @@ private:
       }
 
       void addCrossing(SourceEdgeCrossing crossing) {
-        writeln("CrossingProcessor.addCrossing 1: crossing=", crossing);
         _sourceEdgeCrossings ~= tuple(inputEdgeId(), crossing);
       }
 
@@ -986,12 +963,8 @@ private:
       in {
         assert(a.v0 == a.v1);
       } do {
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 >");
-        scope(exit) writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 >");
-
         // When a region is inverted, all points and polylines are discarded.
         if (_invertA != _invertResult) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 1:");
           skipCrossings(a_id, it);
           return true;
         }
@@ -999,34 +972,25 @@ private:
 
         // "contained" indicates whether the current point is inside the polygonal
         // interior of the opposite region, using semi-open boundaries.
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 2: _inside=", _inside,
-            ", _invertB=", _invertB);
         bool contained = _inside ^ _invertB;
         if (r.matchesPolygon && _polygonModel != PolygonModel.SEMI_OPEN) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 3:");
           contained = (_polygonModel == PolygonModel.CLOSED);
         }
         if (r.matchesPolyline) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 4:");
           contained = true;
         }
 
         // The output of UNION includes duplicate values, so ensure that points are
         // not suppressed by other points.
         if (r.matchesPoint && !_isUnion) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 5:");
           contained = true;
         }
 
         // Test whether the point is contained after region B is inverted.
         // TODO: Resume here and find why it differs from the C++ version.
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 6: contained=", contained,
-            ", _invertB=", _invertB);
         if (contained == _invertB) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 7:");
           return true;  // Don't exit early.
         }
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge0 8:");
         return addPointEdge(a.v0, 0);
       }
 
@@ -1037,16 +1001,11 @@ private:
        * as soon as the result is known to be non-empty.
        */
       bool processEdge1(ShapeEdgeId a_id, in S2Shape.Edge a, ref CrossingIterator it) {
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 >");
-        scope(exit) writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 <");
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 0: ",
-            "it.bIndex().numShapeIds()=", it.bIndex().numShapeIds());
         // When a region is inverted, all points and polylines are discarded.
         if (_invertA != _invertResult) {
           skipCrossings(a_id, it);
           return true;
         }
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 1:");
         // Evaluate whether the start vertex should belong to the output, in case it
         // needs to be emitted as an isolated vertex.
         EdgeCrossingResult r = processEdgeCrossings(a_id, a, it);
@@ -1054,11 +1013,8 @@ private:
 
         // Test whether the entire polyline edge should be emitted (or not emitted)
         // because it matches a polyline or polygon edge.
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 1: ",
-            "_inside=", _inside, ", r.a0Crossings=", r.a0Crossings);
         _inside ^= (r.a0Crossings & 1);
         if (_inside != isPolylineEdgeInside(r)) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 2:");
           _inside ^= true;   // Invert the inside_ state.
           ++r.a1Crossings;  // Restore the correct (semi-open) state later.
         }
@@ -1066,37 +1022,27 @@ private:
         // If neither edge adjacent to v0 was emitted, and this polyline contains
         // v0, and the other region contains v0, then emit an isolated vertex.
         if (isV0Isolated(a_id) && polylineContainsV0(a_id.edgeId, _chainStart) && a0_inside) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 3:");
           if (!addPointEdge(a.v0, 1)) {
-            writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 4:");
             return false;
           }
         }
 
         // Test whether the entire edge or any part of it belongs to the output.
         if (_inside || r.interiorCrossings > 0) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 5:");
           // Note: updates "inside_" to correspond to the state just before a1.
           if (!addEdge(a_id, a, 1 /*dimension*/, r.interiorCrossings)) {
-            writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 6:");
             return false;
           }
         }
         // Remember whether the edge portion just before "a1" was emitted, so that
         // we can decide whether "a1" need to be emitted as an isolated vertex.
         if (_inside) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 7:");
           _v0EmittedMaxEdgeId = a_id.edgeId + 1;
         }
 
         // Verify that edge crossings are being counted correctly.
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 8: ",
-            "_inside=", _inside, ", r.a1Crossings=", r.a1Crossings);
         _inside ^= (r.a1Crossings & 1);
         if (it.crossingsComplete()) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 8: ",
-              "_inside=", _inside, ", _invertB=", _invertB);
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdge1 8: a.v1=", a.v1);
           debug enforce(
               makeS2ContainsPointQuery(it.bIndex()).contains(a.v1) == (_inside ^ _invertB));
         }
@@ -1197,22 +1143,15 @@ private:
       /// a set of crossing edges from region B (see PointCrossingResult).
       PointCrossingResult processPointCrossings(
           ShapeEdgeId a_id, in S2Point a0, ref CrossingIterator it) const {
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processPointCrossings >");
-        scope(exit) writeln("S2BooleanOperation.Impl.CrossingProcessor.processPointCrossings <");
         PointCrossingResult r;
         for (; !it.done(a_id); it.next()) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processPointCrossings 1:");
           if (it.bDimension() == 0) {
-            writeln("S2BooleanOperation.Impl.CrossingProcessor.processPointCrossings 2:");
             r.matchesPoint = true;
           } else if (it.bDimension() == 1) {
-            writeln("S2BooleanOperation.Impl.CrossingProcessor.processPointCrossings 3:");
             if (polylineEdgeContainsVertex(a0, it)) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processPointCrossings 4:");
               r.matchesPolyline = true;
             }
           } else {
-            writeln("S2BooleanOperation.Impl.CrossingProcessor.processPointCrossings 5:");
             r.matchesPolygon = true;
           }
         }
@@ -1230,85 +1169,63 @@ private:
       EdgeCrossingResult processEdgeCrossings(
           ShapeEdgeId a_id, in S2Shape.Edge a, ref CrossingIterator it) {
         // TODO: Resume here, find out why the EdgeCrossingResult is different in D.
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings >");
-        scope(exit) writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings <");
         EdgeCrossingResult r;
         if (it.done(a_id)) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 1:");
           return r;
         }
 
         // TODO(ericv): bool a_degenerate = (a.v0 == a.v1);
         for (; !it.done(a_id); it.next()) {
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 2: ",
-              "it.aId()=", it.aId(), ", it.bId()=", it.bId());
           // Polylines and polygons are not affected by point geometry.
           if (it.bDimension() == 0) continue;
-          writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 3:");
           S2Shape.Edge b = it.bEdge();
           if (it.isInteriorCrossing()) {
-            writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 4:");
             // The crossing occurs in the edge interior.  The condition below says
             // that (1) polyline crossings don't affect polygon output, and (2)
             // subtracting a crossing polyline from a polyline has no effect.
             if (_aDimension <= it.bDimension()
                 && !(_invertB != _invertResult && it.bDimension() == 1)) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 5:");
               auto src_id = SourceId(_bRegionId, it.bShapeId(), it.bEdgeId());
               addCrossing(tuple(src_id, it.leftToRight()));
             }
             r.interiorCrossings += (it.bDimension() == 1) ? 2 : 1;
           } else if (it.bDimension() == 1) {
-            writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 6:");
             // Polygons are not affected by polyline geometry.
             if (_aDimension == 2) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 7:");
               continue;
             }
             if ((a.v0 == b.v0 && a.v1 == b.v1) || (a.v0 == b.v1 && a.v1 == b.v0)) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 8:");
               r.matchesPolyline = true;
             }
             if ((a.v0 == b.v0 || a.v0 == b.v1) && polylineEdgeContainsVertex(a.v0, it)) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 9:");
               r.a0MatchesPolyline = true;
             }
             if ((a.v1 == b.v0 || a.v1 == b.v1) && polylineEdgeContainsVertex(a.v1, it)) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 10:");
               r.a1MatchesPolyline = true;
             }
           } else {
-            writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 11:");
             debug enforce(it.bDimension() == 2);
             if (a.v0 == b.v0 && a.v1 == b.v1) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 12:");
               ++r.a0Crossings;
               r.matchesPolygon = true;
             } else if (a.v0 == b.v1 && a.v1 == b.v0) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 13:");
               ++r.a0Crossings;
               r.matchesSibling = true;
             } else if (it.isVertexCrossing()) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 14:");
               if (a.v0 == b.v0 || a.v0 == b.v1) {
-                writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 15:");
                 ++r.a0Crossings;
               } else {
-                writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 16:");
                 ++r.a1Crossings;
               }
             }
             if (a.v0 == b.v0 || a.v0 == b.v1) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 17:");
               r.a0MatchesPolygon = true;
             }
             if (a.v1 == b.v0 || a.v1 == b.v1) {
-              writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 18:");
               r.a1MatchesPolygon = true;
             }
           }
         }
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.processEdgeCrossings 19:");
         return r;
       }
 
@@ -1370,11 +1287,7 @@ private:
         assert(it.bDimension() == 1);
         assert(it.bEdge().v0 == v || it.bEdge().v1 == v);
       } do {
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.polylineEdgeContainsVertex >");
-        scope(exit) writeln("S2BooleanOperation.Impl.CrossingProcessor.polylineEdgeContainsVertex <");
         // Closed polylines contain all their vertices.
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.polylineEdgeContainsVertex 1: _polylineModel=",
-            _polylineModel);
         if (_polylineModel == PolylineModel.CLOSED) return true;
 
         // All interior polyline vertices are contained.
@@ -1383,7 +1296,6 @@ private:
         // The test below is written such that usually b_edge() is not needed.
         const auto b_chain = it.bChainInfo();
         int b_edge_id = it.bEdgeId();
-        writeln("S2BooleanOperation.Impl.CrossingProcessor.polylineEdgeContainsVertex 2:");
         return (b_edge_id < b_chain.limit - 1 || it.bEdge().v1 != v)
             && (polylineContainsV0(b_edge_id, b_chain.start) || it.bEdge().v0 != v);
       }
@@ -1566,13 +1478,9 @@ private:
         bool invert_result,
         in ShapeEdgeId[] a_chain_starts,
         CrossingProcessor cp) {
-      writeln("S2BooleanOperation.Impl.addBoundary >");
-      scope(exit) writeln("S2BooleanOperation.Impl.addBoundary <");
       S2ShapeIndex a_index = _op._regions[a_region_id];
       S2ShapeIndex b_index = _op._regions[1 - a_region_id];
       if (!getIndexCrossings(a_region_id)) return false;
-      writeln("S2BooleanOperation.Impl.addBoundary 1: a_chain_start=", a_chain_starts);
-      writeln("S2BooleanOperation.Impl.addBoundary 1: _indexCrossings=", _indexCrossings);
       cp.startBoundary(a_region_id, invert_a, invert_b, invert_result);
 
       // Walk the boundary of region A and build a list of all edge crossings.
@@ -1580,52 +1488,40 @@ private:
       auto next_start_pos = 0; // a_chain_starts.begin();
       auto next_crossing =
           CrossingIterator(b_index, _indexCrossings, true /*crossings_complete*/);
-      writeln("S2BooleanOperation.Impl.addBoundary 1.1: next_crossing.aId()=", next_crossing.aId());
       ShapeEdgeId next_id = min(a_chain_starts[next_start_pos], next_crossing.aId());
       while (next_id != SENTINEL) {
-        writeln("S2BooleanOperation.Impl.addBoundary 2:");
         int a_shape_id = next_id.shapeId;
         S2Shape a_shape = a_index.shape(a_shape_id);
         cp.startShape(a_shape);
         while (next_id.shapeId == a_shape_id) {
-          writeln("S2BooleanOperation.Impl.addBoundary 3: next_id.shapeId=", next_id.shapeId,
-              ", a_shape_id=", a_shape_id);
           // TODO(ericv): Special handling of dimension 0?  Can omit most of this
           // code, including the loop, since all chains are of length 1.
           int edge_id = next_id.edgeId;
           S2Shape.ChainPosition chain_position = a_shape.chainPosition(edge_id);
           int chain_id = chain_position.chainId;
           S2Shape.Chain chain = a_shape.chain(chain_id);
-          writeln("S2BooleanOperation.Impl.addBoundary 3: next_id=", next_id,
-              ", next_start=", a_chain_starts[next_start_pos]);
           bool start_inside = (next_id == a_chain_starts[next_start_pos]);
           if (start_inside) ++next_start_pos;
           cp.startChain(chain_id, chain, start_inside);
           int chain_limit = chain.start + chain.length;
           while (edge_id < chain_limit) {
-            writeln("S2BooleanOperation.Impl.addBoundary 4:");
             auto a_id = ShapeEdgeId(a_shape_id, edge_id);
             debug enforce(cp.inside() || next_crossing.aId() == a_id);
             if (!cp.processEdge(a_id, next_crossing)) {
-              writeln("S2BooleanOperation.Impl.addBoundary 5:");
               return false;
             }
             if (cp.inside()) {
-              writeln("S2BooleanOperation.Impl.addBoundary 6:");
               ++edge_id;
             } else if (next_crossing.aId().shapeId == a_shape_id
                 && next_crossing.aId().edgeId < chain_limit) {
-              writeln("S2BooleanOperation.Impl.addBoundary 7:");
               edge_id = next_crossing.aId().edgeId;
             } else {
-              writeln("S2BooleanOperation.Impl.addBoundary 8:");
               break;
             }
           }
           next_id = min(a_chain_starts[next_start_pos], next_crossing.aId());
         }
       }
-      writeln("S2BooleanOperation.Impl.addBoundary 9:");
       return true;
     }
 
@@ -1644,14 +1540,10 @@ private:
     bool getChainStarts(int a_region_id, bool invert_a, bool invert_b,
         bool invert_result, CrossingProcessor cp,
         ref ShapeEdgeId[] chain_starts) {
-      writeln("S2BooleanOperation.Impl.getChainStarts >");
-      scope(exit) writeln("S2BooleanOperation.Impl.getChainStarts <");
-      writeln("S2BooleanOperation.Impl.getChainStarts 1: chain_starts=", chain_starts);
       S2ShapeIndex a_index = _op._regions[a_region_id];
       S2ShapeIndex b_index = _op._regions[1 - a_region_id];
 
       if (isBooleanOutput()) {
-        writeln("S2BooleanOperation.Impl.getChainStarts 2:");
         // If boolean output is requested, then we use the CrossingProcessor to
         // determine whether the first edge of each chain will be emitted to the
         // output region.  This lets us terminate the operation early in many
@@ -1666,11 +1558,9 @@ private:
       // operation early.
       bool b_has_interior = hasInterior(b_index);
       if (b_has_interior || invert_b || isBooleanOutput()) {
-        writeln("S2BooleanOperation.Impl.getChainStarts 3:");
         auto query = makeS2ContainsPointQuery(b_index);
         int num_shape_ids = a_index.numShapeIds();
         for (int shape_id = 0; shape_id < num_shape_ids; ++shape_id) {
-          writeln("S2BooleanOperation.Impl.getChainStarts 4:");
           S2Shape a_shape = a_index.shape(shape_id);
           if (a_shape is null) continue;
 
@@ -1679,28 +1569,23 @@ private:
           // output (they can only remove edges from region B).
           if (invert_a != invert_result && a_shape.dimension() < 2) continue;
 
-          writeln("S2BooleanOperation.Impl.getChainStarts 5:");
           if (isBooleanOutput()) cp.startShape(a_shape);
           int num_chains = a_shape.numChains();
           for (int chain_id = 0; chain_id < num_chains; ++chain_id) {
-            writeln("S2BooleanOperation.Impl.getChainStarts 6:");
             S2Shape.Chain chain = a_shape.chain(chain_id);
             if (chain.length == 0) continue;
             auto a = new ShapeEdge(shape_id, chain.start, a_shape.chainEdge(chain_id, 0));
             bool inside = (b_has_interior && query.contains(a.v0())) != invert_b;
             if (inside) {
-              writeln("S2BooleanOperation.Impl.getChainStarts 7:");
               chain_starts ~= ShapeEdgeId(shape_id, chain.start);
             }
             if (isBooleanOutput()) {
-              writeln("S2BooleanOperation.Impl.getChainStarts 8:");
               cp.startChain(chain_id, chain, inside);
               if (!processIncidentEdges(a, query, cp)) return false;
             }
           }
         }
       }
-      writeln("S2BooleanOperation.Impl.getChainStarts 9:");
       chain_starts ~= SENTINEL;
       return true;
     }
@@ -1768,8 +1653,6 @@ private:
      * as soon as the result is known to be non-empty.
      */
     bool getIndexCrossings(int region_id) {
-      writeln("S2BooleanOperation.Impl.getIndexCrossings >");
-      scope(exit) writeln("S2BooleanOperation.Impl.getIndexCrossings <");
       import s2.shapeutil.visit_crossing_edge_pairs;
       import s2.s2crossing_edge_query : CrossingType;
 
@@ -1812,10 +1695,6 @@ private:
     /// Supports "early exit" in the case of boolean results by returning false
     /// as soon as the result is known to be non-empty.
     bool addBoundaryPair(bool invert_a, bool invert_b, bool invert_result, CrossingProcessor cp) {
-      writeln("S2BooleanOperation.Impl.addBoundaryPair >");
-      scope(exit) writeln("S2BooleanOperation.Impl.addBoundaryPair <");
-      writeln("S2BooleanOperation.Impl.addBoundaryPair 1: invert_a=",
-          invert_a, ", invert_b=", invert_b, ", invert_result=", invert_result);
       // Optimization: if the operation is DIFFERENCE or SYMMETRIC_DIFFERENCE,
       // it is worthwhile checking whether the two regions are identical (in which
       // case the output is empty).
@@ -1825,24 +1704,19 @@ private:
       // one S2ShapeIndex intersects a non-empty cell of the other S2ShapeIndex.
       auto type = _op.opType();
       if (type == OpType.DIFFERENCE || type == OpType.SYMMETRIC_DIFFERENCE) {
-        writeln("S2BooleanOperation.Impl.addBoundaryPair 2:");
         if (areRegionsIdentical()) {
-          writeln("S2BooleanOperation.Impl.addBoundaryPair 3:");
           return true;
         }
       } else if (!isBooleanOutput()) {
-        writeln("S2BooleanOperation.Impl.addBoundaryPair 4:");
       }
       ShapeEdgeId[] a_starts, b_starts;
       if (!getChainStarts(0, invert_a, invert_b, invert_result, cp, a_starts)
           || !getChainStarts(1, invert_b, invert_a, invert_result, cp, b_starts)
           || !addBoundary(0, invert_a, invert_b, invert_result, a_starts, cp)
           || !addBoundary(1, invert_b, invert_a, invert_result, b_starts, cp)) {
-        writeln("S2BooleanOperation.Impl.addBoundaryPair 5:");
         return false;
       }
       if (!isBooleanOutput()) {
-        writeln("S2BooleanOperation.Impl.addBoundaryPair 6:");
         cp.doneBoundaryPair();
       }
       return true;
@@ -1885,30 +1759,24 @@ private:
     /// Supports "early exit" in the case of boolean results by returning false
     /// as soon as the result is known to be non-empty.
     bool buildOpType(OpType op_type) {
-      writeln("S2BooleanOperation.Impl.buildOpType >");
-      scope(exit) writeln("S2BooleanOperation.Impl.buildOpType <");
       // CrossingProcessor does the real work of emitting the output edges.
       auto cp = new CrossingProcessor(_op._options.polygonModel(),
           _op._options.polylineModel(),
           _builder, &_inputDimensions, &_inputCrossings);
       final switch (op_type) {
         case OpType.UNION:
-          writeln("S2BooleanOperation.Impl.buildOpType 1:");
           // A | B == ~(~A & ~B)
           return addBoundaryPair(true, true, true, cp);
 
         case OpType.INTERSECTION:
-          writeln("S2BooleanOperation.Impl.buildOpType 2:");
           // A & B
           return addBoundaryPair(false, false, false, cp);
 
         case OpType.DIFFERENCE:
-          writeln("S2BooleanOperation.Impl.buildOpType 3:");
           // A - B = A & ~B
           return addBoundaryPair(false, true, false, cp);
 
         case OpType.SYMMETRIC_DIFFERENCE:
-          writeln("S2BooleanOperation.Impl.buildOpType 4:");
           // Compute the union of (A - B) and (B - A).
           return (addBoundaryPair(false, true, false, cp)
               && addBoundaryPair(true, false, false, cp));
@@ -2167,8 +2035,6 @@ public:
   }
 
   void run() {
-    writeln("GraphEdgeClipper.run >");
-    scope(exit) writeln("GraphEdgeClipper.run <");
     // Declare vectors here and reuse them to avoid reallocation.
     VertexId[] a_vertices;
     int[] a_num_crossings;
@@ -2180,33 +2046,24 @@ public:
     bool invert_b = false;
     bool reverse_a = false;
     auto inputCrossingRange = _inputCrossings[];
-    writeln("GraphEdgeClipper.run 1: _order.length=", _order.length);
-    writeln("GraphEdgeClipper.run 1: _order=", _order);
     for (int i = 0; i < _order.length; ++i) {
       // For each input edge (the "A" input edge), gather all the input edges
       // that cross it (the "B" input edges).
       InputEdgeId a_input_id = _inputIds[_order[i]];
       const(Graph.Edge) edge0 = _g.edge(_order[i]);
-      writeln("GraphEdgeClipper.run 2: edge0=", edge0);
       b_input_edges.length = 0;
       for (; !inputCrossingRange.empty(); inputCrossingRange.popFront()) {
         auto next = inputCrossingRange.front();
-        writeln("GraphEdgeClipper.run 3: next=", next, ", a_input_id=", a_input_id);
         if (next[0] != a_input_id) {
-          writeln("GraphEdgeClipper.run 4:");
           break;
         }
         if (next[1].inputId() >= 0) {
-          writeln("GraphEdgeClipper.run 5:");
           b_input_edges ~= next[1];
         } else if (next[1].inputId() == SET_INSIDE) {
-          writeln("GraphEdgeClipper.run 6:");
           inside = next[1].leftToRight();
         } else if (next[1].inputId() == SET_INVERT_B) {
-          writeln("GraphEdgeClipper.run 7:");
           invert_b = next[1].leftToRight();
         } else {
-          writeln("GraphEdgeClipper.run 8:");
           debug enforce(next[1].inputId() == SET_REVERSE_A);
           reverse_a = next[1].leftToRight();
         }
@@ -2215,20 +2072,17 @@ public:
       // TODO(ericv): If the output layer for this edge dimension specifies
       // DegenerateEdges::DISCARD, then remove the edge here.
       if (edge0[0] == edge0[1]) {
-        writeln("GraphEdgeClipper.run 9:");
         inside ^= (b_input_edges.length & 1);
         addEdge(edge0, a_input_id);
         continue;
       }
       // Optimization for the case where there are no crossings.
       if (b_input_edges.empty()) {
-          writeln("GraphEdgeClipper.run 10:");
         // In general the caller only passes edges that are part of the output
         // (i.e., we could DCHECK(inside) here).  The one exception is for
         // polyline/polygon operations, where the polygon edges are needed to
         // compute the polyline output but are not emitted themselves.
         if (inside) {
-          writeln("GraphEdgeClipper.run 11:");
           addEdge(reverse_a ? Graph.reverse(edge0) : edge0, a_input_id);
         }
         continue;
@@ -2240,11 +2094,8 @@ public:
       a_vertices ~= edge0[0];
       b_edges.length = 0;
       b_edges.length = b_input_edges.length;
-      writeln("GraphEdgeClipper.run 12: b_input_edges.length=", b_input_edges.length, ", b_edges=", b_edges);
       gatherIncidentEdges(a_vertices, 0, b_input_edges, b_edges);
-      writeln("GraphEdgeClipper.run 13: b_edges=", b_edges);
       for (; i < _order.length && _inputIds[_order[i]] == a_input_id; ++i) {
-        writeln("GraphEdgeClipper.run 14:");
         a_vertices ~= _g.edge(_order[i])[1];
         gatherIncidentEdges(a_vertices, cast(int) a_vertices.length - 1, b_input_edges, b_edges);
       }
@@ -2273,9 +2124,7 @@ public:
       a_isolated.length = 0;
       a_isolated.length = a_vertices.length;
       for (int bi = 0; bi < b_input_edges.length; ++bi) {
-        writeln("GraphEdgeClipper.run 15:");
         bool left_to_right = b_input_edges[bi].leftToRight();
-        writeln("a_vertices=", a_vertices, ", b_edges[", bi, "]=", b_edges[bi]);
         int a_index = getCrossedVertexIndex(a_vertices, b_edges[bi], left_to_right);
         if (s2builderVerbose) {
           writeln("  b input edge ", b_input_edges[bi].inputId(), " (l2r=", left_to_right,
@@ -2354,26 +2203,20 @@ private:
   in {
     assert(b_input_edges.length == b_edges.length);
   } do {
-    writeln("GraphEdgeClipper.gatherIncidentEdges >");
-    scope(exit) writeln("GraphEdgeClipper.gatherIncidentEdges <");
     // Examine all of the edges incident to the given vertex of A.  If any edge
     // comes from a B input edge, append it to the appropriate vector.
     foreach (EdgeId e; _in.edgeIds(a[ai])) {
       InputEdgeId id = _inputIds[e];
-      writeln("GraphEdgeClipper.gatherIncidentEdges 0: id=", id);
       auto trisectRanges = b_input_edges.assumeSorted().trisect(id);
       if (!trisectRanges[1].empty()) {
-        writeln("GraphEdgeClipper.gatherIncidentEdges 1: index=", trisectRanges[0].length);
         auto edges = &b_edges[trisectRanges[0].length];
         *edges ~= CrossingGraphEdge(e, ai, false, _g.edge(e)[0]);
       }
     }
     foreach (EdgeId e; _out.edgeIds(a[ai])) {
-      writeln("GraphEdgeClipper.gatherIncidentEdges 2: b_input_edges=", b_input_edges);
       InputEdgeId id = _inputIds[e];
       auto trisectRanges = b_input_edges.assumeSorted().trisect(id);
       if (!trisectRanges[1].empty()) {
-        writeln("GraphEdgeClipper.gatherIncidentEdges 3:");
         auto edges = &b_edges[trisectRanges[0].length];
         *edges ~= CrossingGraphEdge(e, ai, true, _g.edge(e)[1]);
       }
@@ -2391,8 +2234,6 @@ private:
   int getCrossedVertexIndex(
       in VertexId[] a, in CrossingGraphEdgeVector b, bool left_to_right) const
   in {
-    writeln("GraphEdgeClipper.getCrossedVertexIndex 0: ",
-        "a.length=", a.length, ", b.length=", b.length);
     assert(!a.empty());
     assert(!b.empty());
   } do {
@@ -2601,13 +2442,10 @@ public:
 
   override
   void build(Graph g, ref S2Error error) {
-    writeln("EdgeClippingLayer.build >");
-    scope(exit) writeln("EdgeClippingLayer.build <");
     // The bulk of the work is handled by GraphEdgeClipper.
     Graph.Edge[] new_edges;
     InputEdgeIdSetId[] new_input_edge_ids;
     // Destroy the GraphEdgeClipper immediately to save memory.
-    writeln("S2BooleanOperation.EdgeClippingLayer.build 1: _inputCrossings=", *_inputCrossings);
     new GraphEdgeClipper(g, *_inputDimensions, *_inputCrossings, &new_edges, &new_input_edge_ids)
         .run();
     if (s2builderVerbose) {

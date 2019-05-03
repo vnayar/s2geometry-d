@@ -27,8 +27,6 @@ import s2.shapeutil.shape_edge;
 
 import std.typecons : Rebindable;
 
-import std.stdio;
-
 /**
  * Defines whether shapes are considered to contain their vertices.  Note that
  * these definitions differ from the ones used by S2BooleanOperation.
@@ -147,15 +145,11 @@ public:
    * under the vertex model specified (OPEN, SEMI_OPEN, or CLOSED).
    */
   bool contains(in S2Point p) {
-    writeln("S2ContainsPointQuery.contains >");
-    scope(exit) writeln("S2ContainsPointQuery.contains <");
     if (!_it.locate(p)) return false;
 
     const S2ShapeIndexCell cell = _it.cell();
     int num_clipped = cell.numClipped();
-    writeln("S2ContainsPointQuery.contains 1: num_clipped=", num_clipped, ", cell=", cell);
     for (int s = 0; s < num_clipped; ++s) {
-      writeln("S2ContainsPointQuery.contains 2: cell=", cell);
       if (shapeContains(_it, cell.clipped(s), p)) return true;
     }
     return false;
@@ -168,13 +162,9 @@ public:
    * REQUIRES: "shape" belongs to index().
    */
   bool shapeContains(in S2Shape shape, in S2Point p) {
-    writeln("S2ContainsPointQuery.shapeContains >");
-    scope(exit) writeln("S2ContainsPointQuery.shapeContains >");
     if (!_it.locate(p)) return false;
-    writeln("S2ContainsPointQuery.shapeContains 1:");
     const(S2ClippedShape)* clipped = _it.cell().findClipped(shape.id());
     if (clipped is null) return false;
-    writeln("S2ContainsPointQuery.shapeContains 2:");
     return shapeContains(_it, *clipped, p);
   }
 
@@ -256,37 +246,27 @@ public:
   // Low-level helper method that returns true if the given S2ClippedShape
   // referred to by an S2ShapeIndex::Iterator contains the point "p".
   bool shapeContains(in Iterator it, in S2ClippedShape clipped, in S2Point p) const {
-    writeln("S2ContainsPointQuery.shapeContains >");
-    scope(exit) writeln("S2ContainsPointQuery.shapeContains <");
     bool inside = clipped.containsCenter();
     int num_edges = clipped.numEdges();
-    writeln("S2ContainsPointQuery.shapeContains 0: clipped.shapeId=", clipped.shapeId(),
-        ", clipped.numEdges()=", clipped.numEdges());
     if (num_edges > 0) {
-      writeln("S2ContainsPointQuery.shapeContains 1:");
       // Points and polylines can be ignored unless the vertex model is CLOSED.
       const S2Shape shape = _index.shape(clipped.shapeId());
       if (!shape.hasInterior() && _options.vertexModel() != S2VertexModel.CLOSED) {
-        writeln("S2ContainsPointQuery.shapeContains 2:");
         return false;
       }
       // Test containment by drawing a line segment from the cell center to the
       // given point and counting edge crossings.
       auto crosser = new S2CopyingEdgeCrosser(it.center(), p);
       for (int i = 0; i < num_edges; ++i) {
-        writeln("S2ContainsPointQuery.shapeContains 3:");
         auto edge = shape.edge(clipped.edge(i));
         int sign = crosser.crossingSign(edge.v0, edge.v1);
         if (sign < 0) {
-          writeln("S2ContainsPointQuery.shapeContains 4:");
           continue;
         }
         if (sign == 0) {
-          writeln("S2ContainsPointQuery.shapeContains 5:");
           // For the OPEN and CLOSED models, check whether "p" is a vertex.
           if (_options.vertexModel() != S2VertexModel.SEMI_OPEN
               && (edge.v0 == p || edge.v1 == p)) {
-            writeln("S2ContainsPointQuery.shapeContains 6:");
             return _options.vertexModel() == S2VertexModel.CLOSED;
           }
           sign = vertexCrossing(crosser.a(), crosser.b(), edge.v0, edge.v1);

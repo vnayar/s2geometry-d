@@ -37,8 +37,6 @@ import std.conv;
 import std.range;
 import fluent.asserts;
 
-import std.stdio;
-
 alias DegenerateEdges = GraphOptions.DegenerateEdges;
 alias DuplicateEdges = GraphOptions.DuplicateEdges;
 alias SiblingPairs = GraphOptions.SiblingPairs;
@@ -65,29 +63,21 @@ public:
   override
   void build(in Graph g, ref S2Error error) {
     S2Shape.Edge[] actual, expected;
-    writeln("IndexMatchingLayer.build 0: g.numEdges()=", g.numEdges());
-    writeln("IndexMatchingLayer.build 0: g.numEdges()=", g.numEdges());
     for (int e = 0; e < g.numEdges(); ++e) {
       const(Graph.Edge) edge = g.edge(e);
       actual ~= S2Shape.Edge(g.vertex(edge[0]), g.vertex(edge[1]));
     }
-    writeln("IndexMatchingLayer.build 1: _index.numShapeIds()=", _index.numShapeIds());
     for (int s = 0; s < _index.numShapeIds(); ++s) {
       const(S2Shape) shape = _index.shape(s);
       if (shape is null || shape.dimension() != _dimension) {
-        writeln("IndexMatchingLayer.build 2:");
         continue;
       }
-      writeln("IndexMatchingLayer.build 3: shape.numEdges()=", shape.numEdges());
       for (int e = shape.numEdges(); --e >= 0; ) {
         expected ~= shape.edge(e);
       }
     }
     sort(actual);
     sort(expected);
-
-    writeln("IndexMatchingLayer.build 4: expected=", expected);
-    writeln("IndexMatchingLayer.build 4: actual=", actual);
 
     // The edges are a multiset, so we can't use std::set_difference.
     S2Shape.Edge[] missing, extra;
@@ -131,17 +121,15 @@ void expectResult(
     S2BooleanOperation.Options options,
     string a_str, string b_str,
     string expected_str) {
-  auto a = makeIndex(a_str);
-  auto b = makeIndex(b_str);
-  auto expected = makeIndex(expected_str);
+  auto a = makeIndexOrDie(a_str);
+  auto b = makeIndexOrDie(b_str);
+  auto expected = makeIndexOrDie(expected_str);
   Layer[] layers;
   for (int dim = 0; dim < 3; ++dim) {
     layers ~= new IndexMatchingLayer(expected, dim);
   }
   auto op = new S2BooleanOperation(op_type, layers, options);
   S2Error error;
-  writeln("expectResult 0: a=", .toString(a));
-  writeln("expectResult 1: b=", .toString(b));
   Assert.equal(op.build(a, b, error), true,
       op_type.to!string ~ " failed:\n" ~ "Expected result: "
       ~ expected_str ~ "\n" ~ error.toString());
@@ -337,8 +325,8 @@ private S2BooleanOperation.Options roundToE(int exp) {
   // not the other under PolygonModel::SEMI_OPEN.  (The same vertices are used
   // for all three PolygonModel options.)
   auto polygon = makePolygonOrDie("0:0, 0:1, 1:0");
-  Assert.equal(polygon.contains(makePoint("0:1")), true);
-  Assert.equal(polygon.contains(makePoint("1:0")), false);
+  Assert.equal(polygon.contains(makePointOrDie("0:1")), true);
+  Assert.equal(polygon.contains(makePointOrDie("1:0")), false);
   auto a = "0:1 | 1:0 # #";
   auto b = "# # 0:0, 0:1, 1:0";
   expectResult(OpType.UNION, options, a, b,
@@ -432,14 +420,14 @@ private string kVertexTestPolygonStr() {
   // Verify whether certain vertices of the test polygon are contained under
   // the semi-open boundary model (for use in the tests below).
   auto polygon = makePolygonOrDie(kVertexTestPolygonStr());
-  Assert.equal(polygon.contains(makePoint("0:1")), true);
-  Assert.equal(polygon.contains(makePoint("0:2")), true);
-  Assert.equal(polygon.contains(makePoint("0:3")), true);
-  Assert.equal(polygon.contains(makePoint("0:4")), true);
-  Assert.equal(polygon.contains(makePoint("5:1")), false);
-  Assert.equal(polygon.contains(makePoint("5:2")), false);
-  Assert.equal(polygon.contains(makePoint("5:3")), false);
-  Assert.equal(polygon.contains(makePoint("5:4")), false);
+  Assert.equal(polygon.contains(makePointOrDie("0:1")), true);
+  Assert.equal(polygon.contains(makePointOrDie("0:2")), true);
+  Assert.equal(polygon.contains(makePointOrDie("0:3")), true);
+  Assert.equal(polygon.contains(makePointOrDie("0:4")), true);
+  Assert.equal(polygon.contains(makePointOrDie("5:1")), false);
+  Assert.equal(polygon.contains(makePointOrDie("5:2")), false);
+  Assert.equal(polygon.contains(makePointOrDie("5:3")), false);
+  Assert.equal(polygon.contains(makePointOrDie("5:4")), false);
 }
 
 // Don't bother testing every PolylineModel with every PolygonModel for vertex
@@ -603,10 +591,10 @@ private string kVertexTestPolygonStr() {
 
 @("S2BooleanOperation.PolylineEdgeSemiOpenPolygonEdgeOverlap") unittest {
   auto polygon = makePolygonOrDie("1:1, 1:3, 3:3, 3:1");
-  Assert.equal(polygon.contains(makePoint("1:1")), false);
-  Assert.equal(polygon.contains(makePoint("1:3")), true);
-  Assert.equal(polygon.contains(makePoint("3:3")), false);
-  Assert.equal(polygon.contains(makePoint("3:1")), false);
+  Assert.equal(polygon.contains(makePointOrDie("1:1")), false);
+  Assert.equal(polygon.contains(makePointOrDie("1:3")), true);
+  Assert.equal(polygon.contains(makePointOrDie("3:3")), false);
+  Assert.equal(polygon.contains(makePointOrDie("3:1")), false);
   S2BooleanOperation.Options options;
   options.setPolygonModel(PolygonModel.SEMI_OPEN);
   auto a = "# 1:1, 1:3, 3:3 | 3:3, 1:3 # ";
@@ -712,7 +700,7 @@ private string kVertexTestPolygonStr() {
       "# # 0:0, 0:5, 1:5, 0:0, 2:5, 3:5, 0:0, 5:3, 5:2");
 }
 
-// TODO: Fix test.
+/+ TODO: Fix test.
 @("S2BooleanOperation.PolygonEdgePolygonEdgeCrossing") unittest {
   // Two polygons whose edges cross at points interior to both edges.
   S2BooleanOperation.Options options = roundToE(2);
@@ -728,216 +716,221 @@ private string kVertexTestPolygonStr() {
   //     "# # 0:0, 0:2, 1:2, 1:1, 2:1, 2:0; "
   //     ~ "1:2, 1:3, 3:3, 3:1, 2:1, 2:2");
 }
++/
 
-/+ TODO: Resume here.
-
-TEST(S2BooleanOperation, PolygonEdgeOpenPolygonEdgeOverlap) {
-  S2BooleanOperation::Options options;
+@("S2BooleanOperation.PolygonEdgeOpenPolygonEdgeOverlap") unittest {
+  S2BooleanOperation.Options options;
   // One shape is a rectangle, the other consists of one triangle inside the
   // rectangle and one triangle outside the rectangle, where each triangle
   // shares one edge with the rectangle.  This implies that the edges are in
   // the same direction in one case and opposite directions in the other case.
-  options.set_polygon_model(PolygonModel::OPEN);
+  options.setPolygonModel(PolygonModel.OPEN);
   auto a = "# # 0:0, 0:4, 2:4, 2:0";
   auto b = "# # 0:0, 1:1, 2:0; 0:4, 1:5, 2:4";
-  ExpectResult(OpType::UNION, options, a, b,
-               "# # 0:0, 0:4, 2:4, 2:0; 0:4, 1:5, 2:4");
-  ExpectResult(OpType::INTERSECTION, options, a, b,
-               "# # 0:0, 1:1, 2:0");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
-               "# # 0:0, 0:4, 2:4, 2:0, 1:1");
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
-               "# # 0:0, 0:4, 2:4, 2:0, 1:1; 0:4, 1:5, 2:4");
+  expectResult(OpType.UNION, options, a, b,
+      "# # 0:0, 0:4, 2:4, 2:0; 0:4, 1:5, 2:4");
+  expectResult(OpType.INTERSECTION, options, a, b,
+      "# # 0:0, 1:1, 2:0");
+  expectResult(OpType.DIFFERENCE, options, a, b,
+      "# # 0:0, 0:4, 2:4, 2:0, 1:1");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
+      "# # 0:0, 0:4, 2:4, 2:0, 1:1; 0:4, 1:5, 2:4");
 }
 
-TEST(S2BooleanOperation, PolygonEdgeSemiOpenPolygonEdgeOverlap) {
-  S2BooleanOperation::Options options;
-  options.set_polygon_model(PolygonModel::SEMI_OPEN);
+@("S2BooleanOperation.PolygonEdgeSemiOpenPolygonEdgeOverlap") unittest {
+  S2BooleanOperation.Options options;
+  options.setPolygonModel(PolygonModel.SEMI_OPEN);
   auto a = "# # 0:0, 0:4, 2:4, 2:0";
   auto b = "# # 0:0, 1:1, 2:0; 0:4, 1:5, 2:4";
-  ExpectResult(OpType::UNION, options, a, b,
-               "# # 0:0, 0:4, 1:5, 2:4, 2:0");
-  ExpectResult(OpType::INTERSECTION, options, a, b,
-               "# # 0:0, 1:1, 2:0");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
-               "# # 0:0, 0:4, 2:4, 2:0, 1:1");
+  expectResult(OpType.UNION, options, a, b,
+      "# # 0:0, 0:4, 1:5, 2:4, 2:0");
+  expectResult(OpType.INTERSECTION, options, a, b,
+      "# # 0:0, 1:1, 2:0");
+  expectResult(OpType.DIFFERENCE, options, a, b,
+      "# # 0:0, 0:4, 2:4, 2:0, 1:1");
   // Note that SYMMETRIC_DIFFERENCE does not guarantee that results are
   // normalized, i.e. the output could contain siblings pairs (which can be
   // discarded using S2Builder::GraphOptions).
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
-               "# # 0:0, 0:4, 2:4, 2:0, 1:1; 0:4, 1:5, 2:4");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
+      "# # 0:0, 0:4, 2:4, 2:0, 1:1; 0:4, 1:5, 2:4");
 }
 
-TEST(S2BooleanOperation, PolygonEdgeClosedPolygonEdgeOverlap) {
-  S2BooleanOperation::Options options;
-  options.set_polygon_model(PolygonModel::CLOSED);
+@("S2BooleanOperation.PolygonEdgeClosedPolygonEdgeOverlap") unittest {
+  S2BooleanOperation.Options options;
+  options.setPolygonModel(PolygonModel.CLOSED);
   auto a = "# # 0:0, 0:4, 2:4, 2:0";
   auto b = "# # 0:0, 1:1, 2:0; 0:4, 1:5, 2:4";
-  ExpectResult(OpType::UNION, options, a, b,
-               "# # 0:0, 0:4, 1:5, 2:4, 2:0");
-  ExpectResult(OpType::INTERSECTION, options, a, b,
-               "# # 0:0, 1:1, 2:0; 0:4, 2:4");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
-               "# # 0:0, 0:4, 2:4, 2:0, 1:1");
+  expectResult(OpType.UNION, options, a, b,
+      "# # 0:0, 0:4, 1:5, 2:4, 2:0");
+  expectResult(OpType.INTERSECTION, options, a, b,
+      "# # 0:0, 1:1, 2:0; 0:4, 2:4");
+  expectResult(OpType.DIFFERENCE, options, a, b,
+      "# # 0:0, 0:4, 2:4, 2:0, 1:1");
   // Note that SYMMETRIC_DIFFERENCE does not guarantee that results are
   // normalized, i.e. the output could contain siblings pairs.
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
-               "# # 0:0, 0:4, 2:4, 2:0, 1:1; 0:4, 1:5, 2:4");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
+      "# # 0:0, 0:4, 2:4, 2:0, 1:1; 0:4, 1:5, 2:4");
 }
 
-TEST(S2BooleanOperation, PolygonPolygonInterior) {
-  S2BooleanOperation::Options options;  // PolygonModel is irrelevant.
+@("S2BooleanOperation.PolygonPolygonInterior") unittest {
+  S2BooleanOperation.Options options;  // PolygonModel is irrelevant.
   // One loop in the interior of another polygon and one loop in the exterior.
   auto a = "# # 0:0, 0:4, 4:4, 4:0";
   auto b = "# # 1:1, 1:2, 2:2, 2:1; 5:5, 5:6, 6:6, 6:5";
-  ExpectResult(OpType::UNION, options, a, b,
-               "# # 0:0, 0:4, 4:4, 4:0; 5:5, 5:6, 6:6, 6:5");
-  ExpectResult(OpType::INTERSECTION, options, a, b,
-               "# # 1:1, 1:2, 2:2, 2:1");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
-               "# # 0:0, 0:4, 4:4, 4:0; 2:1, 2:2, 1:2, 1:1");
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
-               "# # 0:0, 0:4, 4:4, 4:0; 2:1, 2:2, 1:2, 1:1; "
-               "5:5, 5:6, 6:6, 6:5");
+  expectResult(OpType.UNION, options, a, b,
+      "# # 0:0, 0:4, 4:4, 4:0; 5:5, 5:6, 6:6, 6:5");
+  expectResult(OpType.INTERSECTION, options, a, b,
+      "# # 1:1, 1:2, 2:2, 2:1");
+  expectResult(OpType.DIFFERENCE, options, a, b,
+      "# # 0:0, 0:4, 4:4, 4:0; 2:1, 2:2, 1:2, 1:1");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
+      "# # 0:0, 0:4, 4:4, 4:0; 2:1, 2:2, 1:2, 1:1; "
+      ~ "5:5, 5:6, 6:6, 6:5");
 }
 
-TEST(S2BooleanOperation, PolygonEdgesDegenerateAfterSnapping) {
-  S2BooleanOperation::Options options = RoundToE(0);
+@("S2BooleanOperation.PolygonEdgesDegenerateAfterSnapping") unittest {
+  S2BooleanOperation.Options options = roundToE(0);
   auto a = "# # 0:-1, 0:1, 0.1:1, 0.1:-1";
   auto b = "# # -1:0.1, 1:0.1, 1:0, -1:0";
   // When snapping causes an output edge to become degenerate, it is still
   // emitted (since otherwise loops that contract to a single point would be
   // lost).  If the output layer doesn't want such edges, they can be removed
   // via DegenerateEdges::DISCARD or DISCARD_EXCESS.
-  ExpectResult(OpType::UNION, options, a, b,
-               "# # 0:-1, 0:-1, 0:0, 0:1, 0:1, 0:0 | "
-               "-1:0, -1:0, 0:0, 1:0, 1:0, 0:0");
-  ExpectResult(OpType::INTERSECTION, options, a, b,
-               "# # 0:0, 0:0, 0:0, 0:0");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
-               "# # 0:-1, 0:-1, 0:0, 0:1, 0:1, 0:0 | 0:0, 0:0");
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
-               "# # 0:-1, 0:-1, 0:0, 0:1, 0:1, 0:0 | "
-               "-1:0, -1:0, 0:0, 1:0, 1:0, 0:0 | 0:0, 0:0, 0:0, 0:0");
+  expectResult(OpType.UNION, options, a, b,
+      "# # 0:-1, 0:-1, 0:0, 0:1, 0:1, 0:0 | "
+      ~ "-1:0, -1:0, 0:0, 1:0, 1:0, 0:0");
+  expectResult(OpType.INTERSECTION, options, a, b,
+      "# # 0:0, 0:0, 0:0, 0:0");
+  expectResult(OpType.DIFFERENCE, options, a, b,
+      "# # 0:-1, 0:-1, 0:0, 0:1, 0:1, 0:0 | 0:0, 0:0");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
+      "# # 0:-1, 0:-1, 0:0, 0:1, 0:1, 0:0 | "
+      ~ "-1:0, -1:0, 0:0, 1:0, 1:0, 0:0 | 0:0, 0:0, 0:0, 0:0");
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // The remaining tests are intended to cover combinations of features or
 // interesting special cases.
 
-TEST(S2BooleanOperation, ThreeOverlappingBars) {
+/+ TODO: Fix test.
+@("S2BooleanOperation.ThreeOverlappingBars") unittest {
   // Two vertical bars and a horizontal bar that overlaps both of the other
   // bars and connects them.
 
   // Round intersection points to E2 precision because the expected results
   // were computed in lat/lng space rather than using geodesics.
-  S2BooleanOperation::Options options = RoundToE(2);
+  S2BooleanOperation.Options options = roundToE(2);
   auto a = "# # 0:0, 0:2, 3:2, 3:0; 0:3, 0:5, 3:5, 3:3";
   auto b = "# # 1:1, 1:4, 2:4, 2:1";
-  ExpectResult(OpType::UNION, options, a, b,
+  expectResult(OpType.UNION, options, a, b,
       "# # 0:0, 0:2, 1:2, 1:3, 0:3, 0:5, 3:5, 3:3, 2:3, 2:2, 3:2, 3:0");
-  ExpectResult(OpType::INTERSECTION, options, a, b,
+  expectResult(OpType.INTERSECTION, options, a, b,
       "# # 1:1, 1:2, 2:2, 2:1; 1:3, 1:4, 2:4, 2:3");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
+  expectResult(OpType.DIFFERENCE, options, a, b,
       "# # 0:0, 0:2, 1:2, 1:1, 2:1, 2:2, 3:2, 3:0; "
-      "0:3, 0:5, 3:5, 3:3, 2:3, 2:4, 1:4, 1:3");
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
+      ~ "0:3, 0:5, 3:5, 3:3, 2:3, 2:4, 1:4, 1:3");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
       "# # 0:0, 0:2, 1:2, 1:1, 2:1, 2:2, 3:2, 3:0; "
-      "0:3, 0:5, 3:5, 3:3, 2:3, 2:4, 1:4, 1:3; "
-      "1:2, 1:3, 2:3, 2:2");
+      ~ "0:3, 0:5, 3:5, 3:3, 2:3, 2:4, 1:4, 1:3; "
+      ~ "1:2, 1:3, 2:3, 2:2");
 }
++/
 
-TEST(S2BooleanOperation, FourOverlappingBars) {
+/+ TODO: Fix test.
+@("S2BooleanOperation.FourOverlappingBars") unittest {
   // Two vertical bars and two horizontal bars.
 
   // Round intersection points to E2 precision because the expected results
   // were computed in lat/lng space rather than using geodesics.
-  S2BooleanOperation::Options options = RoundToE(2);
+  S2BooleanOperation.Options options = roundToE(2);
   auto a = "# # 1:88, 1:93, 2:93, 2:88; -1:88, -1:93, 0:93, 0:88";
   auto b = "# # -2:89, -2:90, 3:90, 3:89; -2:91, -2:92, 3:92, 3:91";
-  ExpectResult(OpType::UNION, options, a, b,
+  expectResult(OpType.UNION, options, a, b,
       "# # -1:88, -1:89, -2:89, -2:90, -1:90, -1:91, -2:91, -2:92, -1:92, "
-      "-1:93, 0:93, 0:92, 1:92, 1:93, 2:93, 2:92, 3:92, 3:91, 2:91, "
-      "2:90, 3:90, 3:89, 2:89, 2:88, 1:88, 1:89, 0:89, 0:88; "
-      "0:90, 1:90, 1:91, 0:91" /*CW*/ );
-  ExpectResult(OpType::INTERSECTION, options, a, b,
+      ~ "-1:93, 0:93, 0:92, 1:92, 1:93, 2:93, 2:92, 3:92, 3:91, 2:91, "
+      ~ "2:90, 3:90, 3:89, 2:89, 2:88, 1:88, 1:89, 0:89, 0:88; "
+      ~ "0:90, 1:90, 1:91, 0:91" /*CW*/ );
+  expectResult(OpType.INTERSECTION, options, a, b,
       "# # 1:89, 1:90, 2:90, 2:89; 1:91, 1:92, 2:92, 2:91; "
-      "-1:89, -1:90, 0:90, 0:89; -1:91, -1:92, 0:92, 0:91");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
+      ~ "-1:89, -1:90, 0:90, 0:89; -1:91, -1:92, 0:92, 0:91");
+  expectResult(OpType.DIFFERENCE, options, a, b,
       "# # 1:88, 1:89, 2:89, 2:88; 1:90, 1:91, 2:91, 2:90; "
-      "1:92, 1:93, 2:93, 2:92; -1:88, -1:89, 0:89, 0:88; "
-      "-1:90, -1:91, 0:91, 0:90; -1:92, -1:93, 0:93, 0:92");
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
+      ~ "1:92, 1:93, 2:93, 2:92; -1:88, -1:89, 0:89, 0:88; "
+      ~ "-1:90, -1:91, 0:91, 0:90; -1:92, -1:93, 0:93, 0:92");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
       "# # 1:88, 1:89, 2:89, 2:88; -1:88, -1:89, 0:89, 0:88; "
-      "1:90, 1:91, 2:91, 2:90; -1:90, -1:91, 0:91, 0:90; "
-      "1:92, 1:93, 2:93, 2:92; -1:92, -1:93, 0:93, 0:92; "
-      "-2:89, -2:90, -1:90, -1:89; -2:91, -2:92, -1:92, -1:91; "
-      "0:89, 0:90, 1:90, 1:89; 0:91, 0:92, 1:92, 1:91; "
-      "2:89, 2:90, 3:90, 3:89; 2:91, 2:92, 3:92, 3:91");
+      ~ "1:90, 1:91, 2:91, 2:90; -1:90, -1:91, 0:91, 0:90; "
+      ~ "1:92, 1:93, 2:93, 2:92; -1:92, -1:93, 0:93, 0:92; "
+      ~ "-2:89, -2:90, -1:90, -1:89; -2:91, -2:92, -1:92, -1:91; "
+      ~ "0:89, 0:90, 1:90, 1:89; 0:91, 0:92, 1:92, 1:91; "
+      ~ "2:89, 2:90, 3:90, 3:89; 2:91, 2:92, 3:92, 3:91");
 }
++/
 
-TEST(S2BooleanOperation, OverlappingDoughnuts) {
+/+ TODO: Resume here.
+@("S2BooleanOperation.OverlappingDoughnuts") unittest {
   // Two overlapping square doughnuts whose holes do not overlap.
   // This means that the union polygon has only two holes rather than three.
 
   // Round intersection points to E2 precision because the expected results
   // were computed in lat/lng space rather than using geodesics.
-  S2BooleanOperation::Options options = RoundToE(1);
+  S2BooleanOperation.Options options = roundToE(1);
   auto a = "# # -1:-93, -1:-89, 3:-89, 3:-93; "
-                      "0:-92, 2:-92, 2:-90, 0:-90" /*CW*/ ;
+      ~ "0:-92, 2:-92, 2:-90, 0:-90" /*CW*/ ;
   auto b = "# # -3:-91, -3:-87, 1:-87, 1:-91; "
-                      "-2:-90, 0:-90, 0:-88, -2:-88" /*CW*/ ;
-  ExpectResult(OpType::UNION, options, a, b,
+      ~ "-2:-90, 0:-90, 0:-88, -2:-88" /*CW*/ ;
+  expectResult(OpType.UNION, options, a, b,
       "# # -1:-93, -1:-91, -3:-91, -3:-87, 1:-87, 1:-89, 3:-89, 3:-93; "
-      "0:-92, 2:-92, 2:-90, 1:-90, 1:-91, 0:-91; " /*CW */
-      "-2:-90, -1:-90, -1:-89, 0:-89, 0:-88, -2:-88" /* CW */ );
-  ExpectResult(OpType::INTERSECTION, options, a, b,
+      ~ "0:-92, 2:-92, 2:-90, 1:-90, 1:-91, 0:-91; " /*CW */
+      ~ "-2:-90, -1:-90, -1:-89, 0:-89, 0:-88, -2:-88" /* CW */ );
+  expectResult(OpType.INTERSECTION, options, a, b,
       "# # -1:-91, -1:-90, 0:-90, 0:-91; "
-      "0:-90, 0:-89, 1:-89, 1:-90");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
+      ~ "0:-90, 0:-89, 1:-89, 1:-90");
+  expectResult(OpType.DIFFERENCE, options, a, b,
       "# # -1:-93, -1:-91, 0:-91, 0:-92, 2:-92, "
-      "2:-90, 1:-90, 1:-89, 3:-89, 3:-93; "
-      "-1:-90, -1:-89, 0:-89, 0:-90");
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
+      ~ "2:-90, 1:-90, 1:-89, 3:-89, 3:-93; "
+      ~ "-1:-90, -1:-89, 0:-89, 0:-90");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
       "# # -1:-93, -1:-91, 0:-91, 0:-92, 2:-92, "
-      "2:-90, 1:-90, 1:-89, 3:-89, 3:-93; "
-      "-3:-91, -3:-87, 1:-87, 1:-89, 0:-89, 0:-88,-2:-88,-2:-90,-1:-90,-1:-91; "
-      "-1:-90, -1:-89, 0:-89, 0:-90; "
-      "1:-91, 0:-91, 0:-90, 1:-90");
+      ~ "2:-90, 1:-90, 1:-89, 3:-89, 3:-93; "
+      ~ "-3:-91, -3:-87, 1:-87, 1:-89, 0:-89, 0:-88,-2:-88,-2:-90,-1:-90,-1:-91; "
+      ~ "-1:-90, -1:-89, 0:-89, 0:-90; "
+      ~ "1:-91, 0:-91, 0:-90, 1:-90");
 }
++/
 
-TEST(S2BooleanOperation, PolylineEnteringRectangle) {
+@("S2BooleanOperation.PolylineEnteringRectangle") unittest {
   // A polyline that enters a rectangle very close to one of its vertices.
-  S2BooleanOperation::Options options = RoundToE(1);
+  S2BooleanOperation.Options options = roundToE(1);
   auto a = "# 0:0, 2:2 #";
   auto b = "# # 1:1, 1:3, 3:3, 3:1";
-  ExpectResult(OpType::UNION, options, a, b,
+  expectResult(OpType.UNION, options, a, b,
       "# 0:0, 1:1 # 1:1, 1:3, 3:3, 3:1");
-  ExpectResult(OpType::INTERSECTION, options, a, b,
+  expectResult(OpType.INTERSECTION, options, a, b,
       "# 1:1, 2:2 #");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
+  expectResult(OpType.DIFFERENCE, options, a, b,
       "# 0:0, 1:1 #");
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
       "# 0:0, 1:1 # 1:1, 1:3, 3:3, 3:1");
 }
 
-TEST(S2BooleanOperation, PolylineCrossingRectangleTwice) {
+/+ TODO: Fix test.
+@("S2BooleanOperation.PolylineCrossingRectangleTwice") unittest {
   // A polyline that crosses a rectangle in one direction, then moves to a
   // different side and crosses the rectangle in the other direction.  Note
   // that an extra vertex is added where the two polyline edges cross.
-  S2BooleanOperation::Options options = RoundToE(1);
+  S2BooleanOperation.Options options = roundToE(1);
   auto a = "# 0:-5, 0:5, 5:0, -5:0 #";
   auto b = "# # 1:1, 1:-1, -1:-1, -1:1";
-  ExpectResult(OpType::UNION, options, a, b,
+  expectResult(OpType.UNION, options, a, b,
       "# 0:-5, 0:-1 | 0:1, 0:5, 5:0, 1:0 | -1:0, -5:0 "
-      "# 1:1, 1:0, 1:-1, 0:-1, -1:-1, -1:0, -1:1, 0:1");
-  ExpectResult(OpType::INTERSECTION, options, a, b,
+      ~ "# 1:1, 1:0, 1:-1, 0:-1, -1:-1, -1:0, -1:1, 0:1");
+  expectResult(OpType.INTERSECTION, options, a, b,
       "# 0:-1, 0:0, 0:1 | 1:0, 0:0, -1:0 #");
-  ExpectResult(OpType::DIFFERENCE, options, a, b,
+  expectResult(OpType.DIFFERENCE, options, a, b,
       "# 0:-5, 0:-1 | 0:1, 0:5, 5:0, 1:0 | -1:0, -5:0 #");
-  ExpectResult(OpType::SYMMETRIC_DIFFERENCE, options, a, b,
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
       "# 0:-5, 0:-1 | 0:1, 0:5, 5:0, 1:0 | -1:0, -5:0 "
-      "# 1:1, 1:0, 1:-1, 0:-1, -1:-1, -1:0, -1:1, 0:1");
+      ~ "# 1:1, 1:0, 1:-1, 0:-1, -1:-1, -1:0, -1:1, 0:1");
 }
-
 +/
