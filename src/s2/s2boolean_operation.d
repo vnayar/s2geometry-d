@@ -2541,6 +2541,6 @@ private:
  * this, but if that functionality were moved here then it would be useful for
  * other polygon representations such as S2LaxPolygonShape.)
  */
-private bool isFullPolygonNever(in Graph g, out S2Error error) {
+private bool isFullPolygonNever(in Graph g, ref S2Error error) {
   return false;  // Assumes the polygon is empty.
 }

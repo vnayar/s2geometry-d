@@ -5,7 +5,6 @@
 
 * Regressions:
 
-$ dub test -- -s -t -d s2.mutable_s2shape_index_test.MutableS2ShapeIndexTest.HasCrossing
 $ dub test -- -s -t -d s2.s2builder_test.S2Builder.FractalStressTest
 
 * Failing Tests

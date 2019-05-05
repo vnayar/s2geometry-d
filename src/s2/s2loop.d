@@ -207,7 +207,7 @@ public:
 
   // Returns true if this is *not* a valid loop and sets "error"
   // appropriately.  Otherwise returns false and leaves "error" unchanged.
-  bool findValidationError(out S2Error error) {
+  bool findValidationError(ref S2Error error) {
     return (findValidationErrorNoIndex(error) || findSelfIntersection(_index, error));
   }
 
@@ -215,7 +215,7 @@ public:
   // building the S2ShapeIndex (i.e., self-intersection tests).  This is used
   // by the S2Polygon implementation, which uses its own index to check for
   // loop self-intersections.
-  bool findValidationErrorNoIndex(S2Error error) const
+  bool findValidationErrorNoIndex(ref S2Error error) const
   in {
     // subregion_bound_ must be at least as large as bound_.  (This is an
     // internal consistency check rather than a test of client data.)

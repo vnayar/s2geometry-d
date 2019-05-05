@@ -29,86 +29,72 @@ import s2.builder.util.snap_functions;
 import s2.s2cap;
 import s2.s2cell;
 import s2.s2cell_id;
-#include "s2/s2cell_union.h"
-#include "s2/s2closest_edge_query.h"
-#include "s2/s2coords.h"
-#include "s2/s2debug.h"
-#include "s2/s2edge_crossings.h"
-#include "s2/s2edge_distances.h"
-#include "s2/s2error.h"
-#include "s2/s2latlng.h"
-#include "s2/s2loop.h"
-#include "s2/s2metrics.h"
-#include "s2/s2padded_cell.h"
-#include "s2/s2pointutil.h"
-#include "s2/s2polyline.h"
-#include "s2/s2region_coverer.h"
-#include "s2/s2testing.h"
-#include "s2/s2text_format.h"
-#include "s2/strings/serialize.h"
-#include "s2/third_party/absl/base/macros.h"
-#include "s2/third_party/absl/container/fixed_array.h"
-#include "s2/third_party/absl/memory/memory.h"
-#include "s2/third_party/absl/strings/str_cat.h"
-#include "s2/util/coding/coder.h"
-#include "s2/util/math/matrix3x3.h"
+import s2.s2cell_union;
+import s2.s2closest_edge_query;
+import s2.s2coords;
+import s2.s2debug;
+import s2.s2edge_crossings;
+import s2.s2edge_distances;
+import s2.s2error;
+import s2.s2latlng;
+import s2.s2loop;
+import s2.s2metrics;
+import s2.s2padded_cell;
+import s2.s2pointutil;
+import s2.s2polyline;
+import s2.s2region_coverer;
+import s2.s2testing;
+import s2.s2text_format;
+import s2.util.math.matrix3x3;
 
-using absl::StrCat;
-using absl::make_unique;
-using s2builderutil::IntLatLngSnapFunction;
-using s2builderutil::S2PolygonLayer;
-using std::max;
-using std::min;
-using std::numeric_limits;
-using std::swap;
-using std::unique_ptr;
-using std::vector;
+import std.algorithm;
+
+import fluent.asserts;
 
 // A set of nested loops around the point 0:0 (lat:lng).
 // Every vertex of kNear0 is a vertex of kNear1.
-const char kNearPoint[] = "0:0";
-const string kNear0 = "-1:0, 0:1, 1:0, 0:-1;";
-const string kNear1 = "-1:-1, -1:0, -1:1, 0:1, 1:1, 1:0, 1:-1, 0:-1;";
-const string kNear2 = "-1:-2, -2:5, 5:-2;";
-const string kNear3 = "-2:-2, -3:6, 6:-3;";
-const string kNearHemi = "0:-90, -90:0, 0:90, 90:0;";
+string kNearPoint = "0:0";
+string kNear0 = "-1:0, 0:1, 1:0, 0:-1;";
+string kNear1 = "-1:-1, -1:0, -1:1, 0:1, 1:1, 1:0, 1:-1, 0:-1;";
+string kNear2 = "-1:-2, -2:5, 5:-2;";
+string kNear3 = "-2:-2, -3:6, 6:-3;";
+string kNearHemi = "0:-90, -90:0, 0:90, 90:0;";
 
 // A set of nested loops around the point 0:180 (lat:lng).
 // Every vertex of kFar0 and kFar2 belongs to kFar1, and all
 // the loops except kFar2 are non-convex.
-const string kFar0 = "0:179, 1:180, 0:-179, 2:-180;";
-const string kFar1 =
-  "0:179, -1:179, 1:180, -1:-179, 0:-179, 3:-178, 2:-180, 3:178;";
-const string kFar2 = "3:-178, 3:178, -1:179, -1:-179;";
-const string kFar3 = "-3:-178, 4:-177, 4:177, -3:178, -2:179;";
-const string kFarHemi = "0:-90, 60:90, -60:90;";
+string kFar0 = "0:179, 1:180, 0:-179, 2:-180;";
+string kFar1 = "0:179, -1:179, 1:180, -1:-179, 0:-179, 3:-178, 2:-180, 3:178;";
+string kFar2 = "3:-178, 3:178, -1:179, -1:-179;";
+string kFar3 = "-3:-178, 4:-177, 4:177, -3:178, -2:179;";
+string kFarHemi = "0:-90, 60:90, -60:90;";
 
 // A set of nested loops around the point -90:0 (lat:lng).
-const string kSouthPoint = "-89.9999:0.001";
-const string kSouth0a = "-90:0, -89.99:0.01, -89.99:0;";
-const string kSouth0b = "-90:0, -89.99:0.03, -89.99:0.02;";
-const string kSouth0c = "-90:0, -89.99:0.05, -89.99:0.04;";
-const string kSouth1 = "-90:0, -89.9:0.1, -89.9:-0.1;";
-const string kSouth2 = "-90:0, -89.8:0.2, -89.8:-0.2;";
-const string kSouthHemi = "0:-180, 0:60, 0:-60;";
+string kSouthPoint = "-89.9999:0.001";
+string kSouth0a = "-90:0, -89.99:0.01, -89.99:0;";
+string kSouth0b = "-90:0, -89.99:0.03, -89.99:0.02;";
+string kSouth0c = "-90:0, -89.99:0.05, -89.99:0.04;";
+string kSouth1 = "-90:0, -89.9:0.1, -89.9:-0.1;";
+string kSouth2 = "-90:0, -89.8:0.2, -89.8:-0.2;";
+string kSouthHemi = "0:-180, 0:60, 0:-60;";
 
 // Two different loops that surround all the Near and Far loops except
 // for the hemispheres.
-const string kNearFar1 = "-1:-9, -9:-9, -9:9, 9:9, 9:-9, 1:-9, "
-                         "1:-175, 9:-175, 9:175, -9:175, -9:-175, -1:-175;";
-const string kNearFar2 = "-2:15, -2:170, -8:-175, 8:-175, "
-                         "2:170, 2:15, 8:-4, -8:-4;";
+string kNearFar1 = "-1:-9, -9:-9, -9:9, 9:9, 9:-9, 1:-9, "
+    ~ "1:-175, 9:-175, 9:175, -9:175, -9:-175, -1:-175;";
+string kNearFar2 = "-2:15, -2:170, -8:-175, 8:-175, "
+    ~ "2:170, 2:15, 8:-4, -8:-4;";
 
 // Loops that result from intersection of other loops.
-const string kFarHSouthH = "0:-180, 0:90, -60:90, 0:-90;";
+string kFarHSouthH = "0:-180, 0:90, -60:90, 0:-90;";
 
 // Rectangles that form a cross, with only shared vertices, no crossing edges.
 // Optional holes outside the intersecting region.
-const string kCross1 = "-2:1, -1:1, 1:1, 2:1, 2:-1, 1:-1, -1:-1, -2:-1;";
-const string kCross1SideHole = "-1.5:0.5, -1.2:0.5, -1.2:-0.5, -1.5:-0.5;";
-const string kCross2 = "1:-2, 1:-1, 1:1, 1:2, -1:2, -1:1, -1:-1, -1:-2;";
-const string kCross2SideHole = "0.5:-1.5, 0.5:-1.2, -0.5:-1.2, -0.5:-1.5;";
-const string kCrossCenterHole = "-0.5:0.5, 0.5:0.5, 0.5:-0.5, -0.5:-0.5;";
+string kCross1 = "-2:1, -1:1, 1:1, 2:1, 2:-1, 1:-1, -1:-1, -2:-1;";
+string kCross1SideHole = "-1.5:0.5, -1.2:0.5, -1.2:-0.5, -1.5:-0.5;";
+string kCross2 = "1:-2, 1:-1, 1:1, 1:2, -1:2, -1:1, -1:-1, -1:-2;";
+string kCross2SideHole = "0.5:-1.5, 0.5:-1.2, -0.5:-1.2, -0.5:-1.5;";
+string kCrossCenterHole = "-0.5:0.5, 0.5:0.5, 0.5:-0.5, -0.5:-0.5;";
 
 // Two rectangles that intersect, but no edges cross and there's always
 // local containment (rather than crossing) at each shared vertex.
@@ -116,72 +102,122 @@ const string kCrossCenterHole = "-0.5:0.5, 0.5:0.5, 0.5:-0.5, -0.5:-0.5;";
 //      +---+---+---+
 //      | A | B | C |
 //      +---+---+---+
-const string kOverlap1 = "0:1, 1:1, 2:1, 2:0, 1:0, 0:0;";
-const string kOverlap1SideHole = "0.2:0.8, 0.8:0.8, 0.8:0.2, 0.2:0.2;";
-const string kOverlap2 = "1:1, 2:1, 3:1, 3:0, 2:0, 1:0;";
-const string kOverlap2SideHole = "2.2:0.8, 2.8:0.8, 2.8:0.2, 2.2:0.2;";
-const string kOverlapCenterHole = "1.2:0.8, 1.8:0.8, 1.8:0.2, 1.2:0.2;";
+string kOverlap1 = "0:1, 1:1, 2:1, 2:0, 1:0, 0:0;";
+string kOverlap1SideHole = "0.2:0.8, 0.8:0.8, 0.8:0.2, 0.2:0.2;";
+string kOverlap2 = "1:1, 2:1, 3:1, 3:0, 2:0, 1:0;";
+string kOverlap2SideHole = "2.2:0.8, 2.8:0.8, 2.8:0.2, 2.2:0.2;";
+string kOverlapCenterHole = "1.2:0.8, 1.8:0.8, 1.8:0.2, 1.2:0.2;";
 
 // An empty polygon.
-const string kEmpty = "";
+string kEmpty = "";
 // By symmetry, the intersection of the two polygons has almost half the area
 // of either polygon.
-const string kOverlap3 = "-10:10, 0:10, 0:-10, -10:-10, -10:0";
-const string kOverlap4 = "-10:0, 10:0, 10:-10, -10:-10";
+string kOverlap3 = "-10:10, 0:10, 0:-10, -10:-10, -10:0";
+string kOverlap4 = "-10:0, 10:0, 10:-10, -10:-10";
 
-class S2PolygonTestBase : public testing::Test {
- public:
-  S2PolygonTestBase();
+class S2PolygonTestBase {
+public:
+  this() {
+    _empty = new S2Polygon();
+    _full = makePolygon("full");
+    _near0 = makePolygon(kNear0);
+    _near10 = makePolygon(kNear0 ~ kNear1);
+    _near30 = makePolygon(kNear3 ~ kNear0);
+    _near32 = makePolygon(kNear2 ~ kNear3);
+    _near3210 = makePolygon(kNear0 ~ kNear2 ~ kNear3 ~ kNear1);
+    _nearH3210 = makePolygon(kNear0 ~ kNear2 ~ kNear3 ~ kNearHemi ~ kNear1);
+
+    _far10 = makePolygon(kFar0 ~ kFar1);
+    _far21 = makePolygon(kFar2 ~ kFar1);
+    _far321 = makePolygon(kFar2 ~ kFar3 ~ kFar1);
+    _farH20 = makePolygon(kFar2 ~ kFarHemi ~ kFar0);
+    _farH3210 = makePolygon(kFar2 ~ kFarHemi ~ kFar0 ~ kFar1 ~ kFar3);
+
+    _south0ab = makePolygon(kSouth0a ~ kSouth0b);
+    _south2 = makePolygon(kSouth2);
+    _south210b = makePolygon(kSouth2 ~ kSouth0b ~ kSouth1);
+    _southH21 = makePolygon(kSouth2 ~ kSouthHemi ~ kSouth1);
+    _southH20abc = makePolygon(kSouth2 ~ kSouth0b ~ kSouthHemi ~ kSouth0a ~ kSouth0c);
+
+    _nf1N10F2S10abc = makePolygon(
+        kSouth0c ~ kFar2 ~ kNear1 ~ kNearFar1 ~ kNear0 ~ kSouth1 ~ kSouth0b ~ kSouth0a);
+
+    _nf2N2F210S210ab = makePolygon(
+        kFar2 ~ kSouth0a ~ kFar1 ~ kSouth1 ~ kFar0 ~ kSouth0b ~ kNearFar2 ~ kSouth2 ~ kNear2);
+
+    _f32N0 = makePolygon(kFar2 ~ kNear0 ~ kFar3);
+    _n32S0b = makePolygon(kNear3 ~ kSouth0b ~ kNear2);
+
+    _cross1 = makePolygon(kCross1);
+    _cross1SideHole = makePolygon(kCross1 ~ kCross1SideHole);
+    _cross1CenterHole = makePolygon(kCross1 ~ kCrossCenterHole);
+    _cross2 = makePolygon(kCross2);
+    _cross2SideHole = makePolygon(kCross2 ~ kCross2SideHole);
+    _cross2CenterHole = makePolygon(kCross2 ~ kCrossCenterHole);
+
+    _overlap1 = makePolygon(kOverlap1);
+    _overlap1SideHole = makePolygon(kOverlap1 ~ kOverlap1SideHole);
+    _overlap1CenterHole = makePolygon(kOverlap1 ~ kOverlapCenterHole);
+    _overlap2 = makePolygon(kOverlap2);
+    _overlap2SideHole = makePolygon(kOverlap2 ~ kOverlap2SideHole);
+    _overlap2CenterHole = makePolygon(kOverlap2 ~ kOverlapCenterHole);
+
+    _farH = makePolygon(kFarHemi);
+    _southH = makePolygon(kSouthHemi);
+    _farHSouthH = makePolygon(kFarHSouthH);
+}
+
 
  protected:
   // Some standard polygons to use in the tests.
-  const unique_ptr<const S2Polygon> empty_;
-  const unique_ptr<const S2Polygon> full_;
-  const unique_ptr<const S2Polygon> near_0_;
-  const unique_ptr<const S2Polygon> near_10_;
-  const unique_ptr<const S2Polygon> near_30_;
-  const unique_ptr<const S2Polygon> near_32_;
-  const unique_ptr<const S2Polygon> near_3210_;
-  const unique_ptr<const S2Polygon> near_H3210_;
+  const S2Polygon _empty;
+  const S2Polygon _full;
+  const S2Polygon _near0;
+  const S2Polygon _near10;
+  const S2Polygon _near30;
+  const S2Polygon _near32;
+  const S2Polygon _near3210;
+  const S2Polygon _nearH3210;
 
-  const unique_ptr<const S2Polygon> far_10_;
-  const unique_ptr<const S2Polygon> far_21_;
-  const unique_ptr<const S2Polygon> far_321_;
-  const unique_ptr<const S2Polygon> far_H20_;
-  const unique_ptr<const S2Polygon> far_H3210_;
+  const S2Polygon _far10;
+  const S2Polygon _far21;
+  const S2Polygon _far321;
+  const S2Polygon _farH20;
+  const S2Polygon _farH3210;
 
-  const unique_ptr<const S2Polygon> south_0ab_;
-  const unique_ptr<const S2Polygon> south_2_;
-  const unique_ptr<const S2Polygon> south_210b_;
-  const unique_ptr<const S2Polygon> south_H21_;
-  const unique_ptr<const S2Polygon> south_H20abc_;
+  const S2Polygon _south0ab;
+  const S2Polygon _south2;
+  const S2Polygon _south210b;
+  const S2Polygon _southH21;
+  const S2Polygon _southH20abc;
 
-  const unique_ptr<const S2Polygon> nf1_n10_f2_s10abc_;
+  const S2Polygon _nf1N10F2S10abc;
 
-  const unique_ptr<const S2Polygon> nf2_n2_f210_s210ab_;
+  const S2Polygon _nf2N2F210S210ab;
 
-  const unique_ptr<const S2Polygon> f32_n0_;
-  const unique_ptr<const S2Polygon> n32_s0b_;
+  const S2Polygon _f32N0;
+  const S2Polygon _n32S0b;
 
-  const unique_ptr<const S2Polygon> cross1_;
-  const unique_ptr<const S2Polygon> cross1_side_hole_;
-  const unique_ptr<const S2Polygon> cross1_center_hole_;
-  const unique_ptr<const S2Polygon> cross2_;
-  const unique_ptr<const S2Polygon> cross2_side_hole_;
-  const unique_ptr<const S2Polygon> cross2_center_hole_;
+  const S2Polygon _cross1;
+  const S2Polygon _cross1SideHole;
+  const S2Polygon _cross1CenterHole;
+  const S2Polygon _cross2;
+  const S2Polygon _cross2SideHole;
+  const S2Polygon _cross2CenterHole;
 
-  const unique_ptr<const S2Polygon> overlap1_;
-  const unique_ptr<const S2Polygon> overlap1_side_hole_;
-  const unique_ptr<const S2Polygon> overlap1_center_hole_;
-  const unique_ptr<const S2Polygon> overlap2_;
-  const unique_ptr<const S2Polygon> overlap2_side_hole_;
-  const unique_ptr<const S2Polygon> overlap2_center_hole_;
+  const S2Polygon _overlap1;
+  const S2Polygon _overlap1SideHole;
+  const S2Polygon _overlap1CenterHole;
+  const S2Polygon _overlap2;
+  const S2Polygon _overlap2SideHole;
+  const S2Polygon _overlap2CenterHole;
 
-  const unique_ptr<const S2Polygon> far_H_;
-  const unique_ptr<const S2Polygon> south_H_;
-  const unique_ptr<const S2Polygon> far_H_south_H_;
-};
+  const S2Polygon _farH;
+  const S2Polygon _southH;
+  const S2Polygon _farHSouthH;
+}
 
+/+ TODO: Convert when encode/decode is added.
 static bool TestEncodeDecode(const S2Polygon* src) {
   Encoder encoder;
   src->Encode(&encoder);
@@ -190,81 +226,84 @@ static bool TestEncodeDecode(const S2Polygon* src) {
   dst.Decode(&decoder);
   return src->Equals(&dst);
 }
++/
 
-static unique_ptr<S2Polygon> MakePolygon(const string& str) {
-  unique_ptr<S2Polygon> polygon(s2textformat::MakeVerbatimPolygon(str));
+private S2Polygon makePolygon(string str) {
+  S2Polygon polygon = makeVerbatimPolygon(str);
 
   // Check that InitToSnapped() is idempotent.
-  S2Polygon snapped1, snapped2;
-  snapped1.InitToSnapped(polygon.get());
-  snapped2.InitToSnapped(&snapped1);
-  EXPECT_TRUE(snapped1.Equals(&snapped2));
+  auto snapped1 = new S2Polygon();
+  auto snapped2 = new S2Polygon();
+  snapped1.initializeToSnapped(polygon);
+  snapped2.initializeToSnapped(snapped1);
+  Assert.equal(snapped1, snapped2);
 
   // Check that Decode(Encode(x)) is the identity function.
-  EXPECT_TRUE(TestEncodeDecode(polygon.get()));
+  //Assert.equal(testEncodeDecode(polygon.get()), true);
   return polygon;
 }
 
-static void CheckContains(const string& a_str, const string& b_str) {
-  unique_ptr<S2Polygon> a = MakePolygon(a_str);
-  unique_ptr<S2Polygon> b = MakePolygon(b_str);
-  EXPECT_TRUE(a->Contains(b.get()));
-  EXPECT_TRUE(a->ApproxContains(b.get(), S1Angle::Radians(1e-15)));
-  EXPECT_FALSE(a->ApproxDisjoint(b.get(), S1Angle::Radians(1e-15)));
+private void checkContains(string a_str, string b_str) {
+  S2Polygon a = makePolygon(a_str);
+  S2Polygon b = makePolygon(b_str);
+  Assert.equal(a.contains(b), true);
+  Assert.equal(a.approxContains(b, S1Angle.fromRadians(1e-15)), true);
+  Assert.equal(a.approxDisjoint(b, S1Angle.fromRadians(1e-15)), false);
 }
 
-static void CheckContainsPoint(const string& a_str, const string& b_str) {
-  unique_ptr<S2Polygon> a(s2textformat::MakePolygon(a_str));
-  EXPECT_TRUE(a->Contains(s2textformat::MakePoint(b_str)))
-    << " " << a_str << " did not contain " << b_str;
+private void checkContainsPoint(string a_str, string b_str) {
+  auto a = makePolygon(a_str);
+  Assert.equal(a.contains(makePoint(b_str)), true, " " ~ a_str ~ " did not contain " ~ b_str);
 }
 
-TEST(S2Polygon, Init) {
-  CheckContains(kNear1, kNear0);
-  CheckContains(kNear2, kNear1);
-  CheckContains(kNear3, kNear2);
-  CheckContains(kNearHemi, kNear3);
-  CheckContains(kFar1, kFar0);
-  CheckContains(kFar2, kFar1);
-  CheckContains(kFar3, kFar2);
-  CheckContains(kFarHemi, kFar3);
-  CheckContains(kSouth1, kSouth0a);
-  CheckContains(kSouth1, kSouth0b);
-  CheckContains(kSouth1, kSouth0c);
-  CheckContains(kSouthHemi, kSouth2);
-  CheckContains(kNearFar1, kNear3);
-  CheckContains(kNearFar1, kFar3);
-  CheckContains(kNearFar2, kNear3);
-  CheckContains(kNearFar2, kFar3);
+@("S2Polygon.Init") unittest {
+  checkContains(kNear1, kNear0);
+  checkContains(kNear2, kNear1);
+  checkContains(kNear3, kNear2);
+  checkContains(kNearHemi, kNear3);
+  checkContains(kFar1, kFar0);
+  checkContains(kFar2, kFar1);
+  checkContains(kFar3, kFar2);
+  checkContains(kFarHemi, kFar3);
+  checkContains(kSouth1, kSouth0a);
+  checkContains(kSouth1, kSouth0b);
+  checkContains(kSouth1, kSouth0c);
+  checkContains(kSouthHemi, kSouth2);
+  checkContains(kNearFar1, kNear3);
+  checkContains(kNearFar1, kFar3);
+  checkContains(kNearFar2, kNear3);
+  checkContains(kNearFar2, kFar3);
 
-  CheckContainsPoint(kNear0, kNearPoint);
-  CheckContainsPoint(kNear1, kNearPoint);
-  CheckContainsPoint(kNear2, kNearPoint);
-  CheckContainsPoint(kNear3, kNearPoint);
-  CheckContainsPoint(kNearHemi, kNearPoint);
-  CheckContainsPoint(kSouth0a, kSouthPoint);
-  CheckContainsPoint(kSouth1, kSouthPoint);
-  CheckContainsPoint(kSouth2, kSouthPoint);
-  CheckContainsPoint(kSouthHemi, kSouthPoint);
+  checkContainsPoint(kNear0, kNearPoint);
+  checkContainsPoint(kNear1, kNearPoint);
+  checkContainsPoint(kNear2, kNearPoint);
+  checkContainsPoint(kNear3, kNearPoint);
+  checkContainsPoint(kNearHemi, kNearPoint);
+  checkContainsPoint(kSouth0a, kSouthPoint);
+  checkContainsPoint(kSouth1, kSouthPoint);
+  checkContainsPoint(kSouth2, kSouthPoint);
+  checkContainsPoint(kSouthHemi, kSouthPoint);
 }
 
-TEST(S2Polygon, OverlapFractions) {
-  unique_ptr<S2Polygon> a(MakePolygon(kEmpty));
-  unique_ptr<S2Polygon> b(MakePolygon(kEmpty));
-  auto result = S2Polygon::GetOverlapFractions(a.get(), b.get());
-  EXPECT_DOUBLE_EQ(1.0, result.first);
-  EXPECT_DOUBLE_EQ(1.0, result.second);
+@("S2Polygon.OverlapFractions") unittest {
+  S2Polygon a = makePolygon(kEmpty);
+  S2Polygon b = makePolygon(kEmpty);
+  auto result = S2Polygon.getOverlapFractions(a, b);
+  Assert.approximately(result.first, 1.0, DOUBLE_ERR);
+  Assert.approximately(result.second, 1.0, DOUBLE_ERR);
 
-  b = MakePolygon(kOverlap3);
-  result = S2Polygon::GetOverlapFractions(a.get(), b.get());
-  EXPECT_DOUBLE_EQ(1.0, result.first);
-  EXPECT_DOUBLE_EQ(0.0, result.second);
+  b = makePolygon(kOverlap3);
+  result = S2Polygon.getOverlapFractions(a, b);
+  Assert.approximately(result.first, 1.0, DOUBLE_ERR);
+  Assert.approximately(result.second, 0.0, DOUBLE_ERR);
 
-  a = MakePolygon(kOverlap4);
-  result = S2Polygon::GetOverlapFractions(a.get(), b.get());
-  EXPECT_NEAR(0.5, result.first, 1e-14);
-  EXPECT_NEAR(0.5, result.second, 1e-14);
+  a = makePolygon(kOverlap4);
+  result = S2Polygon.getOverlapFractions(a, b);
+  Assert.approximately(result.first, 0.5, 1e-14);
+  Assert.approximately(result.second, 0.5, 1e-14);
 }
+
+/+ TODO: Resume here.
 
 TEST(S2Polygon, OriginNearPole) {
   // S2Polygon operations are more efficient if S2::Origin() is near a pole.
@@ -273,57 +312,6 @@ TEST(S2Polygon, OriginNearPole) {
   // that they don't contain S2::Origin(), thus by placing S2::Origin() near a
   // pole we minimize the number of canonical loops which contain that pole.)
   EXPECT_GE(S2LatLng::Latitude(S2::Origin()).degrees(), 80);
-}
-
-S2PolygonTestBase::S2PolygonTestBase()
-  : empty_(new S2Polygon()),
-    full_(MakePolygon("full")),
-    near_0_(MakePolygon(kNear0)),
-    near_10_(MakePolygon(kNear0 + kNear1)),
-    near_30_(MakePolygon(kNear3 + kNear0)),
-    near_32_(MakePolygon(kNear2 + kNear3)),
-    near_3210_(MakePolygon(kNear0 + kNear2 + kNear3 + kNear1)),
-    near_H3210_(MakePolygon(kNear0 + kNear2 + kNear3 + kNearHemi + kNear1)),
-
-    far_10_(MakePolygon(kFar0 + kFar1)),
-    far_21_(MakePolygon(kFar2 + kFar1)),
-    far_321_(MakePolygon(kFar2 + kFar3 + kFar1)),
-    far_H20_(MakePolygon(kFar2 + kFarHemi + kFar0)),
-    far_H3210_(MakePolygon(kFar2 + kFarHemi + kFar0 + kFar1 + kFar3)),
-
-    south_0ab_(MakePolygon(kSouth0a + kSouth0b)),
-    south_2_(MakePolygon(kSouth2)),
-    south_210b_(MakePolygon(kSouth2 + kSouth0b + kSouth1)),
-    south_H21_(MakePolygon(kSouth2 + kSouthHemi + kSouth1)),
-    south_H20abc_(MakePolygon(kSouth2 + kSouth0b + kSouthHemi +
-                              kSouth0a + kSouth0c)),
-
-    nf1_n10_f2_s10abc_(MakePolygon(kSouth0c + kFar2 + kNear1 + kNearFar1 +
-                                   kNear0 + kSouth1 + kSouth0b + kSouth0a)),
-
-    nf2_n2_f210_s210ab_(MakePolygon(kFar2 + kSouth0a + kFar1 + kSouth1 + kFar0 +
-                                    kSouth0b + kNearFar2 + kSouth2 + kNear2)),
-
-    f32_n0_(MakePolygon(kFar2 + kNear0 + kFar3)),
-    n32_s0b_(MakePolygon(kNear3 + kSouth0b + kNear2)),
-
-    cross1_(MakePolygon(kCross1)),
-    cross1_side_hole_(MakePolygon(kCross1 + kCross1SideHole)),
-    cross1_center_hole_(MakePolygon(kCross1 + kCrossCenterHole)),
-    cross2_(MakePolygon(kCross2)),
-    cross2_side_hole_(MakePolygon(kCross2 + kCross2SideHole)),
-    cross2_center_hole_(MakePolygon(kCross2 + kCrossCenterHole)),
-
-    overlap1_(MakePolygon(kOverlap1)),
-    overlap1_side_hole_(MakePolygon(kOverlap1 + kOverlap1SideHole)),
-    overlap1_center_hole_(MakePolygon(kOverlap1 + kOverlapCenterHole)),
-    overlap2_(MakePolygon(kOverlap2)),
-    overlap2_side_hole_(MakePolygon(kOverlap2 + kOverlap2SideHole)),
-    overlap2_center_hole_(MakePolygon(kOverlap2 + kOverlapCenterHole)),
-
-    far_H_(MakePolygon(kFarHemi)),
-    south_H_(MakePolygon(kSouthHemi)),
-    far_H_south_H_(MakePolygon(kFarHSouthH)) {
 }
 
 static void CheckEqual(const S2Polygon& a, const S2Polygon& b,
@@ -2982,3 +2970,4 @@ TEST_F(S2PolygonTestBase, PolygonPolygonDistance) {
   EXPECT_GT(distance, S1ChordAngle(S1Angle::Degrees(175)));
 }
 
++/

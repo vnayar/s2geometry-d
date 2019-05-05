@@ -20,7 +20,6 @@ module s2.mutable_s2shape_index_test;
 
 import s2.logger;
 import s2.mutable_s2shape_index;
-import s2.s2shape_index;
 import s2.r2point;
 import s2.r2rect;
 import s2.s1angle;
@@ -28,6 +27,7 @@ import s2.s2cap;
 import s2.s2cell;
 import s2.s2cell_id;
 import s2.s2cell_union;
+import s2.s2debug;
 import s2.s2edge_clipping : clipToPaddedFace, intersectsRect, INTERSECTS_RECT_ERROR_UV_DIST;
 import s2.s2edge_crosser;
 import s2.s2edge_vector_shape;
@@ -38,10 +38,11 @@ import s2.s2pointutil;
 import s2.s2polygon;
 import s2.s2polyline;
 import s2.s2shape;
-import s2.shapeutil.contains_brute_force : containsBruteForce;
-import s2.shapeutil.visit_crossing_edge_pairs;
+import s2.s2shape_index;
 import s2.s2testing;
 import s2.s2text_format;
+import s2.shapeutil.contains_brute_force : containsBruteForce;
+import s2.shapeutil.visit_crossing_edge_pairs;
 
 import fluent.asserts;
 
@@ -448,8 +449,9 @@ void checkHasCrossingPermutations(S2Loop[] loops, int i, bool has_crossing) {
 // hasSelfIntersection returns the expected result for all possible cyclic
 // permutations of the loop vertices.
 void checkHasCrossing(string polygon_str, bool has_crossing) {
-  //google::FlagSaver flag_saver;
-  //FLAGS_s2debug = false;  // Allow invalid polygons (restored by gUnit)
+  flagsS2Debug = false; // Allow invalid polygons (restore on exit).
+  scope(exit) flagsS2Debug = true;
+
   auto polygon = makePolygonOrDie(polygon_str);
   S2Loop[] loops = polygon.release();
   checkHasCrossingPermutations(loops, 0, has_crossing);

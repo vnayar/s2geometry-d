@@ -129,6 +129,8 @@ public:
     initialize(polygon, null, null, options);
   }
 
+  alias LabelSetIds = LabelSetId[][];
+
   /**
    * Specifies that a polygon should be constructed using the given options,
    * and that any labels attached to the input edges should be returned in
@@ -139,11 +141,10 @@ public:
    *
    *   for (int32 label : label_set_lexicon.id_set(label_set_ids[i][j])) {...}
    */
-  alias LabelSetIds = LabelSetId[][];
-  this(S2Polygon polygon, LabelSetIds* label_set_ids,
-      IdSetLexicon* label_set_lexicon,
+  this(S2Polygon polygon, ref LabelSetIds label_set_ids,
+      IdSetLexicon label_set_lexicon,
       in Options options = Options()) {
-    initialize(polygon, label_set_ids, label_set_lexicon, options);
+    initialize(polygon, &label_set_ids, label_set_lexicon, options);
   }
 
 
@@ -207,7 +208,7 @@ public:
 
 private:
   void initialize(S2Polygon polygon, LabelSetIds* label_set_ids,
-      IdSetLexicon* label_set_lexicon, in Options options)
+      IdSetLexicon label_set_lexicon, in Options options)
   in {
     assert((label_set_ids is null) == (label_set_lexicon is null));
   } do {
@@ -253,7 +254,7 @@ private:
 
   alias LoopMap = Tuple!(int, bool)[const(S2Loop)];
 
-  void initializeLoopMap(in S2Loop[] loops, LoopMap loop_map) const {
+  void initializeLoopMap(in S2Loop[] loops, ref LoopMap loop_map) const {
     if (!_labelSetIds) return;
     foreach (int i, loop; loops) {
       loop_map[loop] = tuple(i, loop.containsOrigin());
@@ -279,7 +280,7 @@ private:
 
   S2Polygon _polygon;
   LabelSetIds* _labelSetIds;
-  IdSetLexicon* _labelSetLexicon;
+  IdSetLexicon _labelSetLexicon;
   Options _options;
 }
 

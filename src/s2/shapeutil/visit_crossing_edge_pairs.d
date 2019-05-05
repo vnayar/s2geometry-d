@@ -271,7 +271,7 @@ class IndexCrosser {
 //
 // TODO(ericv): Add an option to support S2LaxPolygonShape rules (i.e.,
 // duplicate vertices and edges are allowed, but loop crossings are not).
-bool findSelfIntersection(S2ShapeIndex index, out S2Error error) {
+bool findSelfIntersection(S2ShapeIndex index, ref S2Error error) {
   if (index.numShapeIds() == 0) return false;
   if (index.numShapeIds() != 1)
     logger.logError("index.numShapeIds()=", index.numShapeIds(), ", expected 1.");
@@ -370,7 +370,7 @@ private void getShapeEdges(in S2ShapeIndex index, in S2ShapeIndexCell[] cells,
 // Given two loop edges that cross (including at a shared vertex), return true
 // if there is a crossing error and set "error" to a human-readable message.
 private bool findCrossingError(
-    in S2Shape shape, in ShapeEdge a, in ShapeEdge b, bool is_interior, out S2Error error) {
+    in S2Shape shape, in ShapeEdge a, in ShapeEdge b, bool is_interior, ref S2Error error) {
   bool is_polygon = shape.numChains() > 1;
   S2Shape.ChainPosition ap = shape.chainPosition(a.id().edgeId);
   S2Shape.ChainPosition bp = shape.chainPosition(b.id().edgeId);
@@ -445,7 +445,7 @@ private void appendShapeEdges(in S2ShapeIndex index,
 // a multi-loop polygon, adds a prefix indicating which loop is affected.
 private void initLoopError(S2Error.Code code, string format,
                           S2Shape.ChainPosition ap, S2Shape.ChainPosition bp,
-                          bool is_polygon, S2Error error) {
+                          bool is_polygon, ref S2Error error) {
   error.initialize(code, format, ap.offset, bp.offset);
   if (is_polygon) {
     error.initialize(code, "Loop %d: %s", ap.chainId, error.text());

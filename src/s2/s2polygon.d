@@ -58,6 +58,8 @@ import std.math;
 import std.range;
 import std.typecons;
 
+import std.stdio;
+
 /**
  * Build the S2ShapeIndex only when it is first needed.  This can save
  * significant amounts of memory and time when geometry is constructed but
@@ -264,11 +266,11 @@ public:
     //    necessary if the polygon requires at least one non-normalized loop to
     //    represent it.
 
-    auto contained_origin = new RedBlackTree!S2Loop();
+    bool[S2Loop] contained_origin;
     for (int i = 0; i < loops.length; ++i) {
       S2Loop loop = loops[i];
       if (loop.containsOrigin()) {
-        contained_origin.insert(loop);
+        contained_origin[loop] = true;
       }
       double angle = loop.getTurningAngle();
       if (fabs(angle) > loop.getTurningAngleMaxError()) {
@@ -289,7 +291,7 @@ public:
           origin_loop = loop(i);
         }
       }
-      if (contained_origin.equalRange(origin_loop).count() != polygon_contains_origin) {
+      if (contained_origin.get(origin_loop, false) != polygon_contains_origin) {
         invert();
       }
     }
@@ -297,7 +299,7 @@ public:
     // Each original loop L should have been inverted if and only if it now
     // represents a hole.
     for (int i = 0; i < _loops.length; ++i) {
-      if ((contained_origin.equalRange(loop(i)).count() != loop(i).containsOrigin())
+      if ((contained_origin.get(loop(i), false) != loop(i).containsOrigin())
           != loop(i).isHole()) {
         // There is no point in saving the loop index, because the error is a
         // property of the entire set of loops.  In general there is no way to
@@ -603,6 +605,9 @@ public:
     double intersection_area = intersection.getArea();
     double a_area = a.getArea();
     double b_area = b.getArea();
+    writeln("getOverlapFractions 0: intersection_area=", intersection_area);
+    writeln("getOverlapFractions 0: a_area=", a_area);
+    writeln("getOverlapFractions 0: b_area=", b_area);
     return OverlapFractions(
         intersection_area >= a_area ? 1.0 : intersection_area / a_area,
         intersection_area >= b_area ? 1.0 : intersection_area / b_area);
@@ -760,7 +765,9 @@ public:
 
   void initializeToIntersection(
       S2Polygon a, S2Polygon b, S2Builder.SnapFunction snap_function) {
+    writeln("S2Polygon.initializeToIntersection 0:");
     if (!a._bound.intersects(b._bound)) return;
+    writeln("S2Polygon.initializeToIntersection 1:");
     initializeToOperation(S2BooleanOperation.OpType.INTERSECTION, snap_function, a, b);
 
     // If the boundary is empty then there are two possible results: the empty
@@ -777,6 +784,7 @@ public:
     // neither is possible (before snapping) then we return the one that is
     // closest to being possible.  (It never true that both are possible.)
     if (numLoops() == 0) {
+      writeln("S2Polygon.initializeToIntersection 2:");
       // We know that both polygons are non-empty due to the initial bounds
       // check.  By far the most common case is that the intersection is empty,
       // so we want to make that case fast.  The intersection area satisfies:
@@ -1836,7 +1844,7 @@ private:
   }
 
   /// Return true if there is an error in the loop nesting hierarchy.
-  bool findLoopNestingError(S2Error error) {
+  bool findLoopNestingError(ref S2Error error) {
     // First check that the loop depths make sense.
     for (int last_depth = -1, i = 0; i < numLoops(); ++i) {
       int depth = loop(i).depth();
