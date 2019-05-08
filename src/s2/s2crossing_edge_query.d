@@ -396,10 +396,8 @@ public:
 
   deprecated("Use GetCrossingEdges")
   bool getCrossings(in S2Point a0, in S2Point a1, CrossingType type, out EdgeMap edge_map) {
-    import std.stdio;
     // Since this API is obsolete, don't worry about reserving vectors, etc.
     foreach (const(ShapeEdge) edge; getCrossingEdges(a0, a1, type)) {
-      writeln("getCrossings 0: edge.id().shapeId=", edge.id().shapeId);
       S2Shape shape = _index.shape(edge.id().shapeId);
       edge_map[shape] ~= edge.id().edgeId;
     }

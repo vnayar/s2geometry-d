@@ -21,9 +21,11 @@ module s2.s2contains_point_query_test;
 import s2.s2contains_point_query;
 
 import s2.mutable_s2shape_index;
+import s2.s1angle;
 import s2.s2cap;
-// import s2.loop;
+import s2.s2loop;
 import s2.s2point;
+import s2.s2shape;
 import s2.s2testing;
 import s2.s2text_format : makePointOrDie, makeIndexOrDie;
 import s2.shapeutil.shape_edge;
@@ -97,37 +99,36 @@ import fluent.asserts;
   Assert.equal(q2.shapeContains(index.shape(2), makePointOrDie("0:7")), true);
 }
 
-// TODO: Resume when S2Loop is implemented.
-// TEST(S2ContainsPointQuery, GetContainingShapes) {
-//   // Also tests ShapeContains().
-//   const int kNumVerticesPerLoop = 10;
-//   const S1Angle kMaxLoopRadius = S2Testing::KmToAngle(10);
-//   const S2Cap center_cap(S2Testing::RandomPoint(), kMaxLoopRadius);
-//   MutableS2ShapeIndex index;
-//   for (int i = 0; i < 100; ++i) {
-//     std::unique_ptr<S2Loop> loop = S2Loop::MakeRegularLoop(
-//         S2Testing::SamplePoint(center_cap),
-//         S2Testing::rnd.RandDouble() * kMaxLoopRadius, kNumVerticesPerLoop);
-//     index.Add(make_unique<S2Loop::OwningShape>(std::move(loop)));
-//   }
-//   auto query = MakeS2ContainsPointQuery(&index);
-//   for (int i = 0; i < 100; ++i) {
-//     S2Point p = S2Testing::SamplePoint(center_cap);
-//     vector<S2Shape*> expected;
-//     for (int j = 0; j < index.num_shape_ids(); ++j) {
-//       S2Shape* shape = index.shape(j);
-//       const S2Loop* loop = down_cast<const S2Loop::Shape*>(shape)->loop();
-//       if (loop->Contains(p)) {
-//         EXPECT_TRUE(query.ShapeContains(*shape, p));
-//         expected.push_back(shape);
-//       } else {
-//         EXPECT_FALSE(query.ShapeContains(*shape, p));
-//       }
-//     }
-//     vector<S2Shape*> actual = query.GetContainingShapes(p);
-//     EXPECT_EQ(expected, actual);
-//   }
-// }
+@("S2ContainsPointQuery.GetContainingShapes") unittest {
+  // Also tests ShapeContains().
+  const int kNumVerticesPerLoop = 10;
+  const S1Angle kMaxLoopRadius = S2Testing.kmToAngle(10);
+  const S2Cap center_cap = new S2Cap(S2Testing.randomPoint(), kMaxLoopRadius);
+  auto index = new MutableS2ShapeIndex();
+  for (int i = 0; i < 100; ++i) {
+    S2Loop loop = S2Loop.makeRegularLoop(
+        S2Testing.samplePoint(center_cap),
+        S2Testing.rnd.randDouble() * kMaxLoopRadius, kNumVerticesPerLoop);
+    index.add(new S2Loop.Shape(loop));
+  }
+  auto query = makeS2ContainsPointQuery(index);
+  for (int i = 0; i < 100; ++i) {
+    S2Point p = S2Testing.samplePoint(center_cap);
+    S2Shape[] expected;
+    for (int j = 0; j < index.numShapeIds(); ++j) {
+      S2Shape shape = index.shape(j);
+      S2Loop loop = (cast(S2Loop.Shape) shape).loop();
+      if (loop.contains(p)) {
+        Assert.equal(query.shapeContains(shape, p), true);
+        expected ~= shape;
+      } else {
+        Assert.equal(query.shapeContains(shape, p), false);
+      }
+    }
+    S2Shape[] actual = query.getContainingShapes(p);
+    Assert.equal(actual, expected);
+  }
+}
 
 alias EdgeIdVector = ShapeEdgeId[];
 

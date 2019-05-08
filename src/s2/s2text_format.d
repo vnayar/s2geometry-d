@@ -257,19 +257,19 @@ S2Polygon makePolygonOrDie(string str) {
 
 // As above, but does not CHECK-fail on invalid input. Returns true if
 // conversion is successful.
-//ABSL_MUST_USE_RESULT bool MakePolygon(absl::string_view str, std::unique_ptr<S2Polygon>* polygon);
-
 bool makePolygon(string str, ref S2Polygon polygon) {
   return internalMakePolygon(str, true, polygon);
 }
 
-// TODO: Resume here.
 private bool internalMakePolygon(string str, bool normalize_loops, ref S2Polygon polygon) {
   polygon = new S2Polygon();
   if (str == "empty") str = "";
   string[] loop_strs = str.split(';');
   S2Loop[] loops;
   foreach (loop_str; loop_strs) {
+    loop_str = strip(loop_str);
+    if (loop_str.empty()) break;
+
     S2Loop loop;
     if (!makeLoop(loop_str, loop)) return false;
     // Don't normalize loops that were explicitly specified as "full".
@@ -281,17 +281,28 @@ private bool internalMakePolygon(string str, bool normalize_loops, ref S2Polygon
 }
 
 
-// Like MakePolygon(), except that it does not normalize loops (i.e., it
-// gives you exactly what you asked for).
-//std::unique_ptr<S2Polygon> MakeVerbatimPolygonOrDie(absl::string_view str);
+/**
+ * Like MakePolygon(), except that it does not normalize loops (i.e., it
+ * gives you exactly what you asked for).
+ */
+S2Polygon makeVerbatimPolygonOrDie(string str) {
+  S2Polygon polygon;
+  enforce(makeVerbatimPolygon(str, polygon), ": str == \"" ~ str ~ "\"");
+  return polygon;
+}
 
-// As above, but does not CHECK-fail on invalid input. Returns true if
-// conversion is successful.
-//ABSL_MUST_USE_RESULT bool MakeVerbatimPolygon(
-//    absl::string_view str, std::unique_ptr<S2Polygon>* polygon);
+/**
+ * As above, but does not CHECK-fail on invalid input. Returns true if
+ * conversion is successful.
+ */
+bool makeVerbatimPolygon(string str, out S2Polygon polygon) {
+  return internalMakePolygon(str, false, polygon);
+}
 
-//ABSL_DEPRECATED("Use MakeVerbatimPolygonOrDie.")
-//std::unique_ptr<S2Polygon> MakeVerbatimPolygon(absl::string_view str);
+deprecated("Use MakeVerbatimPolygonOrDie.")
+S2Polygon makeVerbatimPolygon(string str) {
+  return makeVerbatimPolygonOrDie(str);
+}
 
 // Parses a string in the same format as MakePolygon, except that loops must
 // be oriented so that the interior of the loop is always on the left, and
@@ -309,6 +320,9 @@ bool makeLaxPolygon(string str, ref S2LaxPolygonShape lax_polygon) {
   string[] loop_strs = str.split(";");
   S2Point[][] loops;
   foreach (loop_str; loop_strs) {
+    loop_str = strip(loop_str);
+    if (loop_str.empty()) break;
+
     if (loop_str == "full") {
       loops ~= new S2Point[0];
     } else if (loop_str != "empty") {
@@ -321,8 +335,10 @@ bool makeLaxPolygon(string str, ref S2LaxPolygonShape lax_polygon) {
   return true;
 }
 
-//ABSL_DEPRECATED("Use MakeLaxPolygonOrDie.")
-//std::unique_ptr<S2LaxPolygonShape> MakeLaxPolygon(absl::string_view str);
+deprecated("Use MakeLaxPolygonOrDie.")
+S2LaxPolygonShape makeLaxPolygon(string str) {
+  return makeLaxPolygonOrDie(str);
+}
 
 // Returns a MutableS2ShapeIndex containing the points, polylines, and loops
 // (in the form of a single polygon) described by the following format:
@@ -356,6 +372,9 @@ bool makeIndex(string str, ref MutableS2ShapeIndex index) {
 
   S2Point[] points;
   foreach (point_str; strs[0].strip().split('|')) {
+    point_str = strip(point_str);
+    if (point_str.empty()) break;
+
     S2Point point;
     if (!makePoint(point_str, point)) return false;
     points ~= point;

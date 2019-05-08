@@ -124,37 +124,7 @@ public:
   // Iterator type; please treat this as an opaque forward iterator.
   alias Iterator = const(int)*;
 
-  // This class represents a set of integers stored in the IdSetLexicon.
-  // class IdSet {
-  // public:
-  //   Iterator begin() const {
-  //     return _begin;
-  //   }
-
-  //   Iterator end() const {
-  //     return _end;
-  //   }
-
-  //   size_t size() const {
-  //     return _end - _begin;
-  //   }
-
-  // private:
-  //   this() {
-  //     _begin = &_singletonId;
-  //     _end = _begin;
-  //   }
-
-  //   this(Iterator begin, Iterator end) {
-  //     _begin = begin;
-  //     _end = end;
-  //   }
-
-  //   explicit IdSet(int32 singleton_id);
-  //   Iterator begin_, end_;
-  //   int32 singleton_id_;
-  // }
-
+  // Represents a set of integers stored in the IdSetLexicon.
   alias IdSet = int[];
 
   // Return the set of integers corresponding to an id returned by Add().

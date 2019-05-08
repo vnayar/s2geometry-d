@@ -37,6 +37,7 @@ import s2.value_lexicon;
 
 import std.algorithm;
 import std.bitmanip;
+import std.conv;
 import std.exception;
 import std.range;
 import std.stdio;
@@ -275,12 +276,6 @@ public:
    */
   struct SourceId {
   public:
-    this(this) {
-      _regionId = 0;
-      _shapeId = 0;
-      _edgeId = -1;
-    }
-
     this(int region_id, int shape_id, int edge_id) {
       _regionId = region_id;
       _shapeId = shape_id;
@@ -317,28 +312,23 @@ public:
           .opCmp(tuple(other._regionId, other._shapeId, other._edgeId));
     }
 
+    string toString() const {
+      return "SourceId(regionId=" ~ _regionId.to!string ~ ", _shapeId=" ~ _shapeId.to!string
+          ~ ", _edgeId=" ~ edgeId.to!string ~ ")";
+    }
+
   private:
     mixin(bitfields!(
             uint, "_regionId", 1,
             uint, "_shapeId", 31));
-    int _edgeId;
+    int _edgeId = -1;
   }
 
   struct Options {
   public:
-    this(this) {
-      _sourceIdLexicon = new ValueLexicon!SourceId();
-      _snapFunction = new IdentitySnapFunction(S1Angle.zero());
-      _polygonModel = PolygonModel.SEMI_OPEN;
-      _polylineModel = PolylineModel.CLOSED;
-    }
-
     /// Convenience constructor that calls set_snap_function().
     this(in S2Builder.SnapFunction snap_function) {
-      _sourceIdLexicon = new ValueLexicon!SourceId();
       _snapFunction = snap_function.clone();
-      _polygonModel = PolygonModel.SEMI_OPEN;
-      _polylineModel = PolylineModel.CLOSED;
     }
 
     // Options may be assigned and copied.
@@ -473,12 +463,12 @@ public:
     }
 
   private:
-    S2Builder.SnapFunction _snapFunction;
-    PolygonModel _polygonModel;
-    PolylineModel _polylineModel;
+    S2Builder.SnapFunction _snapFunction = new IdentitySnapFunction(S1Angle.zero());
+    PolygonModel _polygonModel = PolygonModel.SEMI_OPEN;
+    PolylineModel _polylineModel = PolylineModel.CLOSED;
     Precision _precision;
     bool _conservative;
-    ValueLexicon!SourceId _sourceIdLexicon;
+    ValueLexicon!SourceId _sourceIdLexicon = new ValueLexicon!SourceId();
   }
 
   this(OpType op_type, Layer layer, Options options = Options()) {
@@ -985,14 +975,21 @@ private:
         if (r.matchesPolygon && _polygonModel != PolygonModel.SEMI_OPEN) {
           contained = (_polygonModel == PolygonModel.CLOSED);
         }
-        if (r.matchesPolyline) contained = true;
+        if (r.matchesPolyline) {
+          contained = true;
+        }
 
         // The output of UNION includes duplicate values, so ensure that points are
         // not suppressed by other points.
-        if (r.matchesPoint && !_isUnion) contained = true;
+        if (r.matchesPoint && !_isUnion) {
+          contained = true;
+        }
 
         // Test whether the point is contained after region B is inverted.
-        if (contained == _invertB) return true;  // Don't exit early.
+        // TODO: Resume here and find why it differs from the C++ version.
+        if (contained == _invertB) {
+          return true;  // Don't exit early.
+        }
         return addPointEdge(a.v0, 0);
       }
 
@@ -1024,7 +1021,9 @@ private:
         // If neither edge adjacent to v0 was emitted, and this polyline contains
         // v0, and the other region contains v0, then emit an isolated vertex.
         if (isV0Isolated(a_id) && polylineContainsV0(a_id.edgeId, _chainStart) && a0_inside) {
-          if (!addPointEdge(a.v0, 1)) return false;
+          if (!addPointEdge(a.v0, 1)) {
+            return false;
+          }
         }
 
         // Test whether the entire edge or any part of it belongs to the output.
@@ -1036,7 +1035,9 @@ private:
         }
         // Remember whether the edge portion just before "a1" was emitted, so that
         // we can decide whether "a1" need to be emitted as an isolated vertex.
-        if (_inside) _v0EmittedMaxEdgeId = a_id.edgeId + 1;
+        if (_inside) {
+          _v0EmittedMaxEdgeId = a_id.edgeId + 1;
+        }
 
         // Verify that edge crossings are being counted correctly.
         _inside ^= (r.a1Crossings & 1);
@@ -1166,8 +1167,11 @@ private:
        */
       EdgeCrossingResult processEdgeCrossings(
           ShapeEdgeId a_id, in S2Shape.Edge a, ref CrossingIterator it) {
+        // TODO: Resume here, find out why the EdgeCrossingResult is different in D.
         EdgeCrossingResult r;
-        if (it.done(a_id)) return r;
+        if (it.done(a_id)) {
+          return r;
+        }
 
         // TODO(ericv): bool a_degenerate = (a.v0 == a.v1);
         for (; !it.done(a_id); it.next()) {
@@ -1186,7 +1190,9 @@ private:
             r.interiorCrossings += (it.bDimension() == 1) ? 2 : 1;
           } else if (it.bDimension() == 1) {
             // Polygons are not affected by polyline geometry.
-            if (_aDimension == 2) continue;
+            if (_aDimension == 2) {
+              continue;
+            }
             if ((a.v0 == b.v0 && a.v1 == b.v1) || (a.v0 == b.v1 && a.v1 == b.v0)) {
               r.matchesPolyline = true;
             }
@@ -1280,7 +1286,6 @@ private:
         assert(it.bDimension() == 1);
         assert(it.bEdge().v0 == v || it.bEdge().v1 == v);
       } do {
-
         // Closed polylines contain all their vertices.
         if (_polylineModel == PolylineModel.CLOSED) return true;
 
@@ -1617,12 +1622,12 @@ private:
     }
 
     static bool addIndexCrossing(
-        in ShapeEdge a, in ShapeEdge b, bool is_interior, IndexCrossings crossings) {
+        in ShapeEdge a, in ShapeEdge b, bool is_interior, ref IndexCrossings crossings) {
       import s2.s2predicates : sign;
       import s2.s2edge_crossings : vertexCrossing;
 
       crossings ~= IndexCrossing(a.id(), b.id());
-      IndexCrossing crossing = crossings.back();
+      IndexCrossing* crossing = &crossings.back();
       if (is_interior) {
         crossing.isInteriorCrossing = true;
         if (sign(a.v0(), a.v1(), b.v0()) > 0) {
@@ -1674,7 +1679,7 @@ private:
         _indexCrossingsFirstRegionId = 0;
       }
       if (region_id != _indexCrossingsFirstRegionId) {
-        foreach (crossing; _indexCrossings) {
+        foreach (ref crossing; _indexCrossings) {
           swap(crossing.a, crossing.b);
           // The following predicates get inverted when the edges are swapped.
           crossing.leftToRight(crossing.leftToRight ^ true);
@@ -1698,7 +1703,9 @@ private:
       // one S2ShapeIndex intersects a non-empty cell of the other S2ShapeIndex.
       auto type = _op.opType();
       if (type == OpType.DIFFERENCE || type == OpType.SYMMETRIC_DIFFERENCE) {
-        if (areRegionsIdentical()) return true;
+        if (areRegionsIdentical()) {
+          return true;
+        }
       } else if (!isBooleanOutput()) {
       }
       ShapeEdgeId[] a_starts, b_starts;
@@ -1708,7 +1715,9 @@ private:
           || !addBoundary(1, invert_b, invert_a, invert_result, b_starts, cp)) {
         return false;
       }
-      if (!isBooleanOutput()) cp.doneBoundaryPair();
+      if (!isBooleanOutput()) {
+        cp.doneBoundaryPair();
+      }
       return true;
     }
 
@@ -1863,12 +1872,17 @@ public:
     return _leftToRight;
   }
 
-  bool opCmp(in CrossingInputEdge other) const {
-    return _inputId < other._inputId;
+  int opCmp(in CrossingInputEdge other) const {
+    return _inputId - other._inputId;
   }
 
-  bool opCmp(in InputEdgeId other) const {
-    return _inputId < other;
+  int opCmp(in InputEdgeId other) const {
+    return _inputId - other;
+  }
+
+  string toString() const {
+    return "CrossingInputEdge(leftToRight=" ~ _leftToRight.to!string
+        ~ ", inputId=" ~ _inputId.to!string ~ ")";
   }
 
 private:
@@ -2030,14 +2044,18 @@ public:
     bool inside = false;
     bool invert_b = false;
     bool reverse_a = false;
+    auto inputCrossingRange = _inputCrossings[];
     for (int i = 0; i < _order.length; ++i) {
       // For each input edge (the "A" input edge), gather all the input edges
       // that cross it (the "B" input edges).
       InputEdgeId a_input_id = _inputIds[_order[i]];
       const(Graph.Edge) edge0 = _g.edge(_order[i]);
       b_input_edges.length = 0;
-      foreach (next; _inputCrossings) {
-        if (next[0] != a_input_id) break;
+      for (; !inputCrossingRange.empty(); inputCrossingRange.popFront()) {
+        auto next = inputCrossingRange.front();
+        if (next[0] != a_input_id) {
+          break;
+        }
         if (next[1].inputId() >= 0) {
           b_input_edges ~= next[1];
         } else if (next[1].inputId() == SET_INSIDE) {
@@ -2075,6 +2093,7 @@ public:
       a_vertices ~= edge0[0];
       b_edges.length = 0;
       b_edges.length = b_input_edges.length;
+
       gatherIncidentEdges(a_vertices, 0, b_input_edges, b_edges);
       for (; i < _order.length && _inputIds[_order[i]] == a_input_id; ++i) {
         a_vertices ~= _g.edge(_order[i])[1];
@@ -2101,19 +2120,20 @@ public:
       // the only difference is that we have added some extra sibling pairs
       // (consisting of an edge and its corresponding reverse edge) which do not
       // affect the result.
-      a_num_crossings.length = a_vertices.length;
+      a_num_crossings = new int[a_vertices.length];
       a_isolated.length = 0;
       a_isolated.length = a_vertices.length;
       for (int bi = 0; bi < b_input_edges.length; ++bi) {
         bool left_to_right = b_input_edges[bi].leftToRight();
         int a_index = getCrossedVertexIndex(a_vertices, b_edges[bi], left_to_right);
         if (s2builderVerbose) {
-          writeln("  b input edge ", b_input_edges[bi].inputId(), " (l2r=", left_to_right,
+          write("  b input edge ", b_input_edges[bi].inputId(), " (l2r=", left_to_right,
               ", crossing=", a_vertices[a_index], ")");
           foreach (x; b_edges[bi]) {
             const Graph.Edge e = _g.edge(x.id);
-            writeln(" (", e[0], ", ", e[1], ")");
+            write(" (", e[0], ", ", e[1], ")");
           }
+          writeln("");
         }
         // Keep track of the number of signed crossings (see above).
         bool is_line = _inputDimensions[b_input_edges[bi].inputId()] == 1;
@@ -2413,9 +2433,9 @@ public:
   /// Layer interface:
   override
   GraphOptions graphOptions() const {
-  // We keep all edges, including degenerate ones, so that we can figure out
-  // the correspondence between input edge crossings and output edge
-  // crossings.
+    // We keep all edges, including degenerate ones, so that we can figure out
+    // the correspondence between input edge crossings and output edge
+    // crossings.
     return new GraphOptions(
         EdgeType.DIRECTED, DegenerateEdges.KEEP,
         DuplicateEdges.KEEP, SiblingPairs.KEEP);
@@ -2471,6 +2491,14 @@ public:
     }
   }
 
+  override
+  string toString() const {
+    import std.conv;
+    return "EdgeClippingLayer(_layers=" ~ _layers.to!string
+        ~ ", _inputDimensions=" ~ (*_inputDimensions).to!string
+        ~ ", _inputCrossings=" ~ (*_inputCrossings).to!string ~ ")";
+  }
+
 private:
   // Helper function (in anonymous namespace) to create an S2Builder::Graph from
   // a vector of edges.
@@ -2514,6 +2542,6 @@ private:
  * this, but if that functionality were moved here then it would be useful for
  * other polygon representations such as S2LaxPolygonShape.)
  */
-private bool isFullPolygonNever(in Graph g, out S2Error error) {
+private bool isFullPolygonNever(in Graph g, ref S2Error error) {
   return false;  // Assumes the polygon is empty.
 }

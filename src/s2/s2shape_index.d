@@ -31,7 +31,6 @@ import s2.s2point;
 
 import std.conv : to;
 
-
 /**
  * S2ClippedShape represents the part of a shape that intersects an S2Cell.
  * It consists of the set of edge ids that intersect that cell, and a boolean
@@ -82,6 +81,11 @@ public:
       if (edge(e) == id) return true;
     }
     return false;
+  }
+
+  string toString() const {
+    return "S2ClippedShape[shapeId=" ~ _shapeId.to!string
+        ~ ", numEdges=" ~ _numEdges.to!string ~ "]";
   }
 
 package:
@@ -193,8 +197,8 @@ public:
 
   override
   string toString() const {
-    import std.format : format;
-    return format("S2ShapeIndexCell[shapes.length = %d]", _shapes.length);
+    import std.conv;
+    return "S2ShapeIndexCell[shapes=" ~ _shapes.to!string ~ "]";
   }
 
 package:

@@ -1,0 +1,9 @@
+* Dependency Tree
+
++ [TODO] s2polygon
+
+* Regressions:
+
+$ dub test -- -s -t -d s2.s2builder_test.S2Builder.FractalStressTest
+
+* Failing Tests

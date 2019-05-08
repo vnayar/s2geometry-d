@@ -413,18 +413,21 @@ public:
     return id;
   }
 
-  // Removes the given shape from the index and return ownership to the caller.
-  // Invalidates all iterators and their associated data.
+  /// Removes the given shape from the index and return ownership to the caller.
+  /// Invalidates all iterators and their associated data.
   S2Shape release(int shapeId)
   in {
     assert(_shapes[shapeId] !is null);
-  } body {
+  } out {
+    assert(_shapes[shapeId] is null);
+  } do {
     // This class updates itself lazily, because it is much more efficient to
     // process additions and removals in batches.  However this means that when
     // a shape is removed, we need to make a copy of all its edges, since the
     // client is free to delete "shape" once this call is finished.
 
     S2Shape shape = _shapes[shapeId];
+    _shapes[shapeId] = null;
     if (shapeId >= _pendingAdditionsBegin) {
       // We are removing a shape that has not yet been added to the index,
       // so there is nothing else to do.
@@ -732,6 +735,13 @@ public:
       _savedIds.length = 0;
     }
 
+    override
+    string toString() const {
+      import std.conv;
+      return "InteriorTracker(isActive=" ~ _isActive.to!string ~ ", a=" ~ _a.to!string
+          ~ ", b=" ~ _b.to!string ~ ", nextS2CellId=" ~ _nextS2CellId.to!string ~ ")";
+    }
+
   private:
     // Removes "shape_id" from _shapeIds if it exists, otherwise insert it.
     void toggleShape(int shape_id) {
@@ -744,7 +754,7 @@ public:
       } else if (_shapeIds[0] == shape_id) {
         _shapeIds = _shapeIds.remove(0);
       } else {
-        size_t pos = _shapeIds[0];
+        size_t pos = 0;
         while (_shapeIds[pos] < shape_id) {
           if (++pos == _shapeIds.length) {
             _shapeIds ~= shape_id;
@@ -752,13 +762,9 @@ public:
           }
         }
         if (_shapeIds[pos] == shape_id) {
-          _shapeIds.remove(pos);
+          _shapeIds = _shapeIds.remove(pos);
         } else {
-          _shapeIds.length++;
-          for (auto i = _shapeIds.length - 1; i > pos; i--) {
-            _shapeIds[i] = shapeIds[i-1];
-          }
-          _shapeIds[pos] = shape_id;
+          _shapeIds.insertInPlace(pos, shape_id);
         }
       }
     }
@@ -1667,7 +1673,7 @@ public:
         eshape_id = edges[enext].faceEdge.shapeId;
       }
       if (cnext_pos != cshape_ids.length) {
-        cshape_id = cnext_pos;
+        cshape_id = cshape_ids[cnext_pos];
       }
       int ebegin = enext;
       if (cshape_id < eshape_id) {

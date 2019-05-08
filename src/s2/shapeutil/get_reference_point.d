@@ -69,7 +69,8 @@ in {
   // reversed edges, and then sort them.  The first edge that appears in one
   // list but not the other is guaranteed to be unmatched.
   int n = shape.numEdges();
-  S2Shape.Edge[] edges, rev_edges;
+  auto edges = new S2Shape.Edge[n];
+  auto rev_edges = new S2Shape.Edge[n];
   for (int i = 0; i < n; ++i) {
     auto edge2 = shape.edge(i);
     edges[i] = edge2;

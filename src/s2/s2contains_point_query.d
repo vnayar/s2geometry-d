@@ -260,7 +260,9 @@ public:
       for (int i = 0; i < num_edges; ++i) {
         auto edge = shape.edge(clipped.edge(i));
         int sign = crosser.crossingSign(edge.v0, edge.v1);
-        if (sign < 0) continue;
+        if (sign < 0) {
+          continue;
+        }
         if (sign == 0) {
           // For the OPEN and CLOSED models, check whether "p" is a vertex.
           if (_options.vertexModel() != S2VertexModel.SEMI_OPEN

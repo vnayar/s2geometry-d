@@ -17,7 +17,11 @@
 
 module s2.s2debug;
 
-bool flagsS2Debug = false;
+debug {
+  bool flagsS2Debug = true;
+} else {
+  bool flagsS2Debug = false;
+}
 
 enum S2Debug : ubyte {
   ALLOW,

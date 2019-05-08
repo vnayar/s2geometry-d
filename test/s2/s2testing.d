@@ -29,6 +29,7 @@ import s2.s2cell_union;
 import s2.s2loop;
 import s2.s2point;
 import s2.s2pointutil;
+import s2.s2polygon;
 import s2.s2region;
 import s2.util.math.vector;
 import s2.util.math.matrix3x3;
@@ -394,12 +395,31 @@ public:
     return getRandomCellId(rnd.uniform(S2CellId.MAX_LEVEL + 1));
   }
 
-  // Return a polygon with the specified center, number of concentric loops
-  // and vertices per loop.
-  // static void ConcentricLoopsPolygon(const S2Point& center,
-  //                                    int num_loops,
-  //                                    int num_vertices_per_loop,
-  //                                    S2Polygon* polygon);
+  /// Return a polygon with the specified center, number of concentric loops
+  /// and vertices per loop.
+  static void concentricLoopsPolygon(
+      in S2Point center, int num_loops, int num_vertices_per_loop, S2Polygon polygon) {
+    Matrix3x3_d m;
+    getFrame(center, m);
+    /**/m = Matrix3x3_d(
+        0.418314995042454, 0.701198425261565, 0.577350269189626,
+        0.816413146891386, -0.0116721998599441, -0.577350269189626,
+        -0.398098151848932, 0.712870625121509, -0.577350269189626
+    );
+    S2Loop[] loops;
+    for (int li = 0; li < num_loops; ++li) {
+      S2Point[] vertices;
+      double radius = 0.005 * (li + 1) / num_loops;
+      double radian_step = 2 * M_PI / num_vertices_per_loop;
+      for (int vi = 0; vi < num_vertices_per_loop; ++vi) {
+        double angle = vi * radian_step;
+        auto p = S2Point(radius * math.cos(angle), radius * math.sin(angle), 1);
+        vertices ~= fromFrame(m, p.normalize());
+      }
+      loops ~= new S2Loop(vertices);
+    }
+    polygon.initializeNested(loops);
+  }
 
   // Checks that "covering" completely covers the given region.  If
   // "check_tight" is true, also checks that it does not contain any cells

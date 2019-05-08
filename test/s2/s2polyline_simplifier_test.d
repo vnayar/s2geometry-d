@@ -35,15 +35,15 @@ void checkSimplify(string src, string dst,
     double radius_degrees, bool expected_result) {
   auto radius = S1ChordAngle(S1Angle.fromDegrees(radius_degrees));
   auto s = new S2PolylineSimplifier();
-  s.initialize(makePoint(src));
-  foreach (S2Point p; parsePoints(target)) {
+  s.initialize(makePointOrDie(src));
+  foreach (S2Point p; parsePointsOrDie(target)) {
     s.targetDisc(p, radius);
   }
   int i = 0;
-  foreach (S2Point p; parsePoints(avoid)) {
+  foreach (S2Point p; parsePointsOrDie(avoid)) {
     s.avoidDisc(p, radius, disc_on_left[i++]);
   }
-  Assert.equal(expected_result, s.extend(makePoint(dst)),
+  Assert.equal(expected_result, s.extend(makePointOrDie(dst)),
       "\nsrc = " ~ src ~ "\ndst = " ~ dst
       ~ "\ntarget = " ~ target ~ "\navoid = " ~ avoid);
 }

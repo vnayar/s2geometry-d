@@ -316,6 +316,8 @@ void checkSubsample(string polyline_str, double tolerance_degrees, string expect
 
   // And finally, verify that we still do something reasonable if the client
   // passes in an invalid polyline with two or more adjacent vertices.
+  flagsS2Debug = false;
+  scope(exit) flagsS2Debug = true;
   checkSubsample("0:1, 0:1, 0:1, 0:2", 0.0, "0,3");
 }
 
@@ -463,6 +465,8 @@ void checkNearlyCovers(
   // S2Polyines are not generally supposed to contain adjacent, identical
   // points, but it happens in practice.  When --s2debug=true, debug-mode
   // binaries abort on such polylines, so we also set --s2debug=false.
+  flagsS2Debug = false;
+  scope(exit) flagsS2Debug = true;
   checkNearlyCovers("0:1, 0:2, 0:2, 0:3", "0:1, 0:1, 0:1, 0:3", 1e-10, true, true);
 }
 
@@ -490,6 +494,8 @@ void checkNearlyCovers(
 }
 
 @("S2PolylineCoveringTest.MatchStartsAtDuplicatedLastVertex") unittest {
+  flagsS2Debug = false;
+  scope(exit) flagsS2Debug = true;
   checkNearlyCovers(
       "0:0, 0:2, 0:2, 0:2", "0:2, 0:3", 1.5, false, true);
 }

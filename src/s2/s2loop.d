@@ -58,7 +58,6 @@ import std.math;
 import std.range : empty, back, isInputRange, popBack;
 import core.atomic;
 
-
 // Build the S2ShapeIndex only when it is first needed.  This can save
 // significant amounts of memory and time when geometry is constructed but
 // never queried, for example when loops are passed directly to S2Polygon,
@@ -208,7 +207,7 @@ public:
 
   // Returns true if this is *not* a valid loop and sets "error"
   // appropriately.  Otherwise returns false and leaves "error" unchanged.
-  bool findValidationError(out S2Error error) {
+  bool findValidationError(ref S2Error error) {
     return (findValidationErrorNoIndex(error) || findSelfIntersection(_index, error));
   }
 
@@ -216,7 +215,7 @@ public:
   // building the S2ShapeIndex (i.e., self-intersection tests).  This is used
   // by the S2Polygon implementation, which uses its own index to check for
   // loop self-intersections.
-  bool findValidationErrorNoIndex(S2Error error) const
+  bool findValidationErrorNoIndex(ref S2Error error) const
   in {
     // subregion_bound_ must be at least as large as bound_.  (This is an
     // internal consistency check rather than a test of client data.)
@@ -1177,7 +1176,7 @@ public:
       _loop = loop;
     }
 
-    const(S2Loop) loop() const {
+    inout(S2Loop) loop() inout {
       return _loop;
     }
 
@@ -1250,7 +1249,7 @@ package:
     return _originInside;
   }
 
-private:
+package:
   // Internal copy constructor used only by Clone() that makes a deep copy of
   // its argument.
   this(in S2Loop src) {
@@ -1265,6 +1264,7 @@ private:
     initIndex();
   }
 
+private:
   // Any single-vertex loop is interpreted as being either the empty loop or the
   // full loop, depending on whether the vertex is in the northern or southern
   // hemisphere respectively.

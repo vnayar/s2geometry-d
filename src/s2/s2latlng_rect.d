@@ -35,6 +35,7 @@ import s2.s2pointutil;
 import s2.s2predicates;
 import s2.s2region;
 import s2.util.math.vector;
+
 import std.conv;
 import std.exception;
 
