@@ -37,6 +37,8 @@ import std.conv;
 import std.range;
 import fluent.asserts;
 
+import std.stdio;
+
 alias DegenerateEdges = GraphOptions.DegenerateEdges;
 alias DuplicateEdges = GraphOptions.DuplicateEdges;
 alias SiblingPairs = GraphOptions.SiblingPairs;
@@ -461,7 +463,6 @@ private string kVertexTestPolygonStr() {
 // Like the test above, except that every polygon vertex is also incident to a
 // closed polyline vertex.  This tests that when an open vertex and a closed
 // vertex coincide with each other, the result is considered closed.
-// TODO: Fix me.
 @("S2BooleanOperation.PolylineVertexOpenPolygonClosedPolylineVertex") unittest {
   const string kTestGeometrySuffix =
       "-2:0, 0:1 | -2:1, 0:2 | -2:2, 0:3 | -2:3, 0:4 | "
@@ -700,7 +701,6 @@ private string kVertexTestPolygonStr() {
       "# # 0:0, 0:5, 1:5, 0:0, 2:5, 3:5, 0:0, 5:3, 5:2");
 }
 
-/+ TODO: Fix test.
 @("S2BooleanOperation.PolygonEdgePolygonEdgeCrossing") unittest {
   // Two polygons whose edges cross at points interior to both edges.
   S2BooleanOperation.Options options = roundToE(2);
@@ -708,15 +708,14 @@ private string kVertexTestPolygonStr() {
   auto b = "# # 1:1, 1:3, 3:3, 3:1";
   expectResult(OpType.UNION, options, a, b,
       "# # 0:0, 0:2, 1:2, 1:3, 3:3, 3:1, 2:1, 2:0");
-  // expectResult(OpType.INTERSECTION, options, a, b,
-  //     "# # 1:1, 1:2, 2:2, 2:1");
-  // expectResult(OpType.DIFFERENCE, options, a, b,
-  //     "# # 0:0, 0:2, 1:2, 1:1, 2:1, 2:0");
-  // expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
-  //     "# # 0:0, 0:2, 1:2, 1:1, 2:1, 2:0; "
-  //     ~ "1:2, 1:3, 3:3, 3:1, 2:1, 2:2");
+  expectResult(OpType.INTERSECTION, options, a, b,
+      "# # 1:1, 1:2, 2:2, 2:1");
+  expectResult(OpType.DIFFERENCE, options, a, b,
+      "# # 0:0, 0:2, 1:2, 1:1, 2:1, 2:0");
+  expectResult(OpType.SYMMETRIC_DIFFERENCE, options, a, b,
+      "# # 0:0, 0:2, 1:2, 1:1, 2:1, 2:0; "
+      ~ "1:2, 1:3, 3:3, 3:1, 2:1, 2:2");
 }
-+/
 
 @("S2BooleanOperation.PolygonEdgeOpenPolygonEdgeOverlap") unittest {
   S2BooleanOperation.Options options;
@@ -812,7 +811,6 @@ private string kVertexTestPolygonStr() {
 // The remaining tests are intended to cover combinations of features or
 // interesting special cases.
 
-/+ TODO: Fix test.
 @("S2BooleanOperation.ThreeOverlappingBars") unittest {
   // Two vertical bars and a horizontal bar that overlaps both of the other
   // bars and connects them.
@@ -834,9 +832,7 @@ private string kVertexTestPolygonStr() {
       ~ "0:3, 0:5, 3:5, 3:3, 2:3, 2:4, 1:4, 1:3; "
       ~ "1:2, 1:3, 2:3, 2:2");
 }
-+/
 
-/+ TODO: Fix test.
 @("S2BooleanOperation.FourOverlappingBars") unittest {
   // Two vertical bars and two horizontal bars.
 
@@ -865,9 +861,7 @@ private string kVertexTestPolygonStr() {
       ~ "0:89, 0:90, 1:90, 1:89; 0:91, 0:92, 1:92, 1:91; "
       ~ "2:89, 2:90, 3:90, 3:89; 2:91, 2:92, 3:92, 3:91");
 }
-+/
 
-/+ TODO: Resume here.
 @("S2BooleanOperation.OverlappingDoughnuts") unittest {
   // Two overlapping square doughnuts whose holes do not overlap.
   // This means that the union polygon has only two holes rather than three.
@@ -897,7 +891,6 @@ private string kVertexTestPolygonStr() {
       ~ "-1:-90, -1:-89, 0:-89, 0:-90; "
       ~ "1:-91, 0:-91, 0:-90, 1:-90");
 }
-+/
 
 @("S2BooleanOperation.PolylineEnteringRectangle") unittest {
   // A polyline that enters a rectangle very close to one of its vertices.
@@ -914,7 +907,6 @@ private string kVertexTestPolygonStr() {
       "# 0:0, 1:1 # 1:1, 1:3, 3:3, 3:1");
 }
 
-/+ TODO: Fix test.
 @("S2BooleanOperation.PolylineCrossingRectangleTwice") unittest {
   // A polyline that crosses a rectangle in one direction, then moves to a
   // different side and crosses the rectangle in the other direction.  Note
@@ -933,4 +925,3 @@ private string kVertexTestPolygonStr() {
       "# 0:-5, 0:-1 | 0:1, 0:5, 5:0, 1:0 | -1:0, -5:0 "
       ~ "# 1:1, 1:0, 1:-1, 0:-1, -1:-1, -1:0, -1:1, 0:1");
 }
-+/

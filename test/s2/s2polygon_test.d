@@ -285,6 +285,7 @@ private void checkContainsPoint(string a_str, string b_str) {
   checkContainsPoint(kSouthHemi, kSouthPoint);
 }
 
+// TODO: Fix me.
 @("S2Polygon.OverlapFractions") unittest {
   S2Polygon a = makePolygon(kEmpty);
   S2Polygon b = makePolygon(kEmpty);

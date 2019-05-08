@@ -1,16 +1,9 @@
 * Dependency Tree
 
 + [TODO] s2polygon
-  + [TODO] s2boolean_operation_test
 
 * Regressions:
 
 $ dub test -- -s -t -d s2.s2builder_test.S2Builder.FractalStressTest
 
 * Failing Tests
-
-D:
-$ dub test -- -s -t -d s2.s2boolean_operation_test.S2BooleanOperation.PolygonEdgePolygonEdgeCrossing
-
-C++:
-$ make && ./s2boolean_operation_test --gtest_filter=S2BooleanOperation.PolygonEdgePolygonEdgeCrossing

@@ -128,7 +128,7 @@ class IndexCrosser {
   // Terminates early and returns false if visitor_ returns false.
   // Advances both iterators past ai->id().
   bool visitCrossings(RangeIterator ai, RangeIterator bi) {
-    logger.logError(!ai.id().contains(bi.id()), "ai must contain bi");
+    logger.logDebug(!ai.id().contains(bi.id()), " ai must contain bi");
     if (ai.cell().numEdges() == 0) {
       // Skip over the cells of B using binary search.
       bi.seekBeyond(ai);

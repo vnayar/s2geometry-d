@@ -590,8 +590,7 @@ private:
       // (It is possible to do this 100% robustly, but tricky.)
       _builder.addIsFullPolygonPredicate(&isFullPolygonNever);
       buildOpType(_op.opType());
-      bool result = _builder.build(error);
-      return result;
+      return _builder.build(error);
     }
 
   private:
@@ -2094,6 +2093,7 @@ public:
       a_vertices ~= edge0[0];
       b_edges.length = 0;
       b_edges.length = b_input_edges.length;
+
       gatherIncidentEdges(a_vertices, 0, b_input_edges, b_edges);
       for (; i < _order.length && _inputIds[_order[i]] == a_input_id; ++i) {
         a_vertices ~= _g.edge(_order[i])[1];
@@ -2120,19 +2120,20 @@ public:
       // the only difference is that we have added some extra sibling pairs
       // (consisting of an edge and its corresponding reverse edge) which do not
       // affect the result.
-      a_num_crossings.length = a_vertices.length;
+      a_num_crossings = new int[a_vertices.length];
       a_isolated.length = 0;
       a_isolated.length = a_vertices.length;
       for (int bi = 0; bi < b_input_edges.length; ++bi) {
         bool left_to_right = b_input_edges[bi].leftToRight();
         int a_index = getCrossedVertexIndex(a_vertices, b_edges[bi], left_to_right);
         if (s2builderVerbose) {
-          writeln("  b input edge ", b_input_edges[bi].inputId(), " (l2r=", left_to_right,
+          write("  b input edge ", b_input_edges[bi].inputId(), " (l2r=", left_to_right,
               ", crossing=", a_vertices[a_index], ")");
           foreach (x; b_edges[bi]) {
             const Graph.Edge e = _g.edge(x.id);
-            writeln(" (", e[0], ", ", e[1], ")");
+            write(" (", e[0], ", ", e[1], ")");
           }
+          writeln("");
         }
         // Keep track of the number of signed crossings (see above).
         bool is_line = _inputDimensions[b_input_edges[bi].inputId()] == 1;
