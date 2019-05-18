@@ -101,6 +101,8 @@ public:
   // Default constructor.  The loop must be initialized by calling Init() or
   // Decode() before it is used.
   this() {
+    _bound = new S2LatLngRect();
+    _subregionBound = new S2LatLngRect();
     _index = new MutableS2ShapeIndex();
   }
 

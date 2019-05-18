@@ -77,6 +77,8 @@ import fluent.asserts;
 }
 
 @("S2VertexIdLaxLoopShape.InvertedLoop") unittest {
+  import s2.s2pointutil : origin;
+
   S2Point[] vertex_array = parsePointsOrDie("0:0, 0:1, 1:1, 1:0");
   int[] vertex_ids = [ 0, 3, 2, 1 ];  // Inverted.
   auto shape = new S2VertexIdLaxLoopShape(vertex_ids, vertex_array);

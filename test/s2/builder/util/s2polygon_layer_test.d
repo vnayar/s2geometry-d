@@ -45,7 +45,7 @@ void checkS2Polygon(string[] input_strs, string expected_str, EdgeType edge_type
   builder.startLayer(new S2PolygonLayer(
       output, S2PolygonLayer.Options(edge_type)));
   foreach (input_str; input_strs) {
-    builder.addPolygon(makeVerbatimPolygon(input_str));
+    builder.addPolygon(makeVerbatimPolygonOrDie(input_str));
   }
   S2Error error;
   Assert.equal(builder.build(error), true);
@@ -64,7 +64,7 @@ void checkS2PolygonError(string[]  input_strs, S2Error.Code expected_error, Edge
   options.setValidate(true);
   builder.startLayer(new S2PolygonLayer(output, options));
   foreach (input_str; input_strs) {
-    builder.addPolyline(makePolyline(input_str));
+    builder.addPolyline(makePolylineOrDie(input_str));
   }
   S2Error error;
   Assert.equal(builder.build(error), false);

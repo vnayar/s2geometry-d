@@ -38,7 +38,9 @@ import s2.s2edge_crossings;
 import s2.s2edge_distances;
 import s2.s2error;
 import s2.s2latlng;
+import s2.s2latlng_rect;
 import s2.s2loop;
+import s2.s2metrics;
 import s2.s2metrics;
 import s2.s2padded_cell;
 import s2.s2point;
@@ -56,6 +58,7 @@ import std.range;
 import fluent.asserts;
 
 import std.stdio;
+import std.math : pow;
 
 // A set of nested loops around the point 0:0 (lat:lng).
 // Every vertex of kNear0 is a vertex of kNear1.
@@ -124,18 +127,13 @@ string kOverlap4 = "-10:0, 10:0, 10:-10, -10:-10";
 class S2PolygonTestBase {
 public:
   this() {
-    writeln("S2PolygonTestBase >");
-    scope(exit) writeln("S2PolygonTestBase >");
     _empty = new S2Polygon();
     _full = makePolygon("full");
     _near0 = makePolygon(kNear0);
     _near10 = makePolygon(kNear0 ~ kNear1);
     _near30 = makePolygon(kNear3 ~ kNear0);
-    writeln("S2PolygonTestBase 1:");
     _near32 = makePolygon(kNear2 ~ kNear3);
-    writeln("S2PolygonTestBase 2:");
     _near3210 = makePolygon(kNear0 ~ kNear2 ~ kNear3 ~ kNear1);
-    writeln("S2PolygonTestBase 3:");
     _nearH3210 = makePolygon(kNear0 ~ kNear2 ~ kNear3 ~ kNearHemi ~ kNear1);
 
     _far10 = makePolygon(kFar0 ~ kFar1);
@@ -144,25 +142,21 @@ public:
     _farH20 = makePolygon(kFar2 ~ kFarHemi ~ kFar0);
     _farH3210 = makePolygon(kFar2 ~ kFarHemi ~ kFar0 ~ kFar1 ~ kFar3);
 
-    writeln("S2PolygonTestBase 4:");
     _south0ab = makePolygon(kSouth0a ~ kSouth0b);
     _south2 = makePolygon(kSouth2);
     _south210b = makePolygon(kSouth2 ~ kSouth0b ~ kSouth1);
     _southH21 = makePolygon(kSouth2 ~ kSouthHemi ~ kSouth1);
     _southH20abc = makePolygon(kSouth2 ~ kSouth0b ~ kSouthHemi ~ kSouth0a ~ kSouth0c);
 
-    writeln("S2PolygonTestBase 5:");
     _nf1N10F2S10abc = makePolygon(
         kSouth0c ~ kFar2 ~ kNear1 ~ kNearFar1 ~ kNear0 ~ kSouth1 ~ kSouth0b ~ kSouth0a);
 
     _nf2N2F210S210ab = makePolygon(
         kFar2 ~ kSouth0a ~ kFar1 ~ kSouth1 ~ kFar0 ~ kSouth0b ~ kNearFar2 ~ kSouth2 ~ kNear2);
 
-    writeln("S2PolygonTestBase 6:");
     _f32N0 = makePolygon(kFar2 ~ kNear0 ~ kFar3);
     _n32S0b = makePolygon(kNear3 ~ kSouth0b ~ kNear2);
 
-    writeln("S2PolygonTestBase 7:");
     _cross1 = makePolygon(kCross1);
     _cross1SideHole = makePolygon(kCross1 ~ kCross1SideHole);
     _cross1CenterHole = makePolygon(kCross1 ~ kCrossCenterHole);
@@ -170,7 +164,6 @@ public:
     _cross2SideHole = makePolygon(kCross2 ~ kCross2SideHole);
     _cross2CenterHole = makePolygon(kCross2 ~ kCrossCenterHole);
 
-    writeln("S2PolygonTestBase 8:");
     _overlap1 = makePolygon(kOverlap1);
     _overlap1SideHole = makePolygon(kOverlap1 ~ kOverlap1SideHole);
     _overlap1CenterHole = makePolygon(kOverlap1 ~ kOverlapCenterHole);
@@ -178,11 +171,9 @@ public:
     _overlap2SideHole = makePolygon(kOverlap2 ~ kOverlap2SideHole);
     _overlap2CenterHole = makePolygon(kOverlap2 ~ kOverlapCenterHole);
 
-    writeln("S2PolygonTestBase 9:");
     _farH = makePolygon(kFarHemi);
     _southH = makePolygon(kSouthHemi);
     _farHSouthH = makePolygon(kFarHSouthH);
-    writeln("S2PolygonTestBase 10:");
 }
 
 
@@ -247,18 +238,13 @@ static bool TestEncodeDecode(const S2Polygon* src) {
 +/
 
 private S2Polygon makePolygon(string str) {
-  writeln("makePolygon >");
-  scope(exit) writeln("makePolygon <");
-  S2Polygon polygon = makeVerbatimPolygon(str);
+  S2Polygon polygon = makeVerbatimPolygonOrDie(str);
 
   // Check that InitToSnapped() is idempotent.
   auto snapped1 = new S2Polygon();
   auto snapped2 = new S2Polygon();
-  writeln("makePolygon 1:");
   snapped1.initializeToSnapped(polygon);
-  writeln("makePolygon 2:");
   snapped2.initializeToSnapped(snapped1);
-  writeln("makePolygon 3:");
   Assert.equal(snapped1, snapped2);
 
   // Check that Decode(Encode(x)) is the identity function.
@@ -276,7 +262,7 @@ private void checkContains(string a_str, string b_str) {
 
 private void checkContainsPoint(string a_str, string b_str) {
   auto a = makePolygon(a_str);
-  Assert.equal(a.contains(makePoint(b_str)), true, " " ~ a_str ~ " did not contain " ~ b_str);
+  Assert.equal(a.contains(makePointOrDie(b_str)), true, " " ~ a_str ~ " did not contain " ~ b_str);
 }
 
 @("S2Polygon.Init") unittest {
@@ -650,12 +636,10 @@ private void checkRelationWithDesc(S2Polygon a, S2Polygon b,
   writeln("checkRelationWithDesc 10:");
 }
 
-// TODO: Fix these tests.
+/+ TODO: Fix these tests.
 @("S2PolygonTestBase.Relations") unittest {
-  writeln("S2PolygonTestBase.Relations 0:");
   auto t = new S2PolygonTestBase();
 
-  writeln("S2PolygonTestBase.Relations 1:");
   static void checkRelation(
       S2Polygon a, S2Polygon b, bool contains, bool contained, bool intersects) {
     checkRelationWithDesc(a, b, contains, contained, intersects,
@@ -737,6 +721,7 @@ private void checkRelationWithDesc(S2Polygon a, S2Polygon b,
   // checkRelation(t._overlap1SideHole, t._overlap2CenterHole, false, false, true);
   // checkRelation(t._overlap1CenterHole, t._overlap2CenterHole, false, false, true);
 }
++/
 
 @("S2PolygonTestBase.EmptyAndFull") unittest {
   auto t = new S2PolygonTestBase();
@@ -1772,7 +1757,6 @@ private void splitAndAssemble(S2Polygon polygon) {
   S2Error error;
   Assert.equal(builder.build(error), true, error.toString());
 
-  writeln("splitAndAssemble 0: ");
   for (int iter = 0; iter < 3; ++iter) {
     auto coverer = new S2RegionCoverer();
     // Compute the minimum level such that the polygon's bounding
@@ -1787,15 +1771,11 @@ private void splitAndAssemble(S2Polygon polygon) {
     coverer.mutableOptions().setMaxCells(500);
 
     S2CellId[] cells;
-    writeln("splitAndAssemble 0: polygon=", toString(polygon));
     coverer.getCovering(polygon, cells);
     auto covering = new S2CellUnion();
-    writeln("splitAndAssemble 0: cells=", cells);
     covering.initialize(cells);
-    writeln("splitAndAssemble 1: covering.cellIds()=", covering.cellIds());
     S2Testing.checkCovering(polygon, covering, false);
     checkCoveringIsConservative(polygon, cells);
-    writeln("splitAndAssemble 2: ", cells.length, " cells in covering");
     logger.logTrace(cells.length, " cells in covering");
     S2Polygon[] pieces;
     int i = 0;
@@ -1804,8 +1784,6 @@ private void splitAndAssemble(S2Polygon polygon) {
       auto window = new S2Polygon(cell);
       auto piece = new S2Polygon();
       piece.initializeToIntersection(polygon, window);
-      writeln("splitAndAssemble 2:", "\nPiece ", i++, ":\n  Window: ", toString(window),
-          "\n  Piece: ", toString(piece));
       logger.logTrace("\nPiece ", i++, ":\n  Window: ", toString(window),
           "\n  Piece: ", toString(piece));
       pieces ~= piece;
@@ -1847,7 +1825,7 @@ private void splitAndAssemble(S2Polygon polygon) {
   }
 }
 
-// TODO: Fix test.
+/+ TODO: Fix test.
 @("S2PolygonTestBase.Splitting") unittest {
   auto t = new S2PolygonTestBase();
   // It takes too long to test all the polygons in debug mode, so we just pick
@@ -1855,228 +1833,230 @@ private void splitAndAssemble(S2Polygon polygon) {
 
   splitAndAssemble(t._near10);
   splitAndAssemble(t._nearH3210);
-  // splitAndAssemble(t._farH3210);
-  // splitAndAssemble(t._south0ab);
-  // splitAndAssemble(t._south210b);
-  // splitAndAssemble(t._southH20abc);
-  // splitAndAssemble(t._nf1N10F2S10abc);
-  // splitAndAssemble(t._nf2N2F210S210ab);
-  // splitAndAssemble(t._farH);
-  // splitAndAssemble(t._southH);
-  // splitAndAssemble(t._farHSouthH);
+  splitAndAssemble(t._farH3210);
+  splitAndAssemble(t._south0ab);
+  splitAndAssemble(t._south210b);
+  splitAndAssemble(t._southH20abc);
+  splitAndAssemble(t._nf1N10F2S10abc);
+  splitAndAssemble(t._nf2N2F210S210ab);
+  splitAndAssemble(t._farH);
+  splitAndAssemble(t._southH);
+  splitAndAssemble(t._farHSouthH);
 }
++/
 
-/+ TODO: Resume here.
-
-TEST(S2Polygon, InitToCellUnionBorder) {
+@("S2Polygon.InitToCellUnionBorder") unittest {
   // Test S2Polygon::InitToCellUnionBorder().
   // The main thing to check is that adjacent cells of different sizes get
   // merged correctly.  To do this we generate two random adjacent cells,
   // convert to polygon, and make sure the polygon only has a single loop.
   for (int iter = 0; iter < 200; ++iter) {
-    SCOPED_TRACE(StrCat("Iteration ", iter));
+    logger.logTrace("Iteration ", iter);
 
     // Choose a random non-leaf cell.
     S2CellId big_cell =
-        S2Testing::GetRandomCellId(S2Testing::rnd.Uniform(S2CellId::kMaxLevel));
+        S2Testing.getRandomCellId(S2Testing.rnd.uniform(S2CellId.MAX_LEVEL));
     // Get all neighbors at some smaller level.
     int small_level = big_cell.level() +
-        S2Testing::rnd.Uniform(min(16, S2CellId::kMaxLevel - big_cell.level()));
-    vector<S2CellId> neighbors;
-    big_cell.AppendAllNeighbors(small_level, &neighbors);
+        S2Testing.rnd.uniform(min(16, S2CellId.MAX_LEVEL - big_cell.level()));
+    S2CellId[] neighbors;
+    big_cell.appendAllNeighbors(small_level, neighbors);
     // Pick one at random.
-    S2CellId small_cell = neighbors[S2Testing::rnd.Uniform(neighbors.size())];
+    S2CellId small_cell = neighbors[S2Testing.rnd.uniform(cast(int) neighbors.length)];
     // If it's diagonally adjacent, bail out.
-    S2CellId edge_neighbors[4];
-    big_cell.GetEdgeNeighbors(edge_neighbors);
+    S2CellId[4] edge_neighbors;
+    big_cell.getEdgeNeighbors(edge_neighbors);
     bool diagonal = true;
     for (int i = 0; i < 4; ++i) {
       if (edge_neighbors[i].contains(small_cell)) {
         diagonal = false;
       }
     }
-    VLOG(3) << iter << ": big_cell " << big_cell <<
-        " small_cell " << small_cell;
+    logger.logTrace(iter, ": big_cell ", big_cell, " small_cell ", small_cell);
     if (diagonal) {
-      VLOG(3) << "  diagonal - bailing out!";
+      logger.logTrace("  diagonal - bailing out!");
       continue;
     }
 
-    vector<S2CellId> cells;
-    cells.push_back(big_cell);
-    cells.push_back(small_cell);
-    S2CellUnion cell_union;
-    cell_union.Init(cells);
-    EXPECT_EQ(2, cell_union.num_cells());
-    S2Polygon poly;
-    poly.InitToCellUnionBorder(cell_union);
-    EXPECT_EQ(1, poly.num_loops());
+    S2CellId[] cells;
+    cells ~= big_cell;
+    cells ~= small_cell;
+    auto cell_union = new S2CellUnion();
+    cell_union.initialize(cells);
+    Assert.equal(cell_union.numCells(), 2);
+    auto poly = new S2Polygon();
+    poly.initializeToCellUnionBorder(cell_union);
+    Assert.equal(poly.numLoops(), 1);
     // If the conversion were perfect we could test containment, but due to
     // rounding the polygon won't always exactly contain both cells.  We can
     // at least test intersection.
-    EXPECT_TRUE(poly.MayIntersect(S2Cell(big_cell)));
-    EXPECT_TRUE(poly.MayIntersect(S2Cell(small_cell)));
+    Assert.equal(poly.mayIntersect(new S2Cell(big_cell)), true);
+    Assert.equal(poly.mayIntersect(new S2Cell(small_cell)), true);
   }
 }
 
-TEST(S2Polygon, UnionWithAmbgiuousCrossings) {
-  vector<S2Point> a_vertices = {
+@("S2Polygon.UnionWithAmbgiuousCrossings") unittest {
+  S2Point[] a_vertices = [
     S2Point(0.044856812877680216, -0.80679210859571904, 0.5891301722422051),
     S2Point(0.044851868273159699, -0.80679240802900054, 0.5891301386444033),
     S2Point(0.044854246527738666, -0.80679240292188514, 0.58912996457145106)
-  };
-  vector<S2Point> b_vertices = {
+  ];
+  S2Point[] b_vertices = [
     S2Point(0.044849715793028468, -0.80679253837178111, 0.58913012401412856),
     S2Point(0.044855344598821352, -0.80679219751320641, 0.589130162266992),
     S2Point(0.044854017712818696, -0.80679210327223405, 0.58913039235179754)
-  };
-  S2Polygon a(make_unique<S2Loop>(a_vertices));
-  S2Polygon b(make_unique<S2Loop>(b_vertices));
-  S2Polygon c;
-  c.InitToUnion(&a, &b);
-  EXPECT_FALSE(c.is_empty());
+  ];
+  auto a = new S2Polygon(new S2Loop(a_vertices));
+  auto b = new S2Polygon(new S2Loop(b_vertices));
+  auto c = new S2Polygon();
+  c.initializeToUnion(a, b);
+  Assert.equal(c.isEmpty(), false);
 }
 
-TEST(S2Polygon, InitToSloppySupportsEmptyPolygons) {
-  S2Polygon empty_polygon;
-  S2Polygon polygon;
-  polygon.InitToSnapped(&empty_polygon);
+@("S2Polygon.InitToSloppySupportsEmptyPolygons") unittest {
+  auto empty_polygon = new S2Polygon();
+  auto polygon = new S2Polygon();
+  polygon.initializeToSnapped(empty_polygon);
   // InitToSloppy is further tested by SnapSplitsPolygon.
 }
 
-TEST(S2Polygon, InitToSnappedDoesNotRotateVertices) {
+@("S2Polygon.InitToSnappedDoesNotRotateVertices") unittest {
   // This particular example came from MapFacts, but in fact InitToSnapped
   // used to cyclically rotate the vertices of all "hole" loops.
-  unique_ptr<S2Polygon> polygon(s2textformat::MakePolygon(
+  auto polygon = makePolygonOrDie(
       "49.9305505:-124.8345463, 49.9307448:-124.8299657, "
-      "49.9332101:-124.8301996, 49.9331224:-124.8341368; "
-      "49.9311087:-124.8327042, 49.9318176:-124.8312621, "
-      "49.9318866:-124.8334451"));
-  S2Polygon polygon2, polygon3;
-  polygon2.InitToSnapped(polygon.get());
+      ~ "49.9332101:-124.8301996, 49.9331224:-124.8341368; "
+      ~ "49.9311087:-124.8327042, 49.9318176:-124.8312621, "
+      ~ "49.9318866:-124.8334451");
+  auto polygon2 = new S2Polygon();
+  auto polygon3 = new S2Polygon();
+  polygon2.initializeToSnapped(polygon);
 
   // Check that the first vertex is the same when converted to E7.
-  EXPECT_EQ(S2LatLng::Latitude(polygon->loop(0)->vertex(0)).e7(),
-            S2LatLng::Latitude(polygon2.loop(0)->vertex(0)).e7());
-  EXPECT_EQ(S2LatLng::Longitude(polygon->loop(0)->vertex(0)).e7(),
-            S2LatLng::Longitude(polygon2.loop(0)->vertex(0)).e7());
+  Assert.equal(
+      S2LatLng.latitude(polygon2.loop(0).vertex(0)).e7(),
+      S2LatLng.latitude(polygon.loop(0).vertex(0)).e7());
+  Assert.equal(
+      S2LatLng.longitude(polygon2.loop(0).vertex(0)).e7(),
+      S2LatLng.longitude(polygon.loop(0).vertex(0)).e7());
 
   // Check that snapping twice doesn't rotate the vertices.
-  polygon3.InitToSnapped(&polygon2);
-  EXPECT_TRUE(polygon2.Equals(&polygon3));
+  polygon3.initializeToSnapped(polygon2);
+  Assert.equal(polygon2, polygon3);
 }
 
-TEST(S2Polygon, InitToSnappedWithSnapLevel) {
-  const unique_ptr<const S2Polygon> polygon(
-      s2textformat::MakePolygon("0:0, 0:2, 2:0; 0:0, 0:-2, -2:-2, -2:0"));
-  for (int level = 0; level <= S2CellId::kMaxLevel; ++level) {
-    S2Polygon snapped_polygon;
-    snapped_polygon.InitToSnapped(polygon.get(), level);
-    EXPECT_TRUE(snapped_polygon.IsValid());
-    S1Angle merge_radius = min(S1Angle::Radians(S2::kMaxDiag.GetValue(level)),
-                               S2Builder::SnapFunction::kMaxSnapRadius());
-    EXPECT_TRUE(snapped_polygon.ApproxContains(polygon.get(), merge_radius));
+@("S2Polygon.InitToSnappedWithSnapLevel") unittest {
+  auto polygon = makePolygonOrDie("0:0, 0:2, 2:0; 0:0, 0:-2, -2:-2, -2:0");
+  for (int level = 0; level <= S2CellId.MAX_LEVEL; ++level) {
+    auto snapped_polygon = new S2Polygon();
+    snapped_polygon.initializeToSnapped(polygon, level);
+    Assert.equal(snapped_polygon.isValid(), true);
+    S1Angle merge_radius = min(S1Angle.fromRadians(MAX_DIAG.getValue(level)),
+        S2Builder.SnapFunction.kMaxSnapRadius());
+    Assert.equal(snapped_polygon.approxContains(polygon, merge_radius), true);
   }
 }
 
-TEST(S2Polygon, InitToSnappedIsValid_A) {
-  std::unique_ptr<S2Polygon> poly(s2textformat::MakePolygon(
+@("S2Polygon.InitToSnappedIsValid_A") unittest {
+  auto poly = makePolygonOrDie(
       "53.1328020478452:6.39444903453293, 53.1328019:6.394449, "
-      "53.1327091:6.3961766, 53.1313753:6.3958652, 53.1312825:6.3975924, "
-      "53.132616:6.3979042, 53.1326161348736:6.39790423150577"));
-  LOG(INFO) << "\nInput: " << s2textformat::ToString(*poly);
-  EXPECT_TRUE(poly->IsValid());
-  S2Polygon poly_snapped;
-  poly_snapped.set_s2debug_override(S2Debug::DISABLE);
-  poly_snapped.InitToSnapped(poly.get());
-  LOG(INFO) << "\nSnapped: " << s2textformat::ToString(poly_snapped);
+      ~ "53.1327091:6.3961766, 53.1313753:6.3958652, 53.1312825:6.3975924, "
+      ~ "53.132616:6.3979042, 53.1326161348736:6.39790423150577");
+  logger.logInfo("\nInput: ", .toString(poly));
+  Assert.equal(poly.isValid(), true);
+  auto poly_snapped = new S2Polygon();
+  poly_snapped.setS2debugOverride(S2Debug.DISABLE);
+  poly_snapped.initializeToSnapped(poly);
+  logger.logInfo("\nSnapped: ", .toString(poly_snapped));
   S2Error error;
-  EXPECT_FALSE(poly_snapped.FindValidationError(&error)) << error;
+  Assert.equal(poly_snapped.findValidationError(error), false, error.toString());
 }
 
-TEST(S2Polygon, InitToSnappedIsValid_B) {
-  std::unique_ptr<S2Polygon> poly(s2textformat::MakePolygon(
+@("S2Polygon.InitToSnappedIsValid_B") unittest {
+  auto poly = makePolygonOrDie(
       "51.6621651:4.9858102, 51.6620965:4.9874227, 51.662028:4.9890355, "
-      "51.6619796006122:4.99017864445347, 51.6622335420397:4.98419752545216, "
-      "51.6622334:4.9841975; 51.66189957578:4.99206198576131, "
-      "51.6618911:4.9922612, 51.6618224:4.9938741, 51.6605122:4.993639, "
-      "51.6604437:4.9952519, 51.6603751:4.9968648, 51.6603064:4.9984777, "
-      "51.6602379:5.0000907, 51.660169:5.0017037, 51.6601003:5.0033165, "
-      "51.6600318:5.0049298, 51.659963:5.0065427, 51.6598943:5.0081561, "
-      "51.6612044207178:5.00839208571886, 51.6612732068132:5.00677860122814, "
-      "51.6612732:5.0067786, 51.6613418:5.0051654, 51.6614106:5.0035525, "
-      "51.6614793:5.0019393, 51.6615479:5.0003263, "
-      "51.6615946694783:4.99923124520759, 51.6616389353165:4.99819106536521, "
-      "51.6616852:4.9971, 51.6617538:4.995487, "
-      "51.661753964726:4.99548702962593"));
-  LOG(INFO) << "\nInput: " << s2textformat::ToString(*poly);
-  EXPECT_TRUE(poly->IsValid());
-  S2Polygon poly_snapped;
-  poly_snapped.set_s2debug_override(S2Debug::DISABLE);
-  poly_snapped.InitToSnapped(poly.get());
-  LOG(INFO) << "\nSnapped: " << s2textformat::ToString(poly_snapped);
+      ~ "51.6619796006122:4.99017864445347, 51.6622335420397:4.98419752545216, "
+      ~ "51.6622334:4.9841975; 51.66189957578:4.99206198576131, "
+      ~ "51.6618911:4.9922612, 51.6618224:4.9938741, 51.6605122:4.993639, "
+      ~ "51.6604437:4.9952519, 51.6603751:4.9968648, 51.6603064:4.9984777, "
+      ~ "51.6602379:5.0000907, 51.660169:5.0017037, 51.6601003:5.0033165, "
+      ~ "51.6600318:5.0049298, 51.659963:5.0065427, 51.6598943:5.0081561, "
+      ~ "51.6612044207178:5.00839208571886, 51.6612732068132:5.00677860122814, "
+      ~ "51.6612732:5.0067786, 51.6613418:5.0051654, 51.6614106:5.0035525, "
+      ~ "51.6614793:5.0019393, 51.6615479:5.0003263, "
+      ~ "51.6615946694783:4.99923124520759, 51.6616389353165:4.99819106536521, "
+      ~ "51.6616852:4.9971, 51.6617538:4.995487, "
+      ~ "51.661753964726:4.99548702962593");
+  logger.logInfo("\nInput: ", .toString(poly));
+  Assert.equal(poly.isValid(), true);
+  auto poly_snapped = new S2Polygon();
+  poly_snapped.setS2debugOverride(S2Debug.DISABLE);
+  poly_snapped.initializeToSnapped(poly);
+  logger.logInfo("\nSnapped: ", .toString(poly_snapped));
   S2Error error;
-  EXPECT_FALSE(poly_snapped.FindValidationError(&error)) << error;
+  Assert.equal(poly_snapped.findValidationError(error), false, error.toString());
 }
 
-TEST(S2Polygon, InitToSnappedIsValid_C) {
-  std::unique_ptr<S2Polygon> poly(s2textformat::MakePolygon(
+@("S2Polygon.InitToSnappedIsValid_C") unittest {
+  auto poly = makePolygonOrDie(
       "53.5316236236404:19.5841192796855, 53.5416584:19.5915903, "
-      "53.5416584189104:19.5915901888287; 53.5416584:19.5915903, "
-      "53.5363122:19.62299, 53.5562817:19.6378935, 53.5616342:19.606474; "
-      "53.5616342:19.606474, 53.5916039:19.6288326, 53.5912689:19.6307982, "
-      "53.5925176:19.6317308, 53.5928526:19.6297652, 53.6015949:19.6362943, "
-      "53.6015950436033:19.6362944072725, 53.6015950814439:19.6362941852262, "
-      "53.5616342380536:19.6064737764314"));
-  LOG(INFO) << "\nInput: " << s2textformat::ToString(*poly);
-  EXPECT_TRUE(poly->IsValid());
-  S2Polygon poly_snapped;
-  poly_snapped.set_s2debug_override(S2Debug::DISABLE);
-  poly_snapped.InitToSnapped(poly.get());
-  LOG(INFO) << "\nSnapped: " << s2textformat::ToString(poly_snapped);
+      ~ "53.5416584189104:19.5915901888287; 53.5416584:19.5915903, "
+      ~ "53.5363122:19.62299, 53.5562817:19.6378935, 53.5616342:19.606474; "
+      ~ "53.5616342:19.606474, 53.5916039:19.6288326, 53.5912689:19.6307982, "
+      ~ "53.5925176:19.6317308, 53.5928526:19.6297652, 53.6015949:19.6362943, "
+      ~ "53.6015950436033:19.6362944072725, 53.6015950814439:19.6362941852262, "
+      ~ "53.5616342380536:19.6064737764314");
+  logger.logError("\nInput: ", .toString(poly));
+  Assert.equal(poly.isValid(), true);
+  auto poly_snapped = new S2Polygon();
+  poly_snapped.setS2debugOverride(S2Debug.DISABLE);
+  poly_snapped.initializeToSnapped(poly);
+  logger.logInfo("\nSnapped: ", .toString(poly_snapped));
   S2Error error;
-  EXPECT_FALSE(poly_snapped.FindValidationError(&error)) << error;
+  Assert.equal(poly_snapped.findValidationError(error), false, error.toString());
 }
 
-TEST(S2Polygon, InitToSnappedIsValid_D) {
-  std::unique_ptr<S2Polygon> poly(s2textformat::MakePolygon(
+@("S2Polygon.InitToSnappedIsValid_D") unittest {
+  auto poly = makePolygonOrDie(
       "52.0909316:4.8673826, 52.0909317627574:4.86738262858533, "
-      "52.0911338452911:4.86248482549567, 52.0911337:4.8624848, "
-      "52.0910665:4.8641176, 52.090999:4.8657502"));
-  LOG(INFO) << "\nInput: " << s2textformat::ToString(*poly);
-  EXPECT_TRUE(poly->IsValid());
-  S2Polygon poly_snapped;
-  poly_snapped.set_s2debug_override(S2Debug::DISABLE);
-  poly_snapped.InitToSnapped(poly.get());
-  LOG(INFO) << "\nSnapped: " << s2textformat::ToString(poly_snapped);
+      ~ "52.0911338452911:4.86248482549567, 52.0911337:4.8624848, "
+      ~ "52.0910665:4.8641176, 52.090999:4.8657502");
+  logger.logInfo("\nInput: ", .toString(poly));
+  Assert.equal(poly.isValid(), true);
+  auto poly_snapped = new S2Polygon();
+  poly_snapped.setS2debugOverride(S2Debug.DISABLE);
+  poly_snapped.initializeToSnapped(poly);
+  logger.logInfo("\nSnapped: ", .toString(poly_snapped));
   S2Error error;
-  EXPECT_FALSE(poly_snapped.FindValidationError(&error)) << error;
+  Assert.equal(poly_snapped.findValidationError(error), false, error.toString());
 }
 
-TEST(S2Polygon, MultipleInit) {
-  unique_ptr<S2Polygon> polygon(s2textformat::MakePolygon("0:0, 0:2, 2:0"));
-  EXPECT_EQ(1, polygon->num_loops());
-  EXPECT_EQ(3, polygon->num_vertices());
-  S2LatLngRect bound1 = polygon->GetRectBound();
+@("S2Polygon.MultipleInit") unittest {
+  auto polygon = makePolygonOrDie("0:0, 0:2, 2:0");
+  Assert.equal(polygon.numLoops(), 1);
+  Assert.equal(polygon.numVertices(), 3);
+  S2LatLngRect bound1 = polygon.getRectBound();
 
-  vector<unique_ptr<S2Loop>> loops;
-  loops.push_back(s2textformat::MakeLoop("10:0, -10:-20, -10:20"));
-  loops.push_back(s2textformat::MakeLoop("40:30, 20:10, 20:50"));
-  polygon->InitNested(std::move(loops));
-  EXPECT_TRUE(polygon->IsValid());
-  EXPECT_EQ(2, polygon->num_loops());
-  EXPECT_EQ(6, polygon->num_vertices());
-  EXPECT_TRUE(bound1 != polygon->GetRectBound());
+  S2Loop[] loops;
+  loops ~= makeLoopOrDie("10:0, -10:-20, -10:20");
+  loops ~= makeLoopOrDie("40:30, 20:10, 20:50");
+  polygon.initializeNested(loops);
+  Assert.equal(polygon.isValid(), true);
+  Assert.equal(polygon.numLoops(), 2);
+  Assert.equal(polygon.numVertices(), 6);
+  Assert.notEqual(polygon.getRectBound(), bound1);
 }
 
-TEST(S2Polygon, InitSingleLoop) {
-  S2Polygon polygon(make_unique<S2Loop>(S2Loop::kEmpty()));
-  EXPECT_TRUE(polygon.is_empty());
-  polygon.Init(make_unique<S2Loop>(S2Loop::kFull()));
-  EXPECT_TRUE(polygon.is_full());
-  polygon.Init(s2textformat::MakeLoop("0:0, 0:10, 10:0"));
-  EXPECT_EQ(3, polygon.num_vertices());
+@("S2Polygon.InitSingleLoop") unittest {
+  auto polygon = new S2Polygon(new S2Loop(S2Loop.empty()));
+  Assert.equal(polygon.isEmpty(), true);
+  polygon.initialize(new S2Loop(S2Loop.full()));
+  Assert.equal(polygon.isFull(), true);
+  polygon.initialize(makeLoopOrDie("0:0, 0:10, 10:0"));
+  Assert.equal(polygon.numVertices(), 3);
 }
+
+/+ TODO: Complete when encode/decode are added.
 
 TEST_F(S2PolygonTestBase, TestSimpleEncodeDecode) {
   Encoder encoder;
@@ -2152,139 +2132,143 @@ TEST_F(S2PolygonTestBase, CompressedEncodedPolygonDecodesApproxEqual) {
   EXPECT_EQ(0, decoded_polygon.loop(0)->depth());
   EXPECT_EQ(1, decoded_polygon.loop(1)->depth());
 }
++/
 
 // This test checks that S2Polygons created directly from S2Cells behave
 // identically to S2Polygons created from the vertices of those cells; this
 // previously was not the case, because S2Cells calculate their bounding
 // rectangles slightly differently, and S2Polygons created from them just
 // copied the S2Cell bounds.
-TEST(S2Polygon, TestS2CellConstructorAndContains) {
-  S2LatLng latlng(S1Angle::E6(40565459), S1Angle::E6(-74645276));
-  S2Cell cell(latlng);
-  S2Polygon cell_as_polygon(cell);
-  S2Polygon empty;
-  S2Polygon polygon_copy;
-  polygon_copy.InitToUnion(&cell_as_polygon, &empty);
-  EXPECT_TRUE(polygon_copy.Contains(&cell_as_polygon));
-  EXPECT_TRUE(cell_as_polygon.Contains(&polygon_copy));
+@("S2Polygon.TestS2CellConstructorAndContains") unittest {
+  auto latlng = S2LatLng(S1Angle.fromE6(40565459), S1Angle.fromE6(-74645276));
+  auto cell = new S2Cell(latlng);
+  auto cell_as_polygon = new S2Polygon(cell);
+  auto empty = new S2Polygon();
+  auto polygon_copy = new S2Polygon();
+  polygon_copy.initializeToUnion(cell_as_polygon, empty);
+  Assert.equal(polygon_copy.contains(cell_as_polygon), true);
+  Assert.equal(cell_as_polygon.contains(polygon_copy), true);
 }
 
-TEST(S2PolygonTest, Project) {
-  unique_ptr<S2Polygon> polygon(MakePolygon(kNear0 + kNear2));
+@("S2PolygonTest.Project") unittest {
+  auto polygon = makePolygon(kNear0 ~ kNear2);
   S2Point point;
   S2Point projected;
 
   // The point inside the polygon should be projected into itself.
-  point = s2textformat::MakePoint("1.1:0");
-  projected = polygon->Project(point);
-  EXPECT_TRUE(S2::ApproxEquals(point, projected));
+  point = makePointOrDie("1.1:0");
+  projected = polygon.project(point);
+  Assert.equal(.approxEquals(point, projected), true);
 
   // The point is on the outside of the polygon.
-  point = s2textformat::MakePoint("5.1:-2");
-  projected = polygon->Project(point);
-  EXPECT_TRUE(S2::ApproxEquals(s2textformat::MakePoint("5:-2"), projected));
+  point = makePointOrDie("5.1:-2");
+  projected = polygon.project(point);
+  Assert.equal(.approxEquals(makePointOrDie("5:-2"), projected), true);
 
   // The point is inside the hole in the polygon.
-  point = s2textformat::MakePoint("-0.49:-0.49");
-  projected = polygon->Project(point);
-  EXPECT_TRUE(S2::ApproxEquals(s2textformat::MakePoint("-0.5:-0.5"),
-                               projected, S1Angle::Radians(1e-6)));
+  point = makePointOrDie("-0.49:-0.49");
+  projected = polygon.project(point);
+  Assert.equal(
+      .approxEquals(makePointOrDie("-0.5:-0.5"), projected, S1Angle.fromRadians(1e-6)), true);
 
-  point = s2textformat::MakePoint("0:-3");
-  projected = polygon->Project(point);
-  EXPECT_TRUE(S2::ApproxEquals(s2textformat::MakePoint("0:-2"), projected));
+  point = makePointOrDie("0:-3");
+  projected = polygon.project(point);
+  Assert.equal(.approxEquals(makePointOrDie("0:-2"), projected), true);
 }
 
 // Helper function for testing the distance methods.  "boundary_x" is the
 // expected result of projecting "x" onto the polygon boundary.  For
 // convenience it can be set to S2Point() to indicate that (boundary_x == x).
-static void TestDistanceMethods(const S2Polygon& polygon, const S2Point& x,
-                                S2Point boundary_x) {
+private void checkDistanceMethods(S2Polygon polygon, S2Point x, S2Point boundary_x) {
   // This error is not guaranteed by the implementation but is okay for tests.
-  const S1Angle kMaxError = S1Angle::Radians(1e-15);
+  const S1Angle kMaxError = S1Angle.fromRadians(1e-15);
 
   if (boundary_x == S2Point()) boundary_x = x;
-  EXPECT_LE(S1Angle(boundary_x, polygon.ProjectToBoundary(x)), kMaxError);
+  Assert.notGreaterThan(S1Angle(boundary_x, polygon.projectToBoundary(x)), kMaxError);
 
-  if (polygon.is_empty() || polygon.is_full()) {
-    EXPECT_EQ(S1Angle::Infinity(), polygon.GetDistanceToBoundary(x));
+  if (polygon.isEmpty() || polygon.isFull()) {
+    Assert.equal(polygon.getDistanceToBoundary(x), S1Angle.infinity());
   } else {
     // EXPECT_NEAR only works with doubles.
-    EXPECT_NEAR(S1Angle(x, boundary_x).degrees(),
-                polygon.GetDistanceToBoundary(x).degrees(),
+    Assert.approximately(
+                polygon.getDistanceToBoundary(x).degrees(),
+                S1Angle(x, boundary_x).degrees(),
                 kMaxError.degrees());
   }
-  if (polygon.Contains(x)) {
-    EXPECT_EQ(S1Angle::Zero(), polygon.GetDistance(x));
-    EXPECT_EQ(x, polygon.Project(x));
+  if (polygon.contains(x)) {
+    Assert.equal(polygon.getDistance(x), S1Angle.zero());
+    Assert.equal(polygon.project(x), x);
   } else {
-    EXPECT_EQ(polygon.GetDistanceToBoundary(x), polygon.GetDistance(x));
-    EXPECT_EQ(polygon.ProjectToBoundary(x), polygon.Project(x));
+    Assert.equal(polygon.getDistanceToBoundary(x), polygon.getDistance(x));
+    Assert.equal(polygon.projectToBoundary(x), polygon.project(x));
   }
 }
 
-TEST_F(S2PolygonTestBase, GetDistance) {
+@("S2PolygonTestBase.GetDistance") unittest {
+  auto t = new S2PolygonTestBase();
   // The empty and full loops don't have boundaries.
-  TestDistanceMethods(*empty_, S2Point(0, 1, 0), S2Point());
-  TestDistanceMethods(*full_, S2Point(0, 1, 0), S2Point());
+  checkDistanceMethods(t._empty, S2Point(0, 1, 0), S2Point());
+  checkDistanceMethods(t._full, S2Point(0, 1, 0), S2Point());
 
   // A polygon consisting of two nested rectangles centered around
   // S2LatLng(0,0).  Note that because lines of latitude are curved on the
   // sphere, it is not straightforward to project points onto any edge except
   // along the equator.  (The equator is the only line of latitude that is
   // also a geodesic.)
-  unique_ptr<S2Polygon> nested(s2textformat::MakePolygon(
-      "3:1, 3:-1, -3:-1, -3:1; 4:2, 4:-2, -4:-2, -4:2;"));
+  auto nested = makePolygonOrDie("3:1, 3:-1, -3:-1, -3:1; 4:2, 4:-2, -4:-2, -4:2;");
 
   // All points on the boundary of the polygon should be at distance zero.
-  for (int i = 0; i < nested->num_loops(); i++) {
-    const S2Loop* loop = nested->loop(i);
-    for (int j = 0; j < loop->num_vertices(); j++) {
+  for (int i = 0; i < nested.numLoops(); i++) {
+    const S2Loop loop = nested.loop(i);
+    for (int j = 0; j < loop.numVertices(); j++) {
       // A vertex.
-      TestDistanceMethods(*nested, loop->vertex(j), S2Point());
+      checkDistanceMethods(nested, loop.vertex(j), S2Point());
       // A point along an edge.
-      TestDistanceMethods(*nested, S2::Interpolate(
-          S2Testing::rnd.RandDouble(), loop->vertex(j), loop->vertex(j+1)),
-                          S2Point());
+      checkDistanceMethods(
+          nested,
+          .interpolate(S2Testing.rnd.randDouble(), loop.vertex(j), loop.vertex(j+1)),
+          S2Point());
     }
   }
   // A point outside the outer shell that projects to an edge.
-  TestDistanceMethods(*nested, S2LatLng::FromDegrees(0, -4.7).ToPoint(),
-                      S2LatLng::FromDegrees(0, -2).ToPoint());
+  checkDistanceMethods(nested, S2LatLng.fromDegrees(0, -4.7).toS2Point(),
+      S2LatLng.fromDegrees(0, -2).toS2Point());
   // A point outside the outer shell that projects to a vertex.
-  TestDistanceMethods(*nested, S2LatLng::FromDegrees(6, -3).ToPoint(),
-                      S2LatLng::FromDegrees(4, -2).ToPoint());
+  checkDistanceMethods(nested, S2LatLng.fromDegrees(6, -3).toS2Point(),
+      S2LatLng.fromDegrees(4, -2).toS2Point());
   // A point inside the polygon that projects to an outer edge.
-  TestDistanceMethods(*nested, S2LatLng::FromDegrees(0, 1.7).ToPoint(),
-                      S2LatLng::FromDegrees(0, 2).ToPoint());
+  checkDistanceMethods(nested, S2LatLng.fromDegrees(0, 1.7).toS2Point(),
+      S2LatLng.fromDegrees(0, 2).toS2Point());
   // A point inside the polygon that projects to an inner vertex.
-  TestDistanceMethods(*nested, S2LatLng::FromDegrees(-3.3, -1.3).ToPoint(),
-                      S2LatLng::FromDegrees(-3, -1).ToPoint());
+  checkDistanceMethods(nested, S2LatLng.fromDegrees(-3.3, -1.3).toS2Point(),
+      S2LatLng.fromDegrees(-3, -1).toS2Point());
   // A point inside the inner hole.
-  TestDistanceMethods(*nested, S2LatLng::FromDegrees(0, 0.1).ToPoint(),
-                      S2LatLng::FromDegrees(0, 1).ToPoint());
+  checkDistanceMethods(nested, S2LatLng.fromDegrees(0, 0.1).toS2Point(),
+      S2LatLng.fromDegrees(0, 1).toS2Point());
 }
 
-TEST(S2Polygon, UninitializedIsValid) {
-  S2Polygon polygon;
-  EXPECT_TRUE(polygon.IsValid());
+@("S2Polygon.UninitializedIsValid") unittest {
+  auto polygon = new S2Polygon();
+  Assert.equal(polygon.isValid(), true);
 }
 
-class IsValidTest : public testing::Test {
- public:
-  IsValidTest() {
-    init_oriented_ = false;
-    modify_polygon_hook_ = nullptr;
-    rnd_ = &S2Testing::rnd;
-    rnd_->Reset(FLAGS_s2_random_seed);
+class IsValidTest {
+public:
+  this() {
+    _initOriented = false;
+    _modifyPolygonHook = null;
+    _rnd = &S2Testing.rnd;
+    _rnd.reset(.s2RandomSeed);
   }
 
-  ~IsValidTest() override { Reset(); }
+  ~this() {
+    reset();
+  }
 
-  vector<S2Point>* AddLoop() {
-    vector<S2Point>* vloop = new vector<S2Point>;
-    vloops_.push_back(vloop);
-    return vloop;
+  S2Point[]* addLoop() {
+    S2Point[] vloop = new S2Point[0];
+    _vloops ~= vloop;
+    return &_vloops.back();
   }
 
   // Create "num_loops" nested regular loops around a common center point.
@@ -2293,123 +2277,132 @@ class IsValidTest : public testing::Test {
   // the common center point of all the loops.  The loop radii decrease
   // exponentially in order to prevent accidental loop crossings when one of
   // the loops is modified.
-  void AddConcentricLoops(int num_loops, int min_vertices) {
-    DCHECK_LE(num_loops, 10);  // Because radii decrease exponentially.
-    S2Point center = S2Testing::RandomPoint();
-    int num_vertices = min_vertices + rnd_->Uniform(10);
+  void addConcentricLoops(int num_loops, int min_vertices)
+  in {
+    assert(num_loops <= 10);  // Because radii decrease exponentially.
+  } do {
+    S2Point center = S2Testing.randomPoint();
+    int num_vertices = min_vertices + _rnd.uniform(10);
     for (int i = 0; i < num_loops; ++i) {
-      S1Angle radius = S1Angle::Degrees(80 * pow(0.1, i));
-      *AddLoop() = S2Testing::MakeRegularPoints(center, radius, num_vertices);
+      S1Angle radius = S1Angle.fromDegrees(80 * pow(0.1, i));
+      *addLoop() = S2Testing.makeRegularPoints(center, radius, num_vertices);
     }
   }
 
-  void Reset() {
-    for (int i = 0; i < vloops_.size(); ++i) {
-      delete vloops_[i];
-    }
-    vloops_.clear();
+  void reset() {
+    _vloops.length = 0;
   }
 
-  void CheckInvalid(const string& snippet) {
-    vector<unique_ptr<S2Loop>> loops;
-    for (vector<S2Point>* vloop : vloops_) {
-      loops.push_back(make_unique<S2Loop>(*vloop, S2Debug::DISABLE));
+  void checkInvalid(string snippet) {
+    import std.random : randomShuffle;
+
+    S2Loop[] loops;
+    foreach (const ref S2Point[] vloop; _vloops) {
+      loops ~= new S2Loop(vloop, S2Debug.DISABLE);
     }
-    std::random_shuffle(loops.begin(), loops.end(), *rnd_);
-    S2Polygon polygon;
-    polygon.set_s2debug_override(S2Debug::DISABLE);
-    if (init_oriented_) {
-      polygon.InitOriented(std::move(loops));
+    randomShuffle(loops);
+    auto polygon = new S2Polygon();
+    polygon.setS2debugOverride(S2Debug.DISABLE);
+    if (_initOriented) {
+      polygon.initializeOriented(loops);
     } else {
-      polygon.InitNested(std::move(loops));
+      polygon.initializeNested(loops);
     }
-    if (modify_polygon_hook_) (*modify_polygon_hook_)(&polygon);
+    if (_modifyPolygonHook) _modifyPolygonHook(polygon);
     S2Error error;
-    EXPECT_TRUE(polygon.FindValidationError(&error));
-    EXPECT_TRUE(error.text().find(snippet) != string::npos)
-        << "\nActual error: " << error << "\nExpected substring: " << snippet;
-    Reset();
+    Assert.equal(polygon.findValidationError(error), true);
+    Assert.equal(error.text().find(snippet).empty(), false,
+        "\nActual error: " ~ error.toString() ~ "\nExpected substring: " ~ snippet);
+    reset();
   }
 
- protected:
-  static const int kIters = 100;
+protected:
+  enum int kIters = 100;
 
-  bool init_oriented_;
-  void (*modify_polygon_hook_)(S2Polygon*);
-  S2Testing::Random* rnd_;
-  vector<vector<S2Point>*> vloops_;
-};
+  bool _initOriented;
+  void function(S2Polygon) _modifyPolygonHook;
+  Random* _rnd;
+  S2Point[][] _vloops;
+}
 
-TEST_F(IsValidTest, UnitLength) {
+@("IsValidTest.UnitLength") unittest {
+  auto t = new IsValidTest();
   // This test can only be run in optimized builds because there are
   // DCHECK(IsUnitLength()) calls scattered throughout the S2 code.
-  if (google::DEBUG_MODE) return;
-  for (int iter = 0; iter < kIters; ++iter) {
-    AddConcentricLoops(1 + rnd_->Uniform(6), 3 /*min_vertices*/);
-    vector<S2Point>* vloop = vloops_[rnd_->Uniform(vloops_.size())];
-    S2Point* p = &(*vloop)[rnd_->Uniform(vloop->size())];
-    switch (rnd_->Uniform(3)) {
+  debug return;
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    t.addConcentricLoops(1 + t._rnd.uniform(6), 3 /*min_vertices*/);
+    S2Point[]* vloop = &t._vloops[t._rnd.uniform(cast(int) t._vloops.length)];
+    S2Point* p = &(*vloop)[t._rnd.uniform(cast(int) vloop.length)];
+    final switch (t._rnd.uniform(3)) {
       case 0: *p = S2Point(0, 0, 0); break;
-      case 1: *p *= 1e-30 * pow(1e60, rnd_->RandDouble()); break;
-      case 2: *p = numeric_limits<double>::quiet_NaN() * S2Point(); break;
+      case 1: *p *= 1e-30 * pow(1e60, t._rnd.randDouble()); break;
+      case 2: *p = float.nan * S2Point(); break;
     }
-    CheckInvalid("unit length");
+    t.checkInvalid("unit length");
   }
 }
 
-TEST_F(IsValidTest, VertexCount) {
-  for (int iter = 0; iter < kIters; ++iter) {
-    vector<S2Point>* vloop = AddLoop();
-    if (rnd_->OneIn(2)) {
-      vloop->push_back(S2Testing::RandomPoint());
-      vloop->push_back(S2Testing::RandomPoint());
+@("IsValidTest.VertexCount") unittest {
+  auto t = new IsValidTest();
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    S2Point[]* vloop = t.addLoop();
+    if (t._rnd.oneIn(2)) {
+      *vloop ~= S2Testing.randomPoint();
+      *vloop ~= S2Testing.randomPoint();
     }
-    CheckInvalid("at least 3 vertices");
+    t.checkInvalid("at least 3 vertices");
   }
 }
 
-TEST_F(IsValidTest, DuplicateVertex) {
-  for (int iter = 0; iter < kIters; ++iter) {
-    AddConcentricLoops(1, 3 /*min_vertices*/);
-    vector<S2Point>* vloop = vloops_[0];
-    int n = vloop->size();
-    int i = rnd_->Uniform(n);
-    int j = rnd_->Uniform(n - 1);
+@("IsValidTest.DuplicateVertex") unittest {
+  auto t = new IsValidTest();
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    t.addConcentricLoops(1, 3 /*min_vertices*/);
+    S2Point[]* vloop = &t._vloops[0];
+    int n = cast(int) vloop.length;
+    int i = t._rnd.uniform(n);
+    int j = t._rnd.uniform(n - 1);
     (*vloop)[i] = (*vloop)[j + (j >= i)];
-    CheckInvalid("duplicate vertex");
+    t.checkInvalid("duplicate vertex");
   }
 }
 
-TEST_F(IsValidTest, SelfIntersection) {
-  for (int iter = 0; iter < kIters; ++iter) {
+@("IsValidTest.SelfIntersection") unittest {
+  auto t = new IsValidTest();
+  for (int iter = 0; iter < t.kIters; ++iter) {
     // Use multiple loops so that we can test both holes and shells.  We need
     // at least 5 vertices so that the modified edges don't intersect any
     // nested loops.
-    AddConcentricLoops(1 + rnd_->Uniform(6), 5 /*min_vertices*/);
-    vector<S2Point>* vloop = vloops_[rnd_->Uniform(vloops_.size())];
-    int n = vloop->size();
-    int i = rnd_->Uniform(n);
+    t.addConcentricLoops(1 + t._rnd.uniform(6), 5 /*min_vertices*/);
+    S2Point[]* vloop = &t._vloops[t._rnd.uniform(cast(int) t._vloops.length)];
+    int n = cast(int) vloop.length;
+    int i = t._rnd.uniform(n);
     swap((*vloop)[i], (*vloop)[(i+1) % n]);
-    CheckInvalid("crosses edge");
+    t.checkInvalid("crosses edge");
   }
 }
 
-TEST_F(IsValidTest, EmptyLoop) {
-  for (int iter = 0; iter < kIters; ++iter) {
-    AddConcentricLoops(rnd_->Uniform(5), 3 /*min_vertices*/);
-    *AddLoop() = S2Loop::kEmpty();
-    CheckInvalid("empty loop");
+@("IsValidTest.EmptyLoop") unittest {
+  auto t = new IsValidTest();
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    t.addConcentricLoops(t._rnd.uniform(5), 3 /*min_vertices*/);
+    *t.addLoop() = S2Loop.empty();
+    t.checkInvalid("empty loop");
   }
 }
 
-TEST_F(IsValidTest, FullLoop) {
-  for (int iter = 0; iter < kIters; ++iter) {
+@("IsValidTest.FullLoop") unittest {
+  auto t = new IsValidTest();
+  for (int iter = 0; iter < t.kIters; ++iter) {
     // This is only an error if there is at least one other loop.
-    AddConcentricLoops(1 + rnd_->Uniform(5), 3 /*min_vertices*/);
-    *AddLoop() = S2Loop::kFull();
-    CheckInvalid("full loop");
+    t.addConcentricLoops(1 + t._rnd.uniform(5), 3 /*min_vertices*/);
+    *t.addLoop() = S2Loop.full();
+    t.checkInvalid("full loop");
   }
 }
+
+/+ TODO: Resume here.
 
 TEST_F(IsValidTest, LoopsCrossing) {
   for (int iter = 0; iter < kIters; ++iter) {
