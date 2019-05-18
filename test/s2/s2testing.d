@@ -261,7 +261,9 @@ public:
     // but not including the endpoint "v4".
     void getR2VerticesHelper(
         in R2Point v0, in R2Point v4, int level, ref R2Point[] vertices) const {
-      if (level >= _minLevel && S2Testing.rnd.oneIn(_maxLevel - level + 1)) {
+      ///*DEBUG*/ static int cnt = 2;
+      if (level >= _minLevel && /*cnt++ % (_maxLevel - level + 1) == 0*/
+        S2Testing.rnd.oneIn(_maxLevel - level + 1)) {
         // Stop subdivision at this level.
         vertices ~= v0;
         return;

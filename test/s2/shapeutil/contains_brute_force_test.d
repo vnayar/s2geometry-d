@@ -18,8 +18,10 @@
 
 module s2.shapeutil.contains_brute_force_test;
 
+import s2.s1angle;
 import s2.s2lax_polygon_shape;
 import s2.s2lax_polyline_shape;
+import s2.s2loop;
 import s2.s2text_format;
 import s2.shapeutil.contains_brute_force : containsBruteForce;
 
@@ -38,15 +40,12 @@ import fluent.asserts;
   Assert.equal(refPoint.contained, containsBruteForce(polygon, refPoint.point));
 }
 
-/+ TODO: Resume when S2Loop is implemented.
 @("ContainsBruteForce.ConsistentWithS2Loop") unittest {
   // Checks that ContainsBruteForce agrees with S2Loop::Contains().
-  auto loop = S2Loop::MakeRegularLoop(MakePoint("89:-179"),
-                                      S1Angle::Degrees(10), 100);
-  S2Loop::Shape shape(loop.get());
-  for (int i = 0; i < loop->num_vertices(); ++i) {
-    EXPECT_EQ(loop->Contains(loop->vertex(i)),
-              ContainsBruteForce(shape, loop->vertex(i)));
+  auto loop = S2Loop.makeRegularLoop(makePointOrDie("89:-179"),
+                                      S1Angle.fromDegrees(10), 100);
+  auto shape = new S2Loop.Shape(loop);
+  for (int i = 0; i < loop.numVertices(); ++i) {
+    Assert.equal(loop.contains(loop.vertex(i)), containsBruteForce(shape, loop.vertex(i)));
   }
 }
-+/

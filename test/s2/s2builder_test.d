@@ -1188,17 +1188,27 @@ S2Point choosePoint() {
     fractal.setLevelForApproxMaxEdges(800);
     fractal.setLevelForApproxMinEdges(12);
     fractal.setFractalDimension(1.5 + 0.5 * S2Testing.rnd.randDouble());
+    /*DEBUG*/ fractal.setFractalDimension(1.745934459546018668874012291780672967434);
     writefln("Test 1: fractal.getFractalDimension()=%.40g", fractal.fractalDimension());
+    /*DEBUG*/ Matrix3x3_d frame = Matrix3x3_d(
+        -0.411663988571584, -0.724673371179731, 0.5526131247232,
+        0.774345282881668, 0.0416004253693589, 0.631394320126495,
+        -0.480543591562977, 0.687835670572625, 0.544022009569155);
+    writeln("Test 2: frame=", frame);
     auto input = new S2Polygon(
-        fractal.makeLoop(S2Testing.getRandomFrame(), S1Angle.fromDegrees(20.0)));
+        fractal.makeLoop(frame, S1Angle.fromDegrees(20.0)));
     auto options = new S2Builder.Options();
-    if (S2Testing.rnd.oneIn(3)) {
+    if (/*DEBUG*/ false && S2Testing.rnd.oneIn(3)) {
+      writeln("Test 3:");
       int exponent = S2Testing.rnd.uniform(11);
       options.setSnapFunction(new IntLatLngSnapFunction(exponent));
-    } else if (S2Testing.rnd.oneIn(2)) {
+    } else if (/*DEBUG*/ true || S2Testing.rnd.oneIn(2)) {
       int level = S2Testing.rnd.uniform(20);
+      /*DEBUG*/ level = 7;
+      writeln("Test 4: level=", level);
       options.setSnapFunction(new S2CellIdSnapFunction(level));
     } else {
+      writeln("Test 5:");
       double randDouble = S2Testing.rnd.randDouble();
       options.setSnapFunction(new IdentitySnapFunction(
           S1Angle.fromDegrees(10 * pow(1e-4, randDouble))));

@@ -291,7 +291,6 @@ private void rotate(ref S2Loop ptr) {
   }
 }
 
-// TODO: Resume here, test crashes.
 @("S2LoopTestBase.GetAreaConsistentWithSign") unittest {
   // Test that GetArea() returns an area near 0 for degenerate loops that
   // contain almost no points, and an area near 4*Pi for degenerate loops that

@@ -262,7 +262,7 @@ public:
   // adds this cell to "cell_ids".
   //
   // REQUIRES: "first" and "last" have a common ancestor.
-  static void coverRange(S2CellId first, S2CellId last, out S2CellId[] cell_ids) {
+  static void coverRange(S2CellId first, S2CellId last, ref S2CellId[] cell_ids) {
     if (first == last) {
       // The range consists of a single index cell.
       cell_ids ~= first;

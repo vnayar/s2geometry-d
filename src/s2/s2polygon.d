@@ -58,8 +58,6 @@ import std.math;
 import std.range;
 import std.typecons;
 
-import std.stdio;
-
 /**
  * Build the S2ShapeIndex only when it is first needed.  This can save
  * significant amounts of memory and time when geometry is constructed but
@@ -130,7 +128,8 @@ public:
    * non-empty by calling Init(), Decode(), etc.
    */
   this() {
-    _bound = new const S2LatLngRect();
+    _bound = new S2LatLngRect();
+    _subregionBound = new S2LatLngRect();
     _index = new MutableS2ShapeIndex();
     _s2debugOverride = S2Debug.ALLOW;
     _errorInconsistentLoopOrientations = false;
@@ -160,7 +159,8 @@ public:
    *   polygon->InitNested(loops);
    */
   this(S2Loop[] loops, S2Debug s2debugOverride = S2Debug.ALLOW) {
-    _bound = new const S2LatLngRect();
+    _bound = new S2LatLngRect();
+    _subregionBound = new S2LatLngRect();
     _index = new MutableS2ShapeIndex();
     _s2debugOverride = s2debugOverride;
     initializeNested(loops);
@@ -171,7 +171,8 @@ public:
    * corresponding to the given cell.
    */
   this(in S2Cell cell) {
-    _bound = new const S2LatLngRect();
+    _bound = new S2LatLngRect();
+    _subregionBound = new S2LatLngRect();
     _index = new MutableS2ShapeIndex();
     _s2debugOverride = S2Debug.ALLOW;
     initialize(new S2Loop(cell));
@@ -184,7 +185,8 @@ public:
    * empty loops at all.
    */
   this(S2Loop loop, S2Debug s2debugOverride = S2Debug.ALLOW) {
-    _bound = new const S2LatLngRect();
+    _bound = new S2LatLngRect();
+    _subregionBound = new S2LatLngRect();
     _index = new MutableS2ShapeIndex();
     _s2debugOverride = s2debugOverride;
     initialize(loop);
@@ -359,8 +361,8 @@ public:
     // property of the polygon but only of the way the polygon was constructed.
     _numVertices = src.numVertices();
     atomicStore!(MemoryOrder.raw)(_unindexedContainsCalls, 0);
-    _bound = src._bound;
-    _subregionBound = src._subregionBound;
+    _bound = new S2LatLngRect(src._bound);
+    _subregionBound = new S2LatLngRect(src._subregionBound);
     initializeIndex();  // TODO(ericv): Copy the index efficiently.
   }
 
@@ -605,9 +607,6 @@ public:
     double intersection_area = intersection.getArea();
     double a_area = a.getArea();
     double b_area = b.getArea();
-    writeln("getOverlapFractions 0: intersection_area=", intersection_area);
-    writeln("getOverlapFractions 0: a_area=", a_area);
-    writeln("getOverlapFractions 0: b_area=", b_area);
     return OverlapFractions(
         intersection_area >= a_area ? 1.0 : intersection_area / a_area,
         intersection_area >= b_area ? 1.0 : intersection_area / b_area);
@@ -765,9 +764,7 @@ public:
 
   void initializeToIntersection(
       S2Polygon a, S2Polygon b, S2Builder.SnapFunction snap_function) {
-    writeln("S2Polygon.initializeToIntersection 0:");
     if (!a._bound.intersects(b._bound)) return;
-    writeln("S2Polygon.initializeToIntersection 1:");
     initializeToOperation(S2BooleanOperation.OpType.INTERSECTION, snap_function, a, b);
 
     // If the boundary is empty then there are two possible results: the empty
@@ -784,7 +781,6 @@ public:
     // neither is possible (before snapping) then we return the one that is
     // closest to being possible.  (It never true that both are possible.)
     if (numLoops() == 0) {
-      writeln("S2Polygon.initializeToIntersection 2:");
       // We know that both polygons are non-empty due to the initial bounds
       // check.  By far the most common case is that the intersection is empty,
       // so we want to make that case fast.  The intersection area satisfies:
@@ -2148,7 +2144,7 @@ private:
    * "bound_" is a conservative bound on all points contained by this polygon:
    * if A.Contains(P), then A.bound_.Contains(S2LatLng(P)).
    */
-  Rebindable!(const(S2LatLngRect)) _bound;
+  S2LatLngRect _bound;
 
   /**
    * Since "bound_" is not exact, it is possible that a polygon A contains
@@ -2156,7 +2152,7 @@ private:
    * has been expanded sufficiently to account for this error, i.e.
    * if A.Contains(B), then A.subregion_bound_.Contains(B.bound_).
    */
-  Rebindable!(const(S2LatLngRect)) _subregionBound;
+  S2LatLngRect _subregionBound;
 
   /// Spatial index containing this polygon.
   MutableS2ShapeIndex _index;
