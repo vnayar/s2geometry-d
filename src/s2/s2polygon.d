@@ -985,7 +985,7 @@ public:
    *
    * REQUIRES: all vertices of "a" are within "boundary_tolerance" of "cell".
    */
-  void initilizeToSimplifiedInCell(
+  void initializeToSimplifiedInCell(
       in S2Polygon a, in S2Cell cell, S1Angle snap_radius,
       S1Angle boundary_tolerance = S1Angle.fromRadians(1e-15)) {
     // The polygon to be simplified consists of "boundary edges" that follow the
@@ -1659,16 +1659,14 @@ public:
     Edge edge(int e) const
     in {
       assert(e < numEdges());
-    } body {
-      import std.algorithm : findSplitBefore;
-
+    } do {
       const S2Polygon p = polygon();
       int i;
       if (_cumulativeEdges) {
         // "upper_bound" finds the loop just beyond the one we want.
-        auto r = findSplitAfter!"a > b"(_cumulativeEdges[0 .. p.numLoops()], [e])[0];
-        int start = r.back();
-        i = cast(int) r.length - 1;
+        auto ranges = assumeSorted(_cumulativeEdges[0 .. p.numLoops()]).trisect(e);
+        int start = .chain(ranges[0], ranges[1]).back();
+        i = cast(int) (_cumulativeEdges.length - ranges[2].length) - 1;
         e -= start;
       } else {
         // When the number of loops is small, linear search is faster.  Most often
@@ -1705,7 +1703,7 @@ public:
     Chain chain(int i) const
     in {
       assert(i < numChains());
-    } body {
+    } do {
       if (_cumulativeEdges) {
         return Chain(_cumulativeEdges[i], _polygon.loop(i).numVertices());
       } else {
@@ -1720,7 +1718,7 @@ public:
     in {
       assert(i < numChains());
       assert(j < _polygon.loop(i).numVertices());
-    } body {
+    } do {
       return Edge(polygon().loop(i).orientedVertex(j), polygon().loop(i).orientedVertex(j + 1));
     }
 
@@ -1729,14 +1727,15 @@ public:
     in {
       // TODO(ericv): Make inline to remove code duplication with GetEdge.
       assert(e < numEdges());
-    } body {
+    } do {
       const S2Polygon p = polygon();
       int i;
       if (_cumulativeEdges) {
         // "upper_bound" finds the loop just beyond the one we want.
-        auto r = findSplitAfter!"a < b"(_cumulativeEdges[0 .. p.numLoops()], [e])[0];
-        int start = r.back();
-        i = cast(int) r.length - 1;
+        //auto r = findSplitAfter!"a < b"(_cumulativeEdges[0 .. p.numLoops()], [e])[0];
+        auto ranges = assumeSorted(_cumulativeEdges[0 .. p.numLoops()]).trisect(e);
+        int start = .chain(ranges[0], ranges[1]).back();
+        i = cast(int) (_cumulativeEdges.length - ranges[2].length) - 1;
         e -= start;
       } else {
         // When the number of loops is small, linear search is faster.  Most often
@@ -1798,7 +1797,7 @@ public:
    *
    * The index contains a single S2Polygon::Shape object.
    */
-  const(MutableS2ShapeIndex) index() const {
+  MutableS2ShapeIndex index() {
     return _index;
   }
 
@@ -1808,7 +1807,7 @@ private:
   void initializeOneLoop()
   in {
     assert(numLoops() == 1);
-  } body {
+  } do {
     S2Loop loop = _loops[0];
     loop.setDepth(0);
     _errorInconsistentLoopOrientations = false;
@@ -1936,7 +1935,7 @@ private:
   void initializeIndex()
   in {
     assert(_index.numShapeIds() == 0);
-  } body {
+  } do {
     _index.add(new Shape(this));
     if (!S2POLYGON_LAZY_INDEXING) {
       _index.forceBuild();

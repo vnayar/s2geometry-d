@@ -58,7 +58,6 @@ import core.sync.mutex : Mutex;
 // function is quadratic in the number of edges.
 void quadraticValidate(MutableS2ShapeIndex index) {
   import s2.s2text_format : toString;
-  static int callNum = 1;
 
   // Iterate through a sequence of nonoverlapping cell ids that cover the
   // sphere and include as a subset all the cell ids used in the index.  For
@@ -145,8 +144,6 @@ void validateEdge(in S2Point a, in S2Point b, S2CellId id, bool index_has_edge) 
 // Given a shape and a cell id, determine whether or not the shape contains
 // the cell center and verify that this matches "index_contains_center".
 void validateInterior(in S2Shape shape, S2CellId id, bool index_contains_center) {
-  static int callNum = 1;
-
   if (shape is null) {
     assert(index_contains_center == false);
   } else {
@@ -423,7 +420,6 @@ private bool hasSelfIntersection(MutableS2ShapeIndex index) {
 // result for all possible cyclic permutations of the loop vertices for the
 // given set of loops.
 void checkHasCrossingPermutations(S2Loop[] loops, int i, bool has_crossing) {
-  static int callNum = 1;
   if (i == loops.length) {
     auto index = new MutableS2ShapeIndex();
     auto polygon = new S2Polygon(loops);

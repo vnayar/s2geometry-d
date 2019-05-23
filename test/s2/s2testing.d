@@ -403,11 +403,6 @@ public:
       in S2Point center, int num_loops, int num_vertices_per_loop, S2Polygon polygon) {
     Matrix3x3_d m;
     getFrame(center, m);
-    /**/m = Matrix3x3_d(
-        0.418314995042454, 0.701198425261565, 0.577350269189626,
-        0.816413146891386, -0.0116721998599441, -0.577350269189626,
-        -0.398098151848932, 0.712870625121509, -0.577350269189626
-    );
     S2Loop[] loops;
     for (int li = 0; li < num_loops; ++li) {
       S2Point[] vertices;

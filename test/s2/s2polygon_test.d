@@ -25,7 +25,9 @@ import s2.builder.util.snap_functions;
 import s2.logger;
 import s2.mutable_s2shape_index;
 import s2.r1interval;
+import s2.r2rect;
 import s2.s1angle;
+import s2.s1chord_angle;
 import s2.s2builder;
 import s2.s2cap;
 import s2.s2cell;
@@ -53,12 +55,12 @@ import s2.util.math.matrix3x3;
 
 import std.algorithm;
 import std.conv;
+import std.math : cos, pow;
 import std.range;
 
 import fluent.asserts;
 
 import std.stdio;
-import std.math : pow;
 
 // A set of nested loops around the point 0:0 (lat:lng).
 // Every vertex of kNear0 is a vertex of kNear1.
@@ -2327,19 +2329,21 @@ protected:
 
 @("IsValidTest.UnitLength") unittest {
   auto t = new IsValidTest();
-  // This test can only be run in optimized builds because there are
-  // DCHECK(IsUnitLength()) calls scattered throughout the S2 code.
-  debug return;
-  for (int iter = 0; iter < t.kIters; ++iter) {
-    t.addConcentricLoops(1 + t._rnd.uniform(6), 3 /*min_vertices*/);
-    S2Point[]* vloop = &t._vloops[t._rnd.uniform(cast(int) t._vloops.length)];
-    S2Point* p = &(*vloop)[t._rnd.uniform(cast(int) vloop.length)];
-    final switch (t._rnd.uniform(3)) {
-      case 0: *p = S2Point(0, 0, 0); break;
-      case 1: *p *= 1e-30 * pow(1e60, t._rnd.randDouble()); break;
-      case 2: *p = float.nan * S2Point(); break;
+  debug {
+    // This test can only be run in optimized builds because there are
+    // DCHECK(IsUnitLength()) calls scattered throughout the S2 code.
+  } else {
+    for (int iter = 0; iter < t.kIters; ++iter) {
+      t.addConcentricLoops(1 + t._rnd.uniform(6), 3 /*min_vertices*/);
+      S2Point[]* vloop = &t._vloops[t._rnd.uniform(cast(int) t._vloops.length)];
+      S2Point* p = &(*vloop)[t._rnd.uniform(cast(int) vloop.length)];
+      final switch (t._rnd.uniform(3)) {
+        case 0: *p = S2Point(0, 0, 0); break;
+        case 1: *p *= 1e-30 * pow(1e60, t._rnd.randDouble()); break;
+        case 2: *p = float.nan * S2Point(); break;
+      }
+      t.checkInvalid("unit length");
     }
-    t.checkInvalid("unit length");
   }
 }
 
@@ -2402,155 +2406,160 @@ protected:
   }
 }
 
-/+ TODO: Resume here.
-
-TEST_F(IsValidTest, LoopsCrossing) {
-  for (int iter = 0; iter < kIters; ++iter) {
-    AddConcentricLoops(2, 4 /*min_vertices*/);
+@("IsValidTest.LoopsCrossing") unittest {
+  auto t = new IsValidTest();
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    t.addConcentricLoops(2, 4 /*min_vertices*/);
     // Both loops have the same number of vertices, and vertices at the same
     // index position are collinear with the center point, so we can create a
     // crossing by simply exchanging two vertices at the same index position.
-    int n = vloops_[0]->size();
-    int i = rnd_->Uniform(n);
-    swap((*vloops_[0])[i], (*vloops_[1])[i]);
-    if (rnd_->OneIn(2)) {
+    int n = cast(int) t._vloops[0].length;
+    int i = t._rnd.uniform(n);
+    swap(t._vloops[0][i], t._vloops[1][i]);
+    if (t._rnd.oneIn(2)) {
       // By copy the two adjacent vertices from one loop to the other, we can
       // ensure that the crossings happen at vertices rather than edges.
-      (*vloops_[0])[(i+1) % n] = (*vloops_[1])[(i+1) % n];
-      (*vloops_[0])[(i+n-1) % n] = (*vloops_[1])[(i+n-1) % n];
+      t._vloops[0][(i+1) % n] = t._vloops[1][(i+1) % n];
+      t._vloops[0][(i+n-1) % n] = t._vloops[1][(i+n-1) % n];
     }
-    CheckInvalid("crosses loop");
+    t.checkInvalid("crosses loop");
   }
 }
 
-TEST_F(IsValidTest, DuplicateEdge) {
-  for (int iter = 0; iter < kIters; ++iter) {
-    AddConcentricLoops(2, 4 /*min_vertices*/);
-    int n = vloops_[0]->size();
-    if (rnd_->OneIn(2)) {
+@("IsValidTest.DuplicateEdge") unittest {
+  auto t = new IsValidTest();
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    t.addConcentricLoops(2, 4 /*min_vertices*/);
+    int n = cast(int) t._vloops[0].length;
+    if (t._rnd.oneIn(2)) {
       // Create a shared edge (same direction in both loops).
-      int i = rnd_->Uniform(n);
-      (*vloops_[0])[i] = (*vloops_[1])[i];
-      (*vloops_[0])[(i+1) % n] = (*vloops_[1])[(i+1) % n];
+      int i = t._rnd.uniform(n);
+      t._vloops[0][i] = t._vloops[1][i];
+      t._vloops[0][(i+1) % n] = t._vloops[1][(i+1) % n];
     } else {
       // Create a reversed edge (opposite direction in each loop) by cutting
       // loop 0 into two halves along one of its diagonals and replacing both
       // loops with the result.
-      int split = 2 + rnd_->Uniform(n - 3);
-      vloops_[1]->clear();
-      vloops_[1]->push_back((*vloops_[0])[0]);
+      int split = 2 + t._rnd.uniform(n - 3);
+      t._vloops[1].length = 0;
+      t._vloops[1] ~= t._vloops[0][0];
       for (int i = split; i < n; ++i) {
-        vloops_[1]->push_back((*vloops_[0])[i]);
+        t._vloops[1] ~= t._vloops[0][i];
       }
-      vloops_[0]->resize(split + 1);
+      t._vloops[0].length = split + 1;
     }
-    CheckInvalid("has duplicate");
+    t.checkInvalid("has duplicate");
   }
 }
 
-TEST_F(IsValidTest, InconsistentOrientations) {
-  for (int iter = 0; iter < kIters; ++iter) {
-    AddConcentricLoops(2 + rnd_->Uniform(5), 3 /*min_vertices*/);
-    init_oriented_ = true;
-    CheckInvalid("Inconsistent loop orientations");
+@("IsValidTest.InconsistentOrientations") unittest {
+  auto t = new IsValidTest();
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    t.addConcentricLoops(2 + t._rnd.uniform(5), 3 /*min_vertices*/);
+    t._initOriented = true;
+    t.checkInvalid("Inconsistent loop orientations");
   }
 }
 
-static void SetInvalidLoopDepth(S2Polygon* polygon) {
-  int i = S2Testing::rnd.Uniform(polygon->num_loops());
-  if (i == 0 || S2Testing::rnd.OneIn(3)) {
-    polygon->loop(i)->set_depth(-1);
+private void setInvalidLoopDepth(S2Polygon polygon) {
+  int i = S2Testing.rnd.uniform(polygon.numLoops());
+  if (i == 0 || S2Testing.rnd.oneIn(3)) {
+    polygon.loop(i).setDepth(-1);
   } else {
-    polygon->loop(i)->set_depth(polygon->loop(i-1)->depth() + 2);
+    polygon.loop(i).setDepth(polygon.loop(i-1).depth() + 2);
   }
 }
 
-TEST_F(IsValidTest, LoopDepthNegative) {
-  modify_polygon_hook_ = SetInvalidLoopDepth;
-  for (int iter = 0; iter < kIters; ++iter) {
-    AddConcentricLoops(1 + rnd_->Uniform(4), 3 /*min_vertices*/);
-    CheckInvalid("invalid loop depth");
+@("IsValidTest.LoopDepthNegative") unittest {
+  auto t = new IsValidTest();
+  t._modifyPolygonHook = &setInvalidLoopDepth;
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    t.addConcentricLoops(1 + t._rnd.uniform(4), 3 /*min_vertices*/);
+    t.checkInvalid("invalid loop depth");
   }
 }
 
-static void SetInvalidLoopNesting(S2Polygon* polygon) {
-  int i = S2Testing::rnd.Uniform(polygon->num_loops());
-  polygon->loop(i)->Invert();
+private void setInvalidLoopNesting(S2Polygon polygon) {
+  int i = S2Testing.rnd.uniform(polygon.numLoops());
+  polygon.loop(i).invert();
 }
 
-TEST_F(IsValidTest, LoopNestingInvalid) {
-  modify_polygon_hook_ = SetInvalidLoopNesting;
-  for (int iter = 0; iter < kIters; ++iter) {
-    AddConcentricLoops(2 + rnd_->Uniform(4), 3 /*min_vertices*/);
+@("IsValidTest.LoopNestingInvalid") unittest {
+  auto t = new IsValidTest();
+  t._modifyPolygonHook = &setInvalidLoopNesting;
+  for (int iter = 0; iter < t.kIters; ++iter) {
+    t.addConcentricLoops(2 + t._rnd.uniform(4), 3 /*min_vertices*/);
     // Randomly invert all the loops in order to generate cases where the
     // outer loop encompasses almost the entire sphere.  This tests different
     // code paths because bounding box checks are not as useful.
-    if (rnd_->OneIn(2)) {
-      for (auto loop : vloops_) std::reverse(loop->begin(), loop->end());
+    if (t._rnd.oneIn(2)) {
+      foreach (loop; t._vloops) loop = reverse(loop);
     }
-    CheckInvalid("Invalid nesting");
+    t.checkInvalid("Invalid nesting");
   }
 }
 
-TEST_F(IsValidTest, FuzzTest) {
+@("IsValidTest.FuzzTest") unittest {
+  auto t = new IsValidTest();
   // Check that the S2Loop/S2Polygon constructors and IsValid() don't crash
   // when they receive arbitrary invalid input.  (We don't test large inputs;
   // it is assumed that the client enforces their own size limits before even
   // attempting to construct geometric objects.)
-  if (google::DEBUG_MODE)
-    return;  // Requires unit length vertices.
-  for (int iter = 0; iter < kIters; ++iter) {
-    int num_loops = 1 + rnd_->Uniform(10);
-    for (int i = 0; i < num_loops; ++i) {
-      int num_vertices = rnd_->Uniform(10);
-      vector<S2Point>* vloop = AddLoop();
-      while (vloop->size() < num_vertices) {
-        // Since the number of vertices is random, we automatically test empty
-        // loops, full loops, and invalid vertex counts.  Also since most
-        // vertices are random, we automatically get self-intersections and
-        // loop crossings.  That leaves zero and NaN vertices, duplicate
-        // vertices, and duplicate edges to be created explicitly.
-        if (rnd_->OneIn(10)) {
-          // Zero vertex.
-          vloop->push_back(S2Point(0, 0, 0));
-        } else if (rnd_->OneIn(10)) {
-          // NaN vertex.
-          vloop->push_back(numeric_limits<double>::quiet_NaN() * S2Point());
-        } else if (rnd_->OneIn(10) && !vloop->empty()) {
-          // Duplicate vertex.
-          vloop->push_back((*vloop)[rnd_->Uniform(vloop->size())]);
-        } else if (rnd_->OneIn(10) && vloop->size() + 2 <= num_vertices) {
-          // Try to copy an edge from a random loop.
-          vector<S2Point>* other = vloops_[rnd_->Uniform(vloops_.size())];
-          int n = other->size();
-          if (n >= 2) {
-            int k0 = rnd_->Uniform(n);
-            int k1 = (k0 + 1) % n;
-            if (rnd_->OneIn(2)) swap(k0, k1);  // Copy reversed edge.
-            vloop->push_back((*other)[k0]);
-            vloop->push_back((*other)[k1]);
+  debug {
+    // Do nothing, requires unit length vertices.
+  } else {
+    for (int iter = 0; iter < t.kIters; ++iter) {
+      int num_loops = 1 + t._rnd.uniform(10);
+      for (int i = 0; i < num_loops; ++i) {
+        int num_vertices = t._rnd.uniform(10);
+        S2Point[]* vloop = t.addLoop();
+        while (vloop.length < num_vertices) {
+          // Since the number of vertices is random, we automatically test empty
+          // loops, full loops, and invalid vertex counts.  Also since most
+          // vertices are random, we automatically get self-intersections and
+          // loop crossings.  That leaves zero and NaN vertices, duplicate
+          // vertices, and duplicate edges to be created explicitly.
+          if (t._rnd.oneIn(10)) {
+            // Zero vertex.
+            *vloop ~= S2Point(0, 0, 0);
+          } else if (t._rnd.oneIn(10)) {
+            // NaN vertex.
+            *vloop ~= double.nan * S2Point();
+          } else if (t._rnd.oneIn(10) && !vloop.empty()) {
+            // Duplicate vertex.
+            *vloop ~= (*vloop)[t._rnd.uniform(cast(int) vloop.length)];
+          } else if (t._rnd.oneIn(10) && vloop.length + 2 <= num_vertices) {
+            // Try to copy an edge from a random loop.
+            S2Point[] other = t._vloops[t._rnd.uniform(cast(int) t._vloops.length)];
+            int n = cast(int) other.length;
+            if (n >= 2) {
+              int k0 = t._rnd.uniform(n);
+              int k1 = (k0 + 1) % n;
+              if (t._rnd.oneIn(2)) swap(k0, k1);  // Copy reversed edge.
+              *vloop ~= other[k0];
+              *vloop ~= other[k1];
+            }
+          } else {
+            // Random non-unit-length point.
+            S2Point p = S2Testing.randomPoint();
+            *vloop ~= (1e-30 * pow(1e60, t._rnd.randDouble()) * p);
           }
-        } else {
-          // Random non-unit-length point.
-          S2Point p = S2Testing::RandomPoint();
-          vloop->push_back(1e-30 * pow(1e60, rnd_->RandDouble()) * p);
         }
       }
+      t.checkInvalid("");  // We could get any error message.
     }
-    CheckInvalid("");  // We could get any error message.
   }
 }
 
 // Returns the diameter of a loop (maximum distance between any two
 // points in the loop).
-S1Angle LoopDiameter(const S2Loop& loop) {
+S1Angle loopDiameter(in S2Loop loop) {
   S1Angle diameter;
-  for (int i = 0; i < loop.num_vertices(); ++i) {
+  for (int i = 0; i < loop.numVertices(); ++i) {
     S2Point test_point = loop.vertex(i);
-    for (int j = i + 1; j < loop.num_vertices(); ++j) {
+    for (int j = i + 1; j < loop.numVertices(); ++j) {
       diameter = max(diameter,
-                     S2::GetDistance(test_point, loop.vertex(j),
-                                             loop.vertex(j+1)));
+          .getDistance(test_point, loop.vertex(j), loop.vertex(j+1)));
     }
   }
   return diameter;
@@ -2562,19 +2571,18 @@ S1Angle LoopDiameter(const S2Loop& loop) {
 //
 // Doesn't consider loops from poly_a that have diameter less than min_diameter
 // in degrees.
-double MaximumDistanceInDegrees(const S2Polygon& poly_a,
-                                const S2Polygon& poly_b,
-                                double min_diameter_in_degrees) {
+double maximumDistanceInDegrees(
+    S2Polygon poly_a, S2Polygon poly_b, double min_diameter_in_degrees) {
   double min_distance = 360;
   bool has_big_loops = false;
-  for (int l = 0; l < poly_a.num_loops(); ++l) {
-    const S2Loop* a_loop = poly_a.loop(l);
-    if (LoopDiameter(*a_loop).degrees() <= min_diameter_in_degrees) {
+  for (int l = 0; l < poly_a.numLoops(); ++l) {
+    S2Loop a_loop = poly_a.loop(l);
+    if (loopDiameter(a_loop).degrees() <= min_diameter_in_degrees) {
       continue;
     }
     has_big_loops = true;
-    for (int v = 0; v < a_loop->num_vertices(); ++v) {
-      double distance = poly_b.GetDistance(a_loop->vertex(v)).degrees();
+    for (int v = 0; v < a_loop.numVertices(); ++v) {
+      double distance = poly_b.getDistance(a_loop.vertex(v)).degrees();
       if (distance < min_distance) {
         min_distance = distance;
       }
@@ -2587,243 +2595,246 @@ double MaximumDistanceInDegrees(const S2Polygon& poly_a,
   }
 }
 
-class S2PolygonSimplifierTest : public ::testing::Test {
- protected:
-  void SetInput(unique_ptr<S2Polygon> poly, double tolerance_in_degrees) {
-    original = std::move(poly);
+class S2PolygonSimplifierTest {
+protected:
+  void setInput(S2Polygon poly, double tolerance_in_degrees) {
+    original = poly;
 
-    simplified = make_unique<S2Polygon>();
-    simplified->InitToSimplified(*original,
-                                 s2builderutil::IdentitySnapFunction(
-                                     S1Angle::Degrees(tolerance_in_degrees)));
+    simplified = new S2Polygon();
+    simplified.initializeToSimplified(
+        original,
+        new IdentitySnapFunction(S1Angle.fromDegrees(tolerance_in_degrees)));
   }
 
-  void SetInput(const string& poly, double tolerance_in_degrees) {
-    SetInput(s2textformat::MakePolygon(poly), tolerance_in_degrees);
+  void setInput(string poly, double tolerance_in_degrees) {
+    setInput(makePolygon(poly), tolerance_in_degrees);
   }
 
-  unique_ptr<S2Polygon> simplified;
-  unique_ptr<S2Polygon> original;
-};
+  S2Polygon simplified;
+  S2Polygon original;
+}
 
-TEST_F(S2PolygonSimplifierTest, NoSimplification) {
-  SetInput("0:0, 0:20, 20:20, 20:0", 1.0);
-  EXPECT_EQ(4, simplified->num_vertices());
+@("S2PolygonSimplifierTest.NoSimplification") unittest {
+  auto t = new S2PolygonSimplifierTest();
+  t.setInput("0:0, 0:20, 20:20, 20:0", 1.0);
+  Assert.equal(t.simplified.numVertices(), 4);
 
-  EXPECT_EQ(0, MaximumDistanceInDegrees(*simplified, *original, 0));
-  EXPECT_EQ(0, MaximumDistanceInDegrees(*original, *simplified, 0));
+  Assert.equal(maximumDistanceInDegrees(t.simplified, t.original, 0), 0);
+  Assert.equal(maximumDistanceInDegrees(t.original, t.simplified, 0), 0);
 }
 
 // Here, 10:-2 will be removed and  0:0-20:0 will intersect two edges.
 // (The resulting polygon will in fact probably have more edges.)
-TEST_F(S2PolygonSimplifierTest, SimplifiedLoopSelfIntersects) {
-  SetInput("0:0, 0:20, 10:-0.1, 20:20, 20:0, 10:-0.2", 0.22);
+@("S2PolygonSimplifierTest.SimplifiedLoopSelfIntersects") unittest {
+  auto t = new S2PolygonSimplifierTest();
+  t.setInput("0:0, 0:20, 10:-0.1, 20:20, 20:0, 10:-0.2", 0.22);
 
   // The simplified polygon has the same number of vertices but it should now
   // consists of two loops rather than one.
-  EXPECT_EQ(2, simplified->num_loops());
-  EXPECT_GE(0.22, MaximumDistanceInDegrees(*simplified, *original, 0));
-  EXPECT_GE(0.22, MaximumDistanceInDegrees(*original, *simplified, 0.22));
+  Assert.equal(t.simplified.numLoops(), 2);
+  Assert.notGreaterThan(maximumDistanceInDegrees(t.simplified, t.original, 0), 0.22);
+  Assert.notGreaterThan(maximumDistanceInDegrees(t.original, t.simplified, 0.22), 0.22);
 }
 
-TEST_F(S2PolygonSimplifierTest, NoSimplificationManyLoops) {
-  SetInput("0:0,    0:1,   1:0;   0:20, 0:21, 1:20; "
-           "20:20, 20:21, 21:20; 20:0, 20:1, 21:0", 0.01);
-  EXPECT_EQ(0, MaximumDistanceInDegrees(*simplified, *original, 0));
-  EXPECT_EQ(0, MaximumDistanceInDegrees(*original, *simplified, 0));
+@("S2PolygonSimplifierTest.NoSimplificationManyLoops") unittest {
+  auto t = new S2PolygonSimplifierTest();
+  t.setInput("0:0,    0:1,   1:0;   0:20, 0:21, 1:20; "
+      ~ "20:20, 20:21, 21:20; 20:0, 20:1, 21:0", 0.01);
+  Assert.equal(maximumDistanceInDegrees(t.simplified, t.original, 0), 0);
+  Assert.equal(maximumDistanceInDegrees(t.original, t.simplified, 0), 0);
 }
 
-TEST_F(S2PolygonSimplifierTest, TinyLoopDisappears) {
-  SetInput("0:0, 0:1, 1:1, 1:0", 1.1);
-  EXPECT_TRUE(simplified->is_empty());
+@("S2PolygonSimplifierTest.TinyLoopDisappears") unittest {
+  auto t = new S2PolygonSimplifierTest();
+  t.setInput("0:0, 0:1, 1:1, 1:0", 1.1);
+  Assert.equal(t.simplified.isEmpty(), true);
 }
 
-TEST_F(S2PolygonSimplifierTest, StraightLinesAreSimplified) {
-  SetInput("0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0,"
-           "6:1, 5:1, 4:1, 3:1, 2:1, 1:1, 0:1", 0.01);
-  EXPECT_EQ(4, simplified->num_vertices());
+@("S2PolygonSimplifierTest.StraightLinesAreSimplified") unittest {
+  auto t = new S2PolygonSimplifierTest();
+  t.setInput("0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0,"
+      ~ "6:1, 5:1, 4:1, 3:1, 2:1, 1:1, 0:1", 0.01);
+  Assert.equal(t.simplified.numVertices(), 4);
 }
 
-TEST_F(S2PolygonSimplifierTest, EdgeSplitInManyPieces) {
+@("S2PolygonSimplifierTest.EdgeSplitInManyPieces") unittest {
+  auto t = new S2PolygonSimplifierTest();
   // near_square's right four-point side will be simplified to a vertical
   // line at lng=7.9, that will cut the 9 teeth of the saw (the edge will
   // therefore be broken into 19 pieces).
-  const string saw =
+  string saw =
       "1:1, 1:8, 2:2, 2:8, 3:2, 3:8, 4:2, 4:8, 5:2, 5:8,"
-      "6:2, 6:8, 7:2, 7:8, 8:2, 8:8, 9:2, 9:8, 10:1";
-  const string near_square =
+      ~ "6:2, 6:8, 7:2, 7:8, 8:2, 8:8, 9:2, 9:8, 10:1";
+  string near_square =
       "0:0, 0:7.9, 1:8.1, 10:8.1, 11:7.9, 11:0";
-  SetInput(saw + ";" + near_square, 0.21);
+  t.setInput(saw ~ ";" ~ near_square, 0.21);
 
-  EXPECT_TRUE(simplified->IsValid());
-  EXPECT_GE(0.11, MaximumDistanceInDegrees(*simplified, *original, 0));
-  EXPECT_GE(0.11, MaximumDistanceInDegrees(*original, *simplified, 0));
+  Assert.equal(t.simplified.isValid(), true);
+  Assert.notGreaterThan(maximumDistanceInDegrees(t.simplified, t.original, 0), 0.11);
+  Assert.notGreaterThan(maximumDistanceInDegrees(t.original, t.simplified, 0), 0.11);
   // The resulting polygon's 9 little teeth are very small and disappear
   // due to the vertex_merge_radius of the polygon builder.  There remains
   // nine loops.
-  EXPECT_EQ(9, simplified->num_loops());
+  Assert.equal(t.simplified.numLoops(), 9);
 }
 
-TEST_F(S2PolygonSimplifierTest, EdgesOverlap) {
+@("S2PolygonSimplifierTest.EdgesOverlap") unittest {
+  auto t = new S2PolygonSimplifierTest();
   // Two loops, One edge of the second one ([0:1 - 0:2]) is part of an
   // edge of the first one..
-  SetInput("0:0, 0:3, 1:0; 0:1, -1:1, 0:2", 0.01);
-  unique_ptr<S2Polygon> true_poly(
-      s2textformat::MakePolygon("0:3, 1:0, 0:0, 0:1, -1:1, 0:2"));
-  EXPECT_TRUE(simplified->BoundaryApproxEquals(*true_poly,
-                                               S1Angle::Radians(1e-15)));
+  t.setInput("0:0, 0:3, 1:0; 0:1, -1:1, 0:2", 0.01);
+  auto true_poly = makePolygon("0:3, 1:0, 0:0, 0:1, -1:1, 0:2");
+  Assert.equal(t.simplified.boundaryApproxEquals(true_poly, S1Angle.fromRadians(1e-15)), true);
 }
 
 // Creates a polygon from loops specified as a comma separated list of u:v
 // coordinates relative to a cell. The loop "0:0, 1:0, 1:1, 0:1" is
 // counter-clockwise.
-unique_ptr<S2Polygon> MakeCellPolygon(
-    const S2Cell& cell, const vector<const char *>& strs) {
-  vector<unique_ptr<S2Loop>> loops;
-  for (auto str : strs) {
-    vector<S2LatLng> points = s2textformat::ParseLatLngs(str);
-    vector<S2Point> loop_vertices;
-    R2Rect uv = cell.GetBoundUV();
-    for (const S2LatLng& p : points) {
-      double u = p.lat().degrees(), v = p.lng().degrees();
-      loop_vertices.push_back(
-          S2::FaceUVtoXYZ(cell.face(),
-                          uv[0][0] * (1 - u) + uv[0][1] * u,
-                          uv[1][0] * (1 - v) + uv[1][1] * v).Normalize());
+S2Polygon makeCellPolygon(in S2Cell cell, string[] strs) {
+  S2Loop[] loops;
+  foreach (str; strs) {
+    S2LatLng[] points = parseLatLngs(str);
+    S2Point[] loop_vertices;
+    R2Rect uv = cell.getBoundUV();
+    foreach (S2LatLng p; points) {
+      double u = p.lat().degrees();
+      double v = p.lng().degrees();
+      loop_vertices ~= FaceUVtoXYZ(cell.face(),
+          uv[0][0] * (1 - u) + uv[0][1] * u,
+          uv[1][0] * (1 - v) + uv[1][1] * v).normalize();
     }
-    loops.emplace_back(new S2Loop(loop_vertices));
+    loops ~= new S2Loop(loop_vertices);
   }
-  return make_unique<S2Polygon>(std::move(loops));
+  return new S2Polygon(loops);
 }
 
-TEST(InitToSimplifiedInCell, PointsOnCellBoundaryKept) {
-  S2Cell cell(S2CellId::FromToken("89c25c"));
-  auto polygon = MakeCellPolygon(cell, {"0.1:0, 0.2:0, 0.2:0.5"});
+@("InitToSimplifiedInCell.PointsOnCellBoundaryKept") unittest {
+  auto cell = new S2Cell(S2CellId.fromToken("89c25c"));
+  auto polygon = makeCellPolygon(cell, ["0.1:0, 0.2:0, 0.2:0.5"]);
   S1Angle tolerance =
-      S1Angle(polygon->loop(0)->vertex(0), polygon->loop(0)->vertex(1)) * 1.1;
-  S2Polygon simplified;
-  simplified.InitToSimplified(*polygon,
-                              s2builderutil::IdentitySnapFunction(tolerance));
-  EXPECT_TRUE(simplified.is_empty());
-  S2Polygon simplified_in_cell;
-  simplified_in_cell.InitToSimplifiedInCell(polygon.get(), cell, tolerance);
-  EXPECT_TRUE(simplified_in_cell.BoundaryEquals(polygon.get()));
-  EXPECT_EQ(3, simplified_in_cell.num_vertices());
-  EXPECT_EQ(-1, simplified.GetSnapLevel());
+      S1Angle(polygon.loop(0).vertex(0), polygon.loop(0).vertex(1)) * 1.1;
+  auto simplified = new S2Polygon();
+  simplified.initializeToSimplified(polygon, new IdentitySnapFunction(tolerance));
+  Assert.equal(simplified.isEmpty(), true);
+  auto simplified_in_cell = new S2Polygon();
+  simplified_in_cell.initializeToSimplifiedInCell(polygon, cell, tolerance);
+  Assert.equal(simplified_in_cell.boundaryEquals(polygon), true);
+  Assert.equal(simplified_in_cell.numVertices(), 3);
+  Assert.equal(simplified.getSnapLevel(), -1);
 }
 
-TEST(InitToSimplifiedInCell, PointsInsideCellSimplified) {
-  S2CellId cell_id = S2CellId::FromToken("89c25c");
-  S2Cell cell(cell_id);
-  auto polygon = MakeCellPolygon(
-      cell, {"0.3:0, 0.4:0, 0.4:0.5, 0.4:0.8, 0.2:0.8"});
+@("InitToSimplifiedInCell.PointsInsideCellSimplified") unittest {
+  S2CellId cell_id = S2CellId.fromToken("89c25c");
+  auto cell = new S2Cell(cell_id);
+  auto polygon = makeCellPolygon(
+      cell, ["0.3:0, 0.4:0, 0.4:0.5, 0.4:0.8, 0.2:0.8"]);
   S1Angle tolerance =
-      S1Angle(polygon->loop(0)->vertex(0), polygon->loop(0)->vertex(1)) * 1.1;
-  S2Polygon simplified;
-  simplified.InitToSimplifiedInCell(polygon.get(), cell, tolerance);
-  EXPECT_TRUE(simplified.BoundaryNear(*polygon, S1Angle::Radians(1e-15)));
-  EXPECT_EQ(4, simplified.num_vertices());
-  EXPECT_EQ(-1, simplified.GetSnapLevel());
+      S1Angle(polygon.loop(0).vertex(0), polygon.loop(0).vertex(1)) * 1.1;
+  auto simplified = new S2Polygon();
+  simplified.initializeToSimplifiedInCell(polygon, cell, tolerance);
+  Assert.equal(simplified.boundaryNear(polygon, S1Angle.fromRadians(1e-15)), true);
+  Assert.equal(simplified.numVertices(), 4);
+  Assert.equal(simplified.getSnapLevel(), -1);
 }
 
-TEST(InitToSimplifiedInCell, CellCornerKept) {
-  S2Cell cell(S2CellId::FromToken("00001"));
-  auto input = MakeCellPolygon(cell, {"1:0, 1:0.05, 0.99:0"});
-  S1Angle tolerance = 0.02 * S1Angle(cell.GetVertex(0), cell.GetVertex(1));
-  S2Polygon simplified;
-  simplified.InitToSimplifiedInCell(input.get(), cell, tolerance);
-  EXPECT_TRUE(simplified.BoundaryNear(*input, S1Angle::Radians(1e-15)));
+@("InitToSimplifiedInCell.CellCornerKept") unittest {
+  auto cell = new S2Cell(S2CellId.fromToken("00001"));
+  auto input = makeCellPolygon(cell, ["1:0, 1:0.05, 0.99:0"]);
+  S1Angle tolerance = 0.02 * S1Angle(cell.getVertex(0), cell.getVertex(1));
+  auto simplified = new S2Polygon();
+  simplified.initializeToSimplifiedInCell(input, cell, tolerance);
+  Assert.equal(simplified.boundaryNear(input, S1Angle.fromRadians(1e-15)), true);
 }
 
-TEST(InitToSimplifiedInCell, NarrowStripRemoved) {
-  S2Cell cell(S2CellId::FromToken("00001"));
-  auto input = MakeCellPolygon(cell, {"0.9:0, 0.91:0, 0.91:1, 0.9:1"});
-  S1Angle tolerance = 0.02 * S1Angle(cell.GetVertex(0), cell.GetVertex(1));
-  S2Polygon simplified;
-  simplified.InitToSimplifiedInCell(input.get(), cell, tolerance);
-  EXPECT_TRUE(simplified.is_empty());
+@("InitToSimplifiedInCell.NarrowStripRemoved") unittest {
+  auto cell = new S2Cell(S2CellId.fromToken("00001"));
+  auto input = makeCellPolygon(cell, ["0.9:0, 0.91:0, 0.91:1, 0.9:1"]);
+  S1Angle tolerance = 0.02 * S1Angle(cell.getVertex(0), cell.getVertex(1));
+  auto simplified = new S2Polygon();
+  simplified.initializeToSimplifiedInCell(input, cell, tolerance);
+  Assert.equal(simplified.isEmpty(), true);
 }
 
-TEST(InitToSimplifiedInCell, NarrowGapRemoved) {
-  S2Cell cell(S2CellId::FromToken("00001"));
-  auto input = MakeCellPolygon(
-      cell, {"0.7:0, 0.75:0, 0.75:1, 0.7:1", "0.76:0, 0.8:0, 0.8:1, 0.76:1"});
-  auto expected = MakeCellPolygon(cell, {"0.7:0, 0.8:0, 0.8:1, 0.7:1"});
-  S1Angle tolerance = 0.02 * S1Angle(cell.GetVertex(0), cell.GetVertex(1));
-  S2Polygon simplified;
-  simplified.InitToSimplifiedInCell(input.get(), cell, tolerance);
-  EXPECT_TRUE(simplified.BoundaryNear(*expected, S1Angle::Radians(1e-15)));
+@("InitToSimplifiedInCell.NarrowGapRemoved") unittest {
+  auto cell = new S2Cell(S2CellId.fromToken("00001"));
+  auto input = makeCellPolygon(
+      cell, ["0.7:0, 0.75:0, 0.75:1, 0.7:1", "0.76:0, 0.8:0, 0.8:1, 0.76:1"]);
+  auto expected = makeCellPolygon(cell, ["0.7:0, 0.8:0, 0.8:1, 0.7:1"]);
+  S1Angle tolerance = 0.02 * S1Angle(cell.getVertex(0), cell.getVertex(1));
+  auto simplified = new S2Polygon();
+  simplified.initializeToSimplifiedInCell(input, cell, tolerance);
+  Assert.equal(simplified.boundaryNear(expected, S1Angle.fromRadians(1e-15)), true);
 }
 
-TEST(InitToSimplifiedInCell, CloselySpacedEdgeVerticesKept) {
-  S2Cell cell(S2CellId::FromToken("00001"));
-  auto input = MakeCellPolygon(
-      cell, {"0:0.303, 0:0.302, 0:0.301, 0:0.3, 0.1:0.3, 0.1:0.4"});
-  S1Angle tolerance = 0.02 * S1Angle(cell.GetVertex(0), cell.GetVertex(1));
-  S2Polygon simplified;
-  simplified.InitToSimplifiedInCell(input.get(), cell, tolerance);
-  EXPECT_TRUE(simplified.BoundaryApproxEquals(*input, S1Angle::Radians(1e-15)));
+@("InitToSimplifiedInCell.CloselySpacedEdgeVerticesKept") unittest {
+  auto cell = new S2Cell(S2CellId.fromToken("00001"));
+  auto input = makeCellPolygon(
+      cell, ["0:0.303, 0:0.302, 0:0.301, 0:0.3, 0.1:0.3, 0.1:0.4"]);
+  S1Angle tolerance = 0.02 * S1Angle(cell.getVertex(0), cell.getVertex(1));
+  auto simplified = new S2Polygon();
+  simplified.initializeToSimplifiedInCell(input, cell, tolerance);
+  Assert.equal(simplified.boundaryApproxEquals(input, S1Angle.fromRadians(1e-15)), true);
 }
 
-TEST(InitToSimplifiedInCell, PolylineAssemblyBug) {
-  S2Cell cell(S2CellId::FromToken("5701"));
-  auto polygon = MakePolygon(
+@("InitToSimplifiedInCell.PolylineAssemblyBug") unittest {
+  auto cell = new S2Cell(S2CellId.fromToken("5701"));
+  auto polygon = makePolygon(
       "55.8699252:-163.9412145, "  // South-west corner of 5701
-      "54.7672352:-166.7579678, "  // North-east corner of 5701
+      ~ "54.7672352:-166.7579678, "  // North-east corner of 5701
       /* Offending part: a tiny triangle near south-east corner */
-      "54.7109214:-164.6376338, "  // forced vertex, on edge 4
-      "54.7140193:-164.6398404, "
-      "54.7113202:-164.6374015");  // forced vertex, on edge 4
-  S1Angle tolerance = S1Angle::Radians(2.138358e-05);  // 136.235m
-  S1Angle max_dist = S1Angle::Radians(2.821947e-09);  // 18mm
-  S2Polygon simplified_in_cell;
-  simplified_in_cell.InitToSimplifiedInCell(polygon.get(), cell, tolerance,
-                                            max_dist);
-  EXPECT_FALSE(simplified_in_cell.is_empty());
+      ~ "54.7109214:-164.6376338, "  // forced vertex, on edge 4
+      ~ "54.7140193:-164.6398404, "
+      ~ "54.7113202:-164.6374015");  // forced vertex, on edge 4
+  S1Angle tolerance = S1Angle.fromRadians(2.138358e-05);  // 136.235m
+  S1Angle max_dist = S1Angle.fromRadians(2.821947e-09);  // 18mm
+  auto simplified_in_cell = new S2Polygon();
+  simplified_in_cell.initializeToSimplifiedInCell(polygon, cell, tolerance, max_dist);
+  Assert.equal(simplified_in_cell.isEmpty(), false);
 }
 
-TEST(InitToSimplifiedInCell, InteriorEdgesSnappedToBoundary) {
-  auto polygon = s2textformat::MakePolygonOrDie(
+@("InitToSimplifiedInCell.InteriorEdgesSnappedToBoundary") unittest {
+  auto polygon = makePolygonOrDie(
       "37.8011672:-122.3247322, 37.8011648:-122.3247399, "
-      "37.8011647:-122.3247403, 37.8011646:-122.3247408, "
-      "37.8011645:-122.3247411, 37.8011633:-122.3247449, "
-      "37.8011621:-122.3247334");
-  S2Cell cell(S2CellId::FromDebugString("4/001013300"));
-  S1Angle snap_radius = S2Testing::MetersToAngle(1.0);
+      ~ "37.8011647:-122.3247403, 37.8011646:-122.3247408, "
+      ~ "37.8011645:-122.3247411, 37.8011633:-122.3247449, "
+      ~ "37.8011621:-122.3247334");
+  auto cell = new S2Cell(S2CellId.fromDebugString("4/001013300"));
+  S1Angle snap_radius = S2Testing.metersToAngle(1.0);
   S1Angle boundary_tolerance =
-      S1Angle::Radians(0.5 * S2::kMaxWidth.GetValue(S2CellId::kMaxLevel - 1)) +
-      s2builderutil::IntLatLngSnapFunction::MinSnapRadiusForExponent(7);
-  S2Polygon simplified_polygon;
-  simplified_polygon.set_s2debug_override(S2Debug::DISABLE);
-  simplified_polygon.InitToSimplifiedInCell(polygon.get(), cell, snap_radius,
-                                            boundary_tolerance);
+      S1Angle.fromRadians(0.5 * MAX_WIDTH.getValue(S2CellId.MAX_LEVEL - 1))
+      + IntLatLngSnapFunction.minSnapRadiusForExponent(7);
+  auto simplified_polygon = new S2Polygon();
+  simplified_polygon.setS2debugOverride(S2Debug.DISABLE);
+  simplified_polygon.initializeToSimplifiedInCell(polygon, cell, snap_radius, boundary_tolerance);
   S2Error error;
-  EXPECT_FALSE(simplified_polygon.FindValidationError(&error)) << error;
+  Assert.equal(simplified_polygon.findValidationError(error), false, error.toString());
 }
 
-
-unique_ptr<S2Polygon> MakeRegularPolygon(
-    const string& center, int num_points, double radius_in_degrees) {
-  S1Angle radius = S1Angle::Degrees(radius_in_degrees);
-  return make_unique<S2Polygon>(S2Loop::MakeRegularLoop(
-      s2textformat::MakePoint(center), radius, num_points));
+S2Polygon makeRegularPolygon(
+    string center, int num_points, double radius_in_degrees) {
+  S1Angle radius = S1Angle.fromDegrees(radius_in_degrees);
+  return new S2Polygon(S2Loop.makeRegularLoop(
+      makePointOrDie(center), radius, num_points));
 }
 
 // Tests that a regular polygon with many points gets simplified
 // enough.
-TEST_F(S2PolygonSimplifierTest, LargeRegularPolygon) {
+@("S2PolygonSimplifierTest.LargeRegularPolygon") unittest {
+  auto t = new S2PolygonSimplifierTest();
   const double kRadius = 2.;  // in degrees
   const int num_initial_points = 1000;
   const int num_desired_points = 250;
   double tolerance = 1.05 * kRadius * (1 - cos(M_PI / num_desired_points));
 
-  SetInput(MakeRegularPolygon("0:0", num_initial_points, kRadius), tolerance);
+  t.setInput(makeRegularPolygon("0:0", num_initial_points, kRadius), tolerance);
 
-  EXPECT_GE(tolerance, MaximumDistanceInDegrees(*simplified, *original, 0));
-  EXPECT_GE(tolerance, MaximumDistanceInDegrees(*original, *simplified, 0));
-  EXPECT_GE(250, simplified->num_vertices());
-  EXPECT_LE(200, simplified->num_vertices());
+  Assert.notGreaterThan(maximumDistanceInDegrees(t.simplified, t.original, 0), tolerance);
+  Assert.notGreaterThan(maximumDistanceInDegrees(t.original, t.simplified, 0), tolerance);
+  Assert.notGreaterThan(t.simplified.numVertices(), 250);
+  Assert.notLessThan(t.simplified.numVertices(), 200);
 }
+
+/+ TODO: Complete when encode/decode are done.
 
 class S2PolygonDecodeTest : public ::testing::Test {
  protected:
@@ -2944,103 +2955,104 @@ TEST_F(S2PolygonDecodeTest, FuzzEverything) {
   }
 #endif
 }
++/
 
-TEST_F(S2PolygonTestBase, FullPolygonShape) {
-  S2Polygon::Shape shape(full_.get());
-  EXPECT_EQ(0, shape.num_edges());
-  EXPECT_EQ(2, shape.dimension());
-  EXPECT_TRUE(shape.GetReferencePoint().contained);
-  EXPECT_EQ(0, shape.num_chains());
+@("S2PolygonTestBase.FullPolygonShape") unittest {
+  auto t = new S2PolygonTestBase();
+
+  auto shape = new S2Polygon.Shape(t._full);
+  Assert.equal(shape.numEdges(), 0);
+  Assert.equal(shape.dimension(), 2);
+  Assert.equal(shape.getReferencePoint().contained, true);
+  Assert.equal(shape.numChains(), 0);
 }
 
-TEST_F(S2PolygonTestBase, EmptyPolygonShape) {
-  S2Polygon::Shape shape(empty_.get());
-  EXPECT_EQ(0, shape.num_edges());
-  EXPECT_EQ(2, shape.dimension());
-  EXPECT_FALSE(shape.GetReferencePoint().contained);
-  EXPECT_EQ(0, shape.num_chains());
+@("S2PolygonTestBase.EmptyPolygonShape") unittest {
+  auto t = new S2PolygonTestBase();
+
+  auto shape = new S2Polygon.Shape(t._empty);
+  Assert.equal(shape.numEdges(), 0);
+  Assert.equal(shape.dimension(), 2);
+  Assert.equal(shape.getReferencePoint().contained, false);
+  Assert.equal(shape.numChains(), 0);
 }
 
-void TestPolygonShape(const S2Polygon& polygon) {
-  DCHECK(!polygon.is_full());
-  S2Polygon::Shape shape(&polygon);
-  EXPECT_EQ(&polygon, shape.polygon());
-  EXPECT_EQ(polygon.num_vertices(), shape.num_edges());
-  EXPECT_EQ(polygon.num_loops(), shape.num_chains());
-  for (int e = 0, i = 0; i < polygon.num_loops(); ++i) {
-    const S2Loop* loop_i = polygon.loop(i);
-    EXPECT_EQ(e, shape.chain(i).start);
-    EXPECT_EQ(loop_i->num_vertices(), shape.chain(i).length);
-    for (int j = 0; j < loop_i->num_vertices(); ++j, ++e) {
+void checkPolygonShape(S2Polygon polygon)
+in {
+  assert(!polygon.isFull());
+} do {
+  auto shape = new S2Polygon.Shape(polygon);
+  Assert.equal(polygon, shape.polygon());
+  Assert.equal(polygon.numVertices(), shape.numEdges());
+  Assert.equal(polygon.numLoops(), shape.numChains());
+  for (int e = 0, i = 0; i < polygon.numLoops(); ++i) {
+    S2Loop loop_i = polygon.loop(i);
+    Assert.equal(e, shape.chain(i).start);
+    Assert.equal(loop_i.numVertices(), shape.chain(i).length);
+    for (int j = 0; j < loop_i.numVertices(); ++j, ++e) {
       auto edge = shape.edge(e);
-      EXPECT_EQ(loop_i->oriented_vertex(j), edge.v0);
-      EXPECT_EQ(loop_i->oriented_vertex(j+1), edge.v1);
+      Assert.equal(loop_i.orientedVertex(j), edge.v0);
+      Assert.equal(loop_i.orientedVertex(j+1), edge.v1);
     }
   }
-  EXPECT_EQ(2, shape.dimension());
-  EXPECT_TRUE(shape.has_interior());
-  EXPECT_EQ(polygon.Contains(S2::Origin()),
-            shape.GetReferencePoint().contained);
+  Assert.equal(shape.dimension(), 2);
+  Assert.equal(shape.hasInterior(), true);
+  Assert.equal(polygon.contains(.origin()), shape.getReferencePoint().contained);
 }
 
-TEST_F(S2PolygonTestBase, OneLoopPolygonShape) {
-  TestPolygonShape(*near_0_);
+@("S2PolygonTestBase.OneLoopPolygonShape") unittest {
+  auto t = new S2PolygonTestBase();
+  checkPolygonShape(t._near0);
 }
 
-TEST_F(S2PolygonTestBase, SeveralLoopPolygonShape) {
-  TestPolygonShape(*near_3210_);
+@("S2PolygonTestBase.SeveralLoopPolygonShape") unittest {
+  auto t = new S2PolygonTestBase();
+  checkPolygonShape(t._near3210);
 }
 
-TEST(S2Polygon, ManyLoopPolygonShape) {
+// TODO: Fix me.
+@("S2Polygon.ManyLoopPolygonShape") unittest {
   const int kNumLoops = 100;
   const int kNumVerticesPerLoop = 6;
-  S2Polygon polygon;
-  S2Testing::ConcentricLoopsPolygon(S2Point(1, 0, 0), kNumLoops,
-                                    kNumVerticesPerLoop, &polygon);
-  TestPolygonShape(polygon);
+  auto polygon = new S2Polygon();
+  S2Testing.concentricLoopsPolygon(S2Point(1, 0, 0), kNumLoops, kNumVerticesPerLoop, polygon);
+  checkPolygonShape(polygon);
 }
 
-TEST(S2PolygonOwningShape, Ownership) {
-  // Debug mode builds will catch any memory leak below.
-  vector<unique_ptr<S2Loop>> loops;
-  auto polygon = make_unique<S2Polygon>(std::move(loops));
-  S2Polygon::OwningShape shape(std::move(polygon));
-}
-
-TEST(S2Polygon, PointInBigLoop) {
+@("S2Polygon.PointInBigLoop") unittest {
   // This code used to demonstrate a bug in S2ShapeIndex.
-  S2LatLng center = S2LatLng::FromRadians(0.3, 2);
-  S1Angle radius = S1Angle::Degrees(80);
-  S2Polygon poly(S2Loop::MakeRegularLoop(center.ToPoint(), radius, 10));
-  EXPECT_TRUE(poly.MayIntersect(S2Cell(S2CellId(center))));
+  S2LatLng center = S2LatLng.fromRadians(0.3, 2);
+  S1Angle radius = S1Angle.fromDegrees(80);
+  auto poly = new S2Polygon(S2Loop.makeRegularLoop(center.toS2Point(), radius, 10));
+  Assert.equal(poly.mayIntersect(new S2Cell(S2CellId(center))), true);
 }
 
-TEST(S2Polygon, Sizes) {
+@("S2Polygon.Sizes") unittest {
   // This isn't really a test.  It just prints the sizes of various classes.
-  LOG(INFO) << "sizeof(S2Loop): " << sizeof(S2Loop);
-  LOG(INFO) << "sizeof(S2Polygon): " << sizeof(S2Polygon);
-  LOG(INFO) << "sizeof(S2Polyline): " << sizeof(S2Polyline);
-  LOG(INFO) << "sizeof(MutableS2ShapeIndex): " << sizeof(MutableS2ShapeIndex);
-  LOG(INFO) << "sizeof(S2Polygon::Shape): " << sizeof(S2Polygon::Shape);
-  LOG(INFO) << "sizeof(S2Cell): " << sizeof(S2Cell);
-  LOG(INFO) << "sizeof(S2PaddedCell): " << sizeof(S2PaddedCell);
+  logger.logInfo("sizeof S2Loop: ", __traits(classInstanceSize, S2Loop));
+  logger.logInfo("sizeof S2Polygon: ", __traits(classInstanceSize, S2Polygon));
+  logger.logInfo("sizeof S2Polyline: ", __traits(classInstanceSize, S2Polyline));
+  logger.logInfo("sizeof MutableS2ShapeIndex: ", __traits(classInstanceSize, MutableS2ShapeIndex));
+  logger.logInfo("sizeof S2Polygon.Shape: ", __traits(classInstanceSize, S2Polygon.Shape));
+  logger.logInfo("sizeof S2Cell: ", __traits(classInstanceSize, S2Cell));
+  logger.logInfo("sizeof S2PaddedCell: ", __traits(classInstanceSize, S2PaddedCell));
 }
 
-TEST_F(S2PolygonTestBase, IndexContainsOnePolygonShape) {
-  const MutableS2ShapeIndex& index = near_0_->index();
-  ASSERT_EQ(1, index.num_shape_ids());
-  S2Polygon::Shape* shape = down_cast<S2Polygon::Shape*>(index.shape(0));
-  EXPECT_EQ(near_0_.get(), shape->polygon());
+@("S2PolygonTestBase.IndexContainsOnePolygonShape") unittest {
+  auto t = new S2PolygonTestBase();
+  const MutableS2ShapeIndex index = t._near0.index();
+  Assert.equal(index.numShapeIds(), 1);
+  S2Polygon.Shape shape = cast(S2Polygon.Shape)(index.shape(0));
+  Assert.equal(shape.polygon(), t._near0);
 }
 
-TEST_F(S2PolygonTestBase, PolygonPolygonDistance) {
+@("S2PolygonTestBase.PolygonPolygonDistance") unittest {
+  auto t = new S2PolygonTestBase();
   // Verify that the example code for S2Polygon::index() actually works.
-  S2Polygon const& polygon1 = *near_0_;
-  S2Polygon const& polygon2 = *far_10_;
-  S2ClosestEdgeQuery query(&polygon1.index());
-  S2ClosestEdgeQuery::ShapeIndexTarget target(&polygon2.index());
-  S1ChordAngle distance = query.GetDistance(&target);
-  EXPECT_GT(distance, S1ChordAngle(S1Angle::Degrees(175)));
+  S2Polygon polygon1 = t._near0;
+  S2Polygon polygon2 = t._far10;
+  auto query = new S2ClosestEdgeQuery(polygon1.index());
+  auto target = new S2ClosestEdgeQuery.ShapeIndexTarget(polygon2.index());
+  S1ChordAngle distance = query.getDistance(target);
+  Assert.lessThan(S1ChordAngle(S1Angle.fromDegrees(175)), distance);
 }
-
-+/
