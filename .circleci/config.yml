@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: dlanguage/dmd
+      - image: dlang2/dmd-circleci
 
     steps:
       - checkout
