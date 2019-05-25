@@ -222,7 +222,7 @@ public:
     // subregion_bound_ must be at least as large as bound_.  (This is an
     // internal consistency check rather than a test of client data.)
     assert(_subregionBound.contains(_bound));
-  } body {
+  } do {
     import s2.s2pointutil : isUnitLength;
     // All vertices must be unit length.  (Unfortunately this check happens too
     // late in debug mode, because S2Loop construction calls s2pred::Sign which
@@ -276,7 +276,7 @@ public:
   in {
     assert(i >= 0);
     assert(i < 2 * numVertices());
-  } body {
+  } do {
     int j = i - numVertices();
     return _vertices[j < 0 ? i : j];
   }
@@ -296,7 +296,7 @@ public:
   in {
     assert(i >= 0);
     assert(i < 2 * numVertices());
-  } body {
+  } do {
     int j = i - numVertices();
     if (j < 0) j = i;
     if (isHole()) j = numVertices() - 1 - j;
@@ -362,7 +362,7 @@ public:
   void normalize()
   out {
     assert(isNormalized());
-  } body {
+  } do {
     if (!isNormalized()) invert();
   }
 
@@ -1106,7 +1106,7 @@ public:
   in {
     assert(!isEmpty() && !b.isEmpty());
     assert(!b.isFull() || !b.isHole());
-  } body {
+  } do {
     // The bounds must intersect for containment or crossing.
     if (!_bound.intersects(b._bound)) return -1;
 
@@ -1139,7 +1139,7 @@ public:
   in {
     assert(!isEmpty() && !b.isEmpty());
     assert(!b.isFull() || !reverse_b);
-  } body {
+  } do {
     // The bounds must intersect for containment.
     if (!_bound.intersects(b._bound)) return false;
 
@@ -1212,7 +1212,7 @@ public:
     Chain chain(int i) const
     in {
       assert(i == 0);
-    } body {
+    } do {
       return Chain(0, numEdges());
     }
 
@@ -1220,7 +1220,7 @@ public:
     Edge chainEdge(int i, int j) const
     in {
       assert(i == 0);
-    } body {
+    } do {
       return Edge(_loop.vertex(j), _loop.vertex(j + 1));
     }
 
@@ -1466,7 +1466,7 @@ private:
   bool boundaryApproxIntersects(in MutableS2ShapeIndex.Iterator it, in S2Cell target) const
   in {
     assert(it.id().contains(target.id()));
-  } body {
+  } do {
     import s2.s2edge_clipping :
         clipToPaddedFace, intersectsRect, FACE_CLIP_ERROR_UV_COORD, INTERSECTS_RECT_ERROR_UV_DIST;
 
@@ -1949,7 +1949,7 @@ public:
   bool hasCrossingRelation(RangeIterator ai, RangeIterator bi)
   in {
     assert(ai.id().contains(bi.id()));
-  } body {
+  } do {
     if (ai.numEdges() == 0) {
       if (ai.containsCenter() == _aCrossingTarget) {
         // All points within ai->id() satisfy the crossing target for A, so it's
@@ -1991,7 +1991,7 @@ private:
   bool hasCrossing(RangeIterator ai, RangeIterator bi)
   in {
     assert(ai.id().contains(bi.id()));
-  } body {
+  } do {
     // If ai->id() intersects many edges of B, then it is faster to use
     // S2CrossingEdgeQuery to narrow down the candidates.  But if it intersects
     // only a few edges, it is faster to check all the crossings directly.

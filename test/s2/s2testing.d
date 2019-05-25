@@ -117,7 +117,7 @@ public:
     void setMaxLevel(int max_level)
     in {
       assert(max_level >= 0);
-    } body {
+    } do {
       _maxLevel = max_level;
       computeMinLevel();
     }
@@ -135,7 +135,7 @@ public:
     void setMinLevel(int min_level_arg)
     in {
       assert(min_level_arg >= -1);
-    } body {
+    } do {
       _minLevelArg = min_level_arg;
       computeMinLevel();
     }
@@ -165,7 +165,7 @@ public:
     in {
       assert(dimension >= 1.0);
       assert(dimension < 2.0);
-    } body {
+    } do {
       _dimension = dimension;
       computeOffsets();
     }
@@ -376,7 +376,7 @@ public:
     // point along the circle at that height.
 
     double h = rnd.randDouble() * cap.height();
-    double theta = 2 * math.PI * rnd.randDouble();
+    double theta = 2 * M_PI * rnd.randDouble();
     double r = math.sqrt(h * (2 - h));  // Radius of circle.
 
     // The result should already be very close to unit-length, but we might as
@@ -481,7 +481,7 @@ public:
   in {
     assert(num_bits >= 0);
     assert(num_bits <= 64);
-  } body {
+  } do {
     return rand64() & ((1uL << num_bits) - 1);
   }
 
@@ -524,7 +524,7 @@ public:
   in {
     assert(max_log >= 0);
     assert(max_log <= 31);
-  } body {
+  } do {
     int base = uniform(max_log + 1);
     return cast(int) getBits(31) & ((1u << base) - 1);
   }

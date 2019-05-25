@@ -254,23 +254,23 @@ unittest {
 
   // Cases where the bound does not straddle the equator (but almost does),
   // and spans nearly 180 degrees in longitude.
-  Assert.equal(getSubregionBound(3e-16, 0, 1e-14, PI).isFull(), true);
-  Assert.equal(getSubregionBound(9e-16, 0, 1e-14, PI).isFull(), false);
-  Assert.equal(getSubregionBound(1e-16, 7e-16, 1e-14, PI).isFull(), true);
-  Assert.equal(getSubregionBound(3e-16, 14e-16, 1e-14, PI).isFull(), false);
-  Assert.equal(getSubregionBound(1e-100, 14e-16, 1e-14, PI).isFull(), true);
-  Assert.equal(getSubregionBound(1e-100, 22e-16, 1e-14, PI).isFull(), false);
+  Assert.equal(getSubregionBound(3e-16, 0, 1e-14, M_PI).isFull(), true);
+  Assert.equal(getSubregionBound(9e-16, 0, 1e-14, M_PI).isFull(), false);
+  Assert.equal(getSubregionBound(1e-16, 7e-16, 1e-14, M_PI).isFull(), true);
+  Assert.equal(getSubregionBound(3e-16, 14e-16, 1e-14, M_PI).isFull(), false);
+  Assert.equal(getSubregionBound(1e-100, 14e-16, 1e-14, M_PI).isFull(), true);
+  Assert.equal(getSubregionBound(1e-100, 22e-16, 1e-14, M_PI).isFull(), false);
 
   // Cases where the bound spans at most 90 degrees in longitude, and almost
   // 180 degrees in latitude.  Note that DBL_EPSILON is about 2.22e-16, which
   // implies that the double-precision value just below Pi/2 can be written as
-  // (M_PI_2 - 2e-16).
-  Assert.equal(getSubregionBound(-PI_2, -1e-15, PI_2 - 7e-16, 0).isFull(), true);
-  Assert.equal(getSubregionBound(-PI_2, -1e-15, PI_2 - 30e-16, 0).isFull(), false);
-  Assert.equal(getSubregionBound(-PI_2 + 4e-16, 0, PI_2 - 2e-16, 1e-7).isFull(), true);
-  Assert.equal(getSubregionBound(-PI_2 + 30e-16, 0, PI_2, 1e-7).isFull(), false);
-  Assert.equal(getSubregionBound(-PI_2 + 4e-16, 0, PI_2 - 4e-16, PI_2).isFull(), true);
-  Assert.equal(getSubregionBound(-PI_2, 0, PI_2 - 30e-16, PI_2).isFull(), false);
+  // (M_M_PI_2 - 2e-16).
+  Assert.equal(getSubregionBound(-M_PI_2, -1e-15, M_PI_2 - 7e-16, 0).isFull(), true);
+  Assert.equal(getSubregionBound(-M_PI_2, -1e-15, M_PI_2 - 30e-16, 0).isFull(), false);
+  Assert.equal(getSubregionBound(-M_PI_2 + 4e-16, 0, M_PI_2 - 2e-16, 1e-7).isFull(), true);
+  Assert.equal(getSubregionBound(-M_PI_2 + 30e-16, 0, M_PI_2, 1e-7).isFull(), false);
+  Assert.equal(getSubregionBound(-M_PI_2 + 4e-16, 0, M_PI_2 - 4e-16, M_PI_2).isFull(), true);
+  Assert.equal(getSubregionBound(-M_PI_2, 0, M_PI_2 - 30e-16, M_PI_2).isFull(), false);
 
   // Cases where the bound straddles the equator and spans more than 90
   // degrees in longitude.  These are the cases where the critical distance is
@@ -278,21 +278,21 @@ unittest {
   // the cases above, here the bound may contain nearly-antipodal points (to
   // within 3.055 * DBL_EPSILON) even though the latitude and longitude ranges
   // are both significantly less than (Pi - 3.055 * DBL_EPSILON).
-  Assert.equal(getSubregionBound(-PI_2, 0, PI_2 - 1e-8, PI - 1e-7).isFull(), true);
-  Assert.equal(getSubregionBound(-PI_2, 0, PI_2 - 1e-7, PI - 1e-7).isFull(), false);
-  Assert.equal(getSubregionBound(-PI_2 + 1e-12, -PI + 1e-4, PI_2, 0).isFull(), true);
-  Assert.equal(getSubregionBound(-PI_2 + 1e-11, -PI + 1e-4, PI_2, 0).isFull(), true);
+  Assert.equal(getSubregionBound(-M_PI_2, 0, M_PI_2 - 1e-8, M_PI - 1e-7).isFull(), true);
+  Assert.equal(getSubregionBound(-M_PI_2, 0, M_PI_2 - 1e-7, M_PI - 1e-7).isFull(), false);
+  Assert.equal(getSubregionBound(-M_PI_2 + 1e-12, -M_PI + 1e-4, M_PI_2, 0).isFull(), true);
+  Assert.equal(getSubregionBound(-M_PI_2 + 1e-11, -M_PI + 1e-4, M_PI_2, 0).isFull(), true);
 
   // Now we test cases where the bound does not contain nearly-antipodal
   // points, but it does contain points that are approximately 180 degrees
   // apart in latitude.
   Assert.equal(
-      getSubregionBound(1.5, -PI_2, 1.5, PI_2 - 2e-16).approxEquals(
+      getSubregionBound(1.5, -M_PI_2, 1.5, M_PI_2 - 2e-16).approxEquals(
           new S2LatLngRect(R1Interval(1.5, 1.5), S1Interval.full()), kRectError),
       true);
   Assert.equal(
-      getSubregionBound(1.5, -PI_2, 1.5, PI_2 - 7e-16).approxEquals(
-          new S2LatLngRect(R1Interval(1.5, 1.5), S1Interval(-PI_2, PI_2 - 7e-16)), kRectError),
+      getSubregionBound(1.5, -M_PI_2, 1.5, M_PI_2 - 7e-16).approxEquals(
+          new S2LatLngRect(R1Interval(1.5, 1.5), S1Interval(-M_PI_2, M_PI_2 - 7e-16)), kRectError),
       true);
 
   // Test the full and empty bounds.
@@ -301,11 +301,11 @@ unittest {
 
   // Check for cases where the bound is expanded to include one of the poles.
   Assert.equal(
-      getSubregionBound(-PI_2 + 1e-15, 0, -PI_2 + 1e-15, 0).approxEquals(
-          new S2LatLngRect(R1Interval(-PI_2, -PI_2 + 1e-15), S1Interval.full()), kRectError),
+      getSubregionBound(-M_PI_2 + 1e-15, 0, -M_PI_2 + 1e-15, 0).approxEquals(
+          new S2LatLngRect(R1Interval(-M_PI_2, -M_PI_2 + 1e-15), S1Interval.full()), kRectError),
       true);
   Assert.equal(
-      getSubregionBound(PI_2 - 1e-15, 0, PI_2 - 1e-15, 0).approxEquals(
-          new S2LatLngRect(R1Interval(PI_2 - 1e-15, PI_2), S1Interval.full()), kRectError),
+      getSubregionBound(M_PI_2 - 1e-15, 0, M_PI_2 - 1e-15, 0).approxEquals(
+          new S2LatLngRect(R1Interval(M_PI_2 - 1e-15, M_PI_2), S1Interval.full()), kRectError),
       true);
 }

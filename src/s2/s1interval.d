@@ -21,6 +21,7 @@ import s2.util.math.vector;
 import algorithm = std.algorithm;
 import conv = std.conv;
 import math = std.math;
+import s2.util.math.s2const;
 
 // An S1Interval represents a closed interval on a unit circle (also known
 // as a 1-dimensional sphere).  It is capable of representing the empty
@@ -50,7 +51,7 @@ private:
   this(double lo, double hi, ArgsChecked dummy)
   out {
     assert(isValid());
-  } body {
+  } do {
     _bounds = Vector2_d(lo, hi);
   }
 
@@ -75,11 +76,10 @@ private:
     }
     // We want to ensure that if b == Pi and a == (-Pi + eps),
     // the return result is approximately 2*Pi and not zero.
-    return (b + PI) - (a - PI);
+    return (b + M_PI) - (a - M_PI);
   }
 
-  enum double PI = conv.to!double(math.PI);
-  Vector2_d _bounds = Vector2_d(PI, -PI);
+  Vector2_d _bounds = Vector2_d(M_PI, -M_PI);
 
 public:
   // Constructor.  Both endpoints must be in the range -Pi to Pi inclusive.
@@ -88,13 +88,13 @@ public:
   this(double lo, double hi)
   out {
     assert(isValid());
-  } body {
+  } do {
     _bounds = Vector2_d(lo, hi);
-    if (lo == -PI && hi != PI) {
-      setLo(PI);
+    if (lo == -M_PI && hi != M_PI) {
+      setLo(M_PI);
     }
-    if (hi == -PI && lo != PI) {
-      setHi(PI);
+    if (hi == -M_PI && lo != M_PI) {
+      setHi(M_PI);
     }
   }
 
@@ -105,13 +105,13 @@ public:
 
   // Returns the full interval.
   static S1Interval full() {
-    return S1Interval(-PI, PI, ArgsChecked.ARGS_CHECKED);
+    return S1Interval(-M_PI, M_PI, ArgsChecked.ARGS_CHECKED);
   }
 
   // Convenience method to construct an interval containing a single point.
   static S1Interval fromPoint(double p) {
-    if (p == -PI) {
-      p = PI;
+    if (p == -M_PI) {
+      p = M_PI;
     }
     return S1Interval(p, p, ArgsChecked.ARGS_CHECKED);
   }
@@ -121,16 +121,16 @@ public:
   // interval and calling AddPoint() twice, but it is more efficient.
   static S1Interval fromPointPair(double p1, double p2)
   in {
-    assert(math.fabs(p1) <= PI);
-    assert(math.fabs(p2) <= PI);
-  } body {
-    if (p1 == -PI) {
-      p1 = PI;
+    assert(math.fabs(p1) <= M_PI);
+    assert(math.fabs(p2) <= M_PI);
+  } do {
+    if (p1 == -M_PI) {
+      p1 = M_PI;
     }
-    if (p2 == -PI) {
-      p2 = PI;
+    if (p2 == -M_PI) {
+      p2 = M_PI;
     }
-    if (positiveDistance(p1, p2) <= PI) {
+    if (positiveDistance(p1, p2) <= M_PI) {
       return S1Interval(p1, p2, ArgsChecked.ARGS_CHECKED);
     } else {
       return S1Interval(p2, p1, ArgsChecked.ARGS_CHECKED);
@@ -166,19 +166,19 @@ public:
   // An interval is valid if neither bound exceeds Pi in absolute value,
   // and the value -Pi appears only in the Empty() and Full() intervals.
   bool isValid() const {
-    return (math.fabs(lo()) <= PI && math.fabs(hi()) <= PI
-        && !(lo() == -PI && hi() != PI)
-        && !(hi() == -PI && lo() != PI));
+    return (math.fabs(lo()) <= M_PI && math.fabs(hi()) <= M_PI
+        && !(lo() == -M_PI && hi() != M_PI)
+        && !(hi() == -M_PI && lo() != M_PI));
   }
 
   // Return true if the interval contains all points on the unit circle.
   bool isFull() const {
-    return lo() == -PI && hi() == PI;
+    return lo() == -M_PI && hi() == M_PI;
   }
 
   // Return true if the interval is empty, i.e. it contains no points.
   bool isEmpty() const {
-    return lo() == PI && hi() == -PI;
+    return lo() == M_PI && hi() == -M_PI;
   }
 
   // Return true if lo() > hi().  (This is true for empty intervals.)
@@ -194,7 +194,7 @@ public:
       return center;
     }
     // Return the center in the range (-Pi, Pi].
-    return (center <= 0) ? (center + PI) : (center - PI);
+    return (center <= 0) ? (center + M_PI) : (center - M_PI);
   }
 
   // Return the length of the interval.  The length of an empty interval
@@ -204,7 +204,7 @@ public:
     if (length >= 0) {
       return length;
     }
-    length += 2 * PI;
+    length += 2 * M_PI;
     // Empty intervals have a negative length.
     return (length > 0) ? length : -1;
   }
@@ -228,7 +228,7 @@ public:
     if (lo() != hi()) {
       return complement().getCenter();
     } else {  // Singleton.
-      return (hi() <= 0) ? (hi() + PI) : (hi() - PI);
+      return (hi() <= 0) ? (hi() + M_PI) : (hi() - M_PI);
     }
   }
 
@@ -236,10 +236,10 @@ public:
   bool contains(double p) const
   in {
     // Works for empty, full, and singleton intervals.
-    assert(math.fabs(p) <= PI);
-  } body {
-    if (p == -PI) {
-      p = PI;
+    assert(math.fabs(p) <= M_PI);
+  } do {
+    if (p == -M_PI) {
+      p = M_PI;
     }
     return fastContains(p);
   }
@@ -248,10 +248,10 @@ public:
   bool interiorContains(double p) const
   in {
     // Works for empty, full, and singleton intervals.
-    assert(math.fabs(p) <= PI);
-  } body {
-    if (p == -PI) {
-      p = PI;
+    assert(math.fabs(p) <= M_PI);
+  } do {
+    if (p == -M_PI) {
+      p = M_PI;
     }
 
     if (isInverted()) {
@@ -339,12 +339,12 @@ public:
   double getDirectedHausdorffDistance(in S1Interval y) const
   out (distance) {
     assert(distance >= 0);
-  } body {
+  } do {
     if (y.contains(this)) {
       return 0.0;  // this includes the case this is empty
     }
     if (y.isEmpty()) {
-      return PI;  // maximum possible distance on S1
+      return M_PI;  // maximum possible distance on S1
     }
 
     double y_complement_center = y.getComplementCenter();
@@ -365,10 +365,10 @@ public:
   // contains the given point "p" (an angle in the range [-Pi, Pi]).
   void addPoint(double p)
   in {
-    assert(math.fabs(p) <= PI);
-  } body {
-    if (p == -PI) {
-      p = PI;
+    assert(math.fabs(p) <= M_PI);
+  } do {
+    if (p == -M_PI) {
+      p = M_PI;
     }
 
     if (fastContains(p)) {
@@ -395,10 +395,10 @@ public:
   double project(double p) const
   in {
     assert(!isEmpty());
-    assert(math.fabs(p) <= PI);
-  } body {
-    if (p == -PI) {
-      p = PI;
+    assert(math.fabs(p) <= M_PI);
+  } do {
+    if (p == -M_PI) {
+      p = M_PI;
     }
     if (fastContains(p)) {
       return p;
@@ -421,7 +421,7 @@ public:
       }
       // Check whether this interval will be full after expansion, allowing
       // for a 1-bit rounding error when computing each endpoint.
-      if (getLength() + 2 * margin + 2 * double.epsilon >= 2 * PI) {
+      if (getLength() + 2 * margin + 2 * double.epsilon >= 2 * M_PI) {
         return full();
       }
     } else {
@@ -434,10 +434,10 @@ public:
         return empty();
       }
     }
-    S1Interval result = S1Interval(math.remainder(lo() - margin, 2 * PI),
-        math.remainder(hi() + margin, 2 * PI));
-    if (result.lo() <= -PI) {
-      result.setLo(PI);
+    S1Interval result = S1Interval(math.remainder(lo() - margin, 2 * M_PI),
+        math.remainder(hi() + margin, 2 * M_PI));
+    if (result.lo() <= -M_PI) {
+      result.setLo(M_PI);
     }
     return result;
   }
@@ -543,16 +543,16 @@ public:
       return getLength() <= 2 * max_error;
     }
     if (isFull()) {
-      return y.getLength() >= 2 * (PI - max_error);
+      return y.getLength() >= 2 * (M_PI - max_error);
     }
     if (y.isFull()) {
-      return getLength() >= 2 * (PI - max_error);
+      return getLength() >= 2 * (M_PI - max_error);
     }
 
     // The purpose of the last test below is to verify that moving the endpoints
     // does not invert the interval, e.g. [-1e20, 1e20] vs. [1e20, -1e20].
-    return (math.fabs(math.remainder(y.lo() - lo(), 2 * PI)) <= max_error
-        && math.fabs(math.remainder(y.hi() - hi(), 2 * PI)) <= max_error
+    return (math.fabs(math.remainder(y.lo() - lo(), 2 * M_PI)) <= max_error
+        && math.fabs(math.remainder(y.hi() - hi(), 2 * M_PI)) <= max_error
         && math.fabs(getLength() - y.getLength()) <= 2 * max_error);
   }
 
@@ -571,14 +571,14 @@ public:
   void setLo(double p)
   out {
     assert(isValid());
-  } body {
+  } do {
     _bounds[0] = p;
   }
 
   void setHi(double p)
   out {
     assert(isValid());
-  } body {
+  } do {
     _bounds[1] = p;
   }
 

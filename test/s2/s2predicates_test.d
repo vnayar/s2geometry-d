@@ -764,7 +764,7 @@ unittest {
       S1ChordAngle.fromRadians(1e-7), -1, Precision.DOUBLE);
   testCompareDistance!CosDistance(
       S2Point(1, 0, 0), S2Point(-1, 1e-8, 0),
-      S1ChordAngle.fromRadians(math.PI - 1e-7), 1, Precision.DOUBLE);
+      S1ChordAngle.fromRadians(M_PI - 1e-7), 1, Precision.DOUBLE);
   testCompareDistance!CosDistance(
       S2Point(1, 1, 0), S2Point(1, -1 - 2 * double.epsilon, 0),
       S1ChordAngle.right(), 1, Precision.DOUBLE);
@@ -933,7 +933,7 @@ unittest {
   for (int iter = 0; iter < CONSISTENCY_ITERS; ++iter) {
     rnd.reset(iter + 1);  // Easier to reproduce a specific case.
     S2Point a0 = choosePoint();
-    S1Angle len = S1Angle.fromRadians(math.PI * math.pow(1e-20, rnd.randDouble()));
+    S1Angle len = S1Angle.fromRadians(M_PI * math.pow(1e-20, rnd.randDouble()));
     S2Point a1 = interpolateAtDistance(len, a0, choosePoint());
     if (rnd.oneIn(2)) a1 = -a1;
     if (a0 == -a1) continue;  // Not allowed by API.
@@ -1046,11 +1046,11 @@ unittest {
   for (int iter = 0; iter < CONSISTENCY_ITERS; ++iter) {
     rnd.reset(iter + 1);  // Easier to reproduce a specific case.
     S2Point a0 = choosePoint();
-    S1Angle a_len = S1Angle.fromRadians(math.PI * math.pow(1e-20, rnd.randDouble()));
+    S1Angle a_len = S1Angle.fromRadians(M_PI * math.pow(1e-20, rnd.randDouble()));
     S2Point a1 = interpolateAtDistance(a_len, a0, choosePoint());
     S2Point a_norm = robustCrossProd(a0, a1).normalize();
     S2Point b0 = choosePoint();
-    S1Angle b_len = S1Angle.fromRadians(math.PI * math.pow(1e-20, rnd.randDouble()));
+    S1Angle b_len = S1Angle.fromRadians(M_PI * math.pow(1e-20, rnd.randDouble()));
     S2Point b1 = interpolateAtDistance(b_len, b0, a_norm);
     if (a0 == -a1 || b0 == -b1) continue;  // Not allowed by API.
     Precision prec = testCompareEdgeDirectionsConsistency(a0, a1, b0, b1);
@@ -1203,7 +1203,7 @@ unittest {
     double c0 = (rnd.oneIn(2) ? -1 : 1) * math.pow(1e-20, rnd.randDouble());
     double c1 = (rnd.oneIn(2) ? -1 : 1) * math.pow(1e-20, rnd.randDouble());
     S2Point z = (c0 * x0 + c1 * x1).normalize();
-    S1Angle r = S1Angle.fromRadians(math.PI * math.pow(1e-30, rnd.randDouble()));
+    S1Angle r = S1Angle.fromRadians(M_PI * math.pow(1e-30, rnd.randDouble()));
     S2Point a = interpolateAtDistance(r, z, choosePoint());
     S2Point b = interpolateAtDistance(r, z, choosePoint());
     S2Point c = interpolateAtDistance(r, z, choosePoint());

@@ -62,7 +62,7 @@ public:
   S2Shape.Edge edge() const
   in {
     assert(!done());
-  } body {
+  } do {
     return _index.shape(_shapeId).edge(_edgeId);
   }
 

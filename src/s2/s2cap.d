@@ -141,10 +141,10 @@ public:
   this(in S2Point center, S1Angle radius)
   out {
     assert(isValid());
-  } body {
+  } do {
     _center = center;
     // The "min" calculation is necessary to handle S1Angle::Infinity().
-    _radius = algorithm.min(radius, S1Angle.fromRadians(math.PI));
+    _radius = algorithm.min(radius, S1Angle.fromRadians(M_PI));
   }
 
   // Constructs a cap where the angle is expressed as an S1ChordAngle.  This
@@ -152,7 +152,7 @@ public:
   this(in S2Point center, S1ChordAngle radius)
   out {
     assert(isValid());
-  } body {
+  } do {
     _center = center;
     _radius = radius;
   }
@@ -177,7 +177,7 @@ public:
   // the sphere has unit radius).  A negative area yields an empty cap; an
   // area of 4*Pi or more yields a full cap.  "center" should be unit length.
   static S2Cap fromCenterArea(in S2Point center, double area) {
-    return new S2Cap(center, S1ChordAngle.fromLength2(area / math.PI));
+    return new S2Cap(center, S1ChordAngle.fromLength2(area / M_PI));
   }
 
   // Return an empty cap, i.e. a cap that contains no points.
@@ -217,7 +217,7 @@ public:
 
   // Return the area of the cap.
   double getArea() const {
-    return 2 * math.PI * algorithm.max(0.0, height());
+    return 2 * M_PI * algorithm.max(0.0, height());
   }
 
   // Return the true centroid of the cap multiplied by its surface area (see
@@ -317,7 +317,7 @@ public:
   bool interiorContains(in S2Point p) const
   in {
     assert(s2pointutil.isUnitLength(p));
-  } body {
+  } do {
     return isFull() || S1ChordAngle(_center, p) < _radius;
   }
 
@@ -328,7 +328,7 @@ public:
   in {
     // Compute the squared chord length, then convert it into a height.
     assert(s2pointutil.isUnitLength(p));
-  } body {
+  } do {
     if (isEmpty()) {
       _center = p;
       _radius = S1ChordAngle.zero();
@@ -359,7 +359,7 @@ public:
   S2Cap expanded(S1Angle distance) const
   in {
     assert(distance.radians() >= 0);
-  } body {
+  } do {
     if (isEmpty()) {
       return empty();
     }
@@ -416,8 +416,8 @@ public:
     bool all_longitudes = false;
     double[2] lat;
     double[2] lng;
-    lng[0] = -math.PI;
-    lng[1] = math.PI;
+    lng[0] = -M_PI;
+    lng[1] = M_PI;
 
     // Check whether cap includes the south pole.
     lat[0] = center_ll.lat().radians() - cap_angle;
@@ -447,8 +447,8 @@ public:
       double sin_c = math.cos(center_ll.lat().radians());
       if (sin_a <= sin_c) {
         double angle_A = math.asin(sin_a / sin_c);
-        lng[0] = math.remainder(center_ll.lng().radians() - angle_A, 2 * math.PI);
-        lng[1] = math.remainder(center_ll.lng().radians() + angle_A, 2 * math.PI);
+        lng[0] = math.remainder(center_ll.lng().radians() - angle_A, 2 * M_PI);
+        lng[1] = math.remainder(center_ll.lng().radians() + angle_A, 2 * M_PI);
       }
     }
     return new S2LatLngRect(R1Interval(lat[0], lat[1]), S1Interval(lng[0], lng[1]));
@@ -514,7 +514,7 @@ public:
   bool contains(in S2Point p) const
   in {
     assert(s2pointutil.isUnitLength(p));
-  } body {
+  } do {
     return S1ChordAngle(_center, p) <= _radius;
   }
 

@@ -17,6 +17,7 @@
 module s2.util.math.matrix3x3;
 
 import s2.util.math.mathutil;
+import s2.util.math.s2const;
 import s2.util.math.vector;
 import mathutil = s2.util.math.mathutil;
 import conv = std.conv;
@@ -224,7 +225,7 @@ public:
   in {
     assert(i >= 0 && i < 3);
     assert(j >= 0 && j < 3);
-  } body {
+  } do {
     return _m[i][j];
   }
 
@@ -232,7 +233,7 @@ public:
   in {
     assert(i >= 0 && i < 3);
     assert(j >= 0 && j < 3);
-  } body {
+  } do {
     _m[i][j] = value;
   }
 
@@ -240,14 +241,14 @@ public:
   ElemT opIndex(in size_t i)
   in {
     assert(i >= 0 && i < 9);
-  } body {
+  } do {
     return _m[i/3][i%3];
   }
 
   ElemT opIndexAssign(ElemT value, in size_t i)
   in {
     assert(i >= 0 && i < 9);
-  } body {
+  } do {
     return _m[i/3][i%3] = value;
   }
 
@@ -287,7 +288,7 @@ public:
   VectorT row(in int i) const
   in {
     assert(i >= 0 && i < 3);
-  } body {
+  } do {
     return VectorT(_m[i][0], _m[i][1], _m[i][2]);
   }
 
@@ -295,7 +296,7 @@ public:
   VectorT col(in int i) const
   in {
     assert(i >= 0 && i < 3);
-  } body {
+  } do {
     return VectorT(_m[0][i], _m[1][i], _m[2][i]);
   }
 
@@ -323,7 +324,7 @@ public:
   void setRow(int i, in VectorT v1)
   in {
     assert(i >= 0 && i < 3);
-  } body {
+  } do {
     _m[i][0] = v1[0];
     _m[i][1] = v1[1];
     _m[i][2] = v1[2];
@@ -333,7 +334,7 @@ public:
   void setCol(int i, in VectorT v1)
   in {
     assert(i >= 0 && i < 3);
-  } body {
+  } do {
     _m[0][i] = v1[0];
     _m[1][i] = v1[1];
     _m[2][i] = v1[2];
@@ -476,8 +477,8 @@ public:
       double theta = math.acos(r / math.sqrt(q * q * q));
       double c2_3 = c2 / 3;
       eig_val[0] = conv.to!ElemT(sqrt_q * math.cos(theta / 3.0) - c2_3);
-      eig_val[1] = conv.to!ElemT(sqrt_q * math.cos((theta + 2.0 * math.PI)/3.0) - c2_3);
-      eig_val[2] = conv.to!ElemT(sqrt_q * math.cos((theta - 2.0 * math.PI)/3.0) - c2_3);
+      eig_val[1] = conv.to!ElemT(sqrt_q * math.cos((theta + 2.0 * M_PI)/3.0) - c2_3);
+      eig_val[2] = conv.to!ElemT(sqrt_q * math.cos((theta - 2.0 * M_PI)/3.0) - c2_3);
 
       // Sort eigen value in decreasing order
       Vector3!int d_order = eig_val.componentOrder();
@@ -545,7 +546,7 @@ public:
         val ~= " ";
       }
       for (j = 0; j < 3; j++) {
-        /**/val ~= format("%.15G", _m[i][j]) ~ " ";
+        val ~= conv.to!string(_m[i][j]) ~ " ";
       }
       if (i == 2) {
         val ~= "]";

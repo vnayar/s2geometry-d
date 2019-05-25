@@ -65,14 +65,14 @@ public:
   out {
     // The latitude and longitude are already normalized.
     assert(isValid(), "Invalid S2LatLng in constructor: " ~ this.toString());
-  } body {
+  } do {
     _coords = R2Point([latitude(p).radians(), longitude(p).radians]);
   }
 
   // Returns an S2LatLng for which isValid() will return false.
   static S2LatLng invalid() {
     // These coordinates are outside the bounds allowed by is_valid().
-    return S2LatLng(math.PI, 2 * math.PI);
+    return S2LatLng(M_PI, 2 * M_PI);
   }
 
   // Convenience functions -- shorter than calling S1Angle::Radians(), etc.
@@ -136,7 +136,7 @@ public:
   // Return true if the latitude is between -90 and 90 degrees inclusive
   // and the longitude is between -180 and 180 degrees inclusive.
   bool isValid() const {
-    return math.fabs(lat().radians()) <= math.PI_2 && math.fabs(lng().radians()) <= math.PI;
+    return math.fabs(lat().radians()) <= M_PI_2 && math.fabs(lng().radians()) <= M_PI;
   }
 
   // Clamps the latitude to the range [-90, 90] degrees, and adds or subtracts
@@ -146,8 +146,8 @@ public:
     // remainder(x, 2 * M_PI) reduces its argument to the range [-M_PI, M_PI]
     // inclusive, which is what we want here.
     return S2LatLng(
-        algorithm.max(-math.PI_2, algorithm.min(math.PI_2, lat().radians())),
-        math.remainder(lng().radians(), 2 * math.PI));
+        algorithm.max(-M_PI_2, algorithm.min(M_PI_2, lat().radians())),
+        math.remainder(lng().radians(), 2 * M_PI));
   }
 
   // Converts a normalized S2LatLng to the equivalent unit-length vector.
@@ -174,7 +174,7 @@ public:
   in {
     assert(isValid(), "Invalid S2LatLng in S2LatLng.getDistance: " ~ toString());
     assert(o.isValid(), "Invalid S2LatLng in S2LatLng.getDistance: " ~ o.toString());
-  } body {
+  } do {
     // This implements the Haversine formula, which is numerically stable for
     // small distances but only gets about 8 digits of precision for very large
     // distances (e.g. antipodal points).  Note that 8 digits is still accurate

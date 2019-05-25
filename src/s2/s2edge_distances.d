@@ -85,7 +85,7 @@ bool alwaysUpdateMinDistance(bool alwaysUpdate)(
     in S2Point x, in S2Point a, in S2Point b, ref S1ChordAngle min_dist)
 in {
   assert(isUnitLength(x) && isUnitLength(a) && isUnitLength(b));
-} body {
+} do {
   double xa2 = (x-a).norm2();
   double xb2 = (x-b).norm2();
   if (alwaysUpdateMinInteriorDistance!(alwaysUpdate)(x, a, b, xa2, xb2, min_dist)) {
@@ -195,7 +195,7 @@ in {
   assert(isUnitLength(a));
   assert(isUnitLength(b));
   assert(isUnitLength(x));
-} body {
+} do {
   // Find the closest point to X along the great circle through AB.
   S2Point p = x - (x.dotProd(a_cross_b) / a_cross_b.norm2()) * a_cross_b;
 
@@ -236,7 +236,7 @@ S2Point interpolateAtDistance(S1Angle ax_angle, in S2Point a, in S2Point b)
 in {
   assert(isUnitLength(a));
   assert(isUnitLength(b));
-} body {
+} do {
   double ax = ax_angle.radians();
 
   // Use RobustCrossProd() to compute the tangent vector at A towards B.  The
@@ -303,9 +303,9 @@ bool updateEdgePairMinDistance(
 // Requires that tolerance is less than 90 degrees.
 bool isEdgeBNearEdgeA(in S2Point a0, in S2Point a1, in S2Point b0, in S2Point b1, S1Angle tolerance)
 in {
-  assert(tolerance.radians() < math.PI / 2);
+  assert(tolerance.radians() < M_PI / 2);
   assert(tolerance.radians() > 0);
-} body {
+} do {
   // The point on edge B=b0b1 furthest from edge A=a0a1 is either b0, b1, or
   // some interior point on B.  If it is an interior point on B, then it must be
   // one of the two points where the great circle containing B (circ(B)) is
@@ -361,7 +361,7 @@ in {
   // The logic applies when planar_angle is robustly greater than M_PI/2, but
   // may be more computationally expensive than the logic beyond, so we choose a
   // value close to M_PI.
-  if (planar_angle >= S1Angle.fromRadians(math.PI - 0.01)) {
+  if (planar_angle >= S1Angle.fromRadians(M_PI - 0.01)) {
     return (S1Angle(b0, a0) < S1Angle(b0, a1)) == (S1Angle(b1, a0) < S1Angle(b1, a1));
   }
 
@@ -408,7 +408,7 @@ in {
   assert(isUnitLength(x) && isUnitLength(a) && isUnitLength(b));
   assert(xa2 == (x-a).norm2());
   assert(xb2 == (x-b).norm2());
-} body {
+} do {
 
   // The closest point on AB could either be one of the two vertices (the
   // "vertex case") or in the interior (the "interior case").  Let C = A x B.

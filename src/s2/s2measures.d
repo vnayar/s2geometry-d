@@ -78,7 +78,7 @@ in {
   assert(s2pointutil.isUnitLength(a));
   assert(s2pointutil.isUnitLength(b));
   assert(s2pointutil.isUnitLength(c));
-} body {
+} do {
   // This method is based on l'Huilier's theorem,
   //
   //   tan(E/4) = sqrt(tan(s/2) tan((s-a)/2) tan((s-b)/2) tan((s-c)/2))

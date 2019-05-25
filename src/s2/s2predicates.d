@@ -188,7 +188,7 @@ in {
   // converting the inputs to the multi-precision representation, and this
   // also lets us re-use the result of the cross product B x C.
   assert(a < b && b < c);
-} body {
+} do {
   // Every input coordinate x[i] is assigned a symbolic perturbation dx[i].
   // We then compute the sign of the determinant of the perturbed points,
   // i.e.
@@ -362,7 +362,7 @@ int triageCompareCosDistance(T)(in Vector!(T, 3) x, in Vector!(T, 3) y, T r2) {
 int triageCompareSin2Distance(T)(in Vector!(T, 3) x, in Vector!(T, 3) y, T r2)
 in {
   assert(r2 < 2.0); // Only valid for distance limits < 90 degrees.
-} body {
+} do {
   T T_ERR = roundingEpsilon!T();
   T sin2_xy_error;
   T sin2_xy = getSin2Distance(x, y, sin2_xy_error);
@@ -648,7 +648,7 @@ in {
   // Check that the edge does not consist of antipodal points.  (This catches
   // the most common case -- the full test is in ExactCompareEdgeDistance.)
   assert(a0 != -a1);
-} body {
+} do {
   int sign = triageCompareEdgeDistance(x, a0, a1, r.length2());
   if (sign != 0) {
     return sign;
@@ -691,7 +691,7 @@ in {
   // common case -- the full test is in ExactCompareEdgeDirections.)
   assert(a0 != -a1);
   assert(b0 != -b1);
-} body {
+} do {
   int sign = triageCompareEdgeDirections(a0, a1, b0, b1);
   if (sign != 0) {
     return sign;
@@ -1162,7 +1162,7 @@ Excluded exactVoronoiSiteExclusion(
     in ExactFloat r2)
 in {
   assert(!arePointsAntipodal(x0, x1));
-} body {
+} do {
 
   // Recall that one site excludes the other if
   //
@@ -1315,7 +1315,7 @@ in {
   // Check that the edge does not consist of antipodal points.  (This catches
   // the most common case -- the full test is in ExactVoronoiSiteExclusion.)
   assert(x0 != -x1);
-} body {
+} do {
 
   // If one site is closer than the other to both endpoints of X, then it is
   // closer to every point on X.  Note that this also handles the case where A
@@ -1367,7 +1367,7 @@ package int exactCompareEdgeDirections(
 in {
   assert(!arePointsAntipodal(a0, a1));
   assert(!arePointsAntipodal(b0, b1));
-} body {
+} do {
   return a0.crossProd(a1).dotProd(b0.crossProd(b1)).sign();
 }
 
@@ -1392,7 +1392,7 @@ in {
   // Check that the edge does not consist of antipodal points.  (This catches
   // the most common case -- the full test is in ExactEdgeCircumcenterSign.)
   assert(x0 != -x1);
-} body {
+} do {
   int abc_sign = sign(a, b, c);
   int sign = triageEdgeCircumcenterSign(x0, x1, a, b, c, abc_sign);
   if (sign != 0) {
@@ -1542,7 +1542,7 @@ int expensiveSign(in S2Point a, in S2Point b, in S2Point c, bool perturb = true)
 package int exactSign(in S2Point a, in S2Point b, in S2Point c, bool perturb)
 in {
   assert(a != b && b != c && c != a);
-} body {
+} do {
   // Sort the three points in lexicographic order, keeping track of the sign
   // of the permutation.  (Each exchange inverts the sign of the determinant.)
   int perm_sign = 1;

@@ -321,7 +321,7 @@ public:
     // defined for end-iterators, i.e. S2CellId::End(kLevel).  However there is
     // no good way to define S2CellId::None().level(), so we do prohibit that.
     assert(_id != 0);
-  } body {
+  } do {
     // A special case for leaf cells is not worthwhile.
     return MAX_LEVEL - (bitop.bsf(_id) >> 1);
   }
@@ -364,7 +364,7 @@ public:
     assert(isValid());
     assert(level >=  1);
     assert(level <= this.level());
-  } body {
+  } do {
     return cast(int)(_id >> (2 * (MAX_LEVEL - level) + 1)) & 3;
   }
 
@@ -406,7 +406,7 @@ public:
   in {
     assert(isValid(), "Invalid cell: " ~ toString());
     assert(other.isValid());
-  } body {
+  } do {
     return other >= rangeMin() && other <= rangeMax();
   }
 
@@ -416,7 +416,7 @@ public:
   in {
     assert(isValid());
     assert(other.isValid());
-  } body {
+  } do {
     return other.rangeMin() <= rangeMax() && other.rangeMax() >= rangeMin();
   }
 
@@ -426,7 +426,7 @@ public:
   in {
     assert(isValid());
     assert(!isFace());
-  } body {
+  } do {
     ulong new_lsb = lsb() << 2;
     return S2CellId((_id & (~new_lsb + 1)) | new_lsb);
   }
@@ -436,7 +436,7 @@ public:
     assert(isValid(), format.format("Cannot get parent of invalid cell %s.\n  id=%x, face=%d, lsb=%d", toString(), id(), face(), lsb()));
     assert(level >= 0);
     assert(level <= this.level());
-  } body {
+  } do {
     ulong new_lsb = lsbForLevel(level);
     return S2CellId((_id & (~new_lsb + 1)) | new_lsb);
   }
@@ -447,7 +447,7 @@ public:
   in {
     assert(isValid());
     assert(!isLeaf());
-  } body {
+  } do {
     // To change the level, we need to move the least-significant bit two
     // positions downward.  We do this by subtracting (4 * new_lsb) and adding
     // new_lsb.  Then to advance to the given child cell, we add
@@ -472,7 +472,7 @@ public:
   in {
     assert(isValid());
     assert(!isLeaf());
-  } body {
+  } do {
     ulong old_lsb = lsb();
     return S2CellId(_id - old_lsb + (old_lsb >> 2));
   }
@@ -482,7 +482,7 @@ public:
     assert(isValid());
     assert(level >= this.level());
     assert(level <= MAX_LEVEL);
-  } body {
+  } do {
     return S2CellId(_id - lsb() + lsbForLevel(level));
   }
 
@@ -490,7 +490,7 @@ public:
   in {
     assert(isValid());
     assert(!isLeaf());
-  } body {
+  } do {
     ulong old_lsb = lsb();
     return S2CellId(_id + old_lsb + (old_lsb >> 2));
   }
@@ -500,7 +500,7 @@ public:
     assert(isValid());
     assert(level >= this.level());
     assert(level <= MAX_LEVEL);
-  } body {
+  } do {
     return S2CellId(_id + lsb() + lsbForLevel(level));
   }
 
@@ -554,7 +554,7 @@ public:
   S2CellId nextWrap() const
   in {
     assert(isValid());
-  } body {
+  } do {
     S2CellId n = next();
     if (n._id < WRAP_OFFSET) return n;
     return S2CellId(n._id - WRAP_OFFSET);
@@ -563,7 +563,7 @@ public:
   S2CellId prevWrap() const
   in {
     assert(isValid());
-  } body {
+  } do {
     S2CellId p = prev();
     if (p._id < WRAP_OFFSET) return p;
     return S2CellId(p._id + WRAP_OFFSET);
@@ -576,7 +576,7 @@ public:
   S2CellId advanceWrap(long steps) const
   in {
     assert(isValid());
-  } body {
+  } do {
     if (steps == 0) {
       return this;
     }
@@ -821,7 +821,7 @@ public:
     // "level" must be strictly less than this cell's level so that we can
     // determine which vertex this cell is closest to.
     assert(level < this.level());
-  } body {
+  } do {
     int i, j;
     int face = toFaceIJOrientation(i, j);
 
@@ -868,7 +868,7 @@ public:
   if (range.isOutputRange!(RangeT, S2CellId))
   in {
     assert(nbr_level >= level());
-  } body {
+  } do {
     int i, j;
     int face = toFaceIJOrientation(i, j);
 

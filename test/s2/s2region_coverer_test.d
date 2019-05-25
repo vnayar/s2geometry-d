@@ -18,7 +18,6 @@
 
 module s2.s2region_coverer_test;
 
-import s2.s2region_coverer;
 import s2.s1angle;
 import s2.s2cap;
 import s2.s2cell;
@@ -26,7 +25,9 @@ import s2.s2cell_id;
 import s2.s2cell_union;
 import s2.s2latlng;
 import s2.s2region;
+import s2.s2region_coverer;
 import s2.s2testing;
+import s2.util.math.s2const;
 
 import fluent.asserts;
 
@@ -97,7 +98,7 @@ unittest {
     options.setMaxCells(S2Testing.rnd.skewed(10));
     options.setLevelMod(1 + S2Testing.rnd.uniform(3));
     double max_area =  min(
-        4 * math.PI,
+        4 * M_PI,
         (3 * options.maxCells() + 1) * S2Cell.averageArea(options.minLevel()));
     S2Cap cap = S2Testing.getRandomCap(0.1 * S2Cell.averageArea(kMaxLevel), max_area);
     auto coverer = new S2RegionCoverer(options);
@@ -131,7 +132,7 @@ unittest {
     int level = S2Testing.rnd.uniform(kMaxLevel + 1);
     options.setMinLevel(level);
     options.setMaxLevel(level);
-    double max_area =  min(4 * math.PI, 1000 * S2Cell.averageArea(level));
+    double max_area =  min(4 * M_PI, 1000 * S2Cell.averageArea(level));
     S2Cap cap = S2Testing.getRandomCap(0.1 * S2Cell.averageArea(kMaxLevel), max_area);
     S2CellId[] covering;
     S2RegionCoverer.getSimpleCovering(cap, cap.center(), level, covering);
@@ -186,7 +187,7 @@ static void checkAccuracy(int max_cells) {
     // small they can't use the given maximum number of cells efficiently.
     const double min_cap_area = S2Cell.averageArea(S2CellId.MAX_LEVEL) * max_cells * max_cells;
     // Coverings for huge caps are not interesting, so limit the max area too.
-    S2Cap cap = S2Testing.getRandomCap(min_cap_area, 0.1 * math.PI);
+    S2Cap cap = S2Testing.getRandomCap(min_cap_area, 0.1 * M_PI);
     double cap_area = cap.getArea();
 
     double min_area = 1e30;

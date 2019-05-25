@@ -143,7 +143,7 @@ public:
   S2CellId shrinkToFit(in R2Rect rect) const
   in {
     assert(bound().intersects(rect));
-  } body {
+  } do {
     // Quick rejection test: if "rect" contains the center of this cell along
     // either axis, then no further shrinking is possible.
     int ij_size = S2CellId.getSizeIJ(_level);

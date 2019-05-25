@@ -109,7 +109,7 @@ public:
   in {
     assert(id >= 0);
     assert(id <= int.max);
-  } body {
+  } do {
     // Singleton sets are represented by their element.
     return id;
   }

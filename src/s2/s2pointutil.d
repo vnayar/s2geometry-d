@@ -138,7 +138,7 @@ S2Point rotate(in S2Point p, in S2Point axis, in S1Angle angle)
 in {
   assert(isUnitLength(p));
   assert(isUnitLength(axis));
-} body {
+} do {
   // Let M be the plane through P that is perpendicular to "axis", and let
   // "center" be the point where M intersects "axis".  We construct a
   // right-handed orthogonal frame (dx, dy, center) such that "dx" is the
@@ -165,7 +165,7 @@ Matrix3x3_d getFrame(in S2Point z) {
 void getFrame(in S2Point z, out Matrix3x3_d m)
 in {
   assert(isUnitLength(z));
-} body {
+} do {
   m.setCol(2, z);
   m.setCol(1, ortho(z));
   m.setCol(0, m.col(1).crossProd(z));  // Already unit-length.

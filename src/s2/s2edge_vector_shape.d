@@ -93,7 +93,7 @@ public:
   S2Shape.Edge chainEdge(int i, int j) const
   in {
     assert(j == 0);
-  } body {
+  } do {
     return S2Shape.Edge(_edges[i][0], _edges[i][1]);
   }
 

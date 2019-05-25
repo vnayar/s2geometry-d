@@ -38,7 +38,7 @@ public:
   this(in R2Point lo, in R2Point hi)
   out {
     assert(isValid());
-  } body {
+  } do {
     _bounds[0] = R1Interval(lo.x(), hi.x());
     _bounds[1] = R1Interval(lo.y(), hi.y());
   }
@@ -48,7 +48,7 @@ public:
   this(in R1Interval x, in R1Interval y)
   out {
     if (!isValid()) logger.logError("Invalid: " ~ toString());
-  } body {
+  } do {
     _bounds[0] = x;
     _bounds[1] = y;
   }
@@ -113,7 +113,7 @@ public:
   void opIndexAssign(in R1Interval value, size_t i)
   in {
     assert(i >= 0 && i < 2);
-  } body {
+  } do {
     _bounds[i] = value;
   }
 

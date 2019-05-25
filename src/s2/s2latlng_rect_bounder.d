@@ -50,7 +50,7 @@ private:
     // Simple consistency check to verify that b and b_latlng are alternate
     // representations of the same vertex.
     assert(approxEquals(b, b_latlng.toS2Point()));
-  } body {
+  } do {
     if (_bound.isEmpty()) {
       _bound.addPoint(b_latlng);
     } else {
@@ -92,7 +92,7 @@ private:
         // Compute the longitude range spanned by AB.
         S1Interval lng_ab = S1Interval.fromPointPair(
             _aLatLng.lng().radians(), b_latlng.lng().radians());
-        if (lng_ab.getLength() >= math.PI - 2 * double.epsilon) {
+        if (lng_ab.getLength() >= M_PI - 2 * double.epsilon) {
           // The points lie on nearly opposite lines of longitude to within the
           // maximum error of the calculation.  (Note that this test relies on
           // the fact that M_PI is slightly less than the true value of Pi, and
@@ -194,7 +194,7 @@ public:
   void addPoint(in S2Point b)
   in {
     assert(isUnitLength(b));
-  } body {
+  } do {
     addInternal(b, S2LatLng(b));
   }
 
@@ -276,7 +276,7 @@ public:
     // "lng_gap" is a lower bound on the longitudinal distance between B and its
     // reflection B'.  (2.5 * DBL_EPSILON is the maximum combined error of the
     // endpoint longitude calculations and the GetLength() call.)
-    double lng_gap = algorithm.max(0.0, math.PI - bound.lng().getLength() - 2.5 * double.epsilon);
+    double lng_gap = algorithm.max(0.0, M_PI - bound.lng().getLength() - 2.5 * double.epsilon);
 
     // "min_abs_lat" is the minimum distance from B to the equator (if zero or
     // negative, then B straddles the equator).
@@ -380,7 +380,7 @@ public:
     // therefore no additional bounds expansion is necessary.
 
     double lat_expansion = 9 * double.epsilon;
-    double lng_expansion = (lng_gap <= 0) ? math.PI : 0;
+    double lng_expansion = (lng_gap <= 0) ? M_PI : 0;
     return bound.expanded(S2LatLng.fromRadians(lat_expansion, lng_expansion)).polarClosure();
   }
 

@@ -251,7 +251,7 @@ private bool getIntersectionStableSorted(T)(
     out Vector!(T, 3) result)
 in {
   assert((a1 - a0).norm2() >= (b1 - b0).norm2());
-} body {
+} do {
 
   // Compute the normal of the plane through (a0, a1) in a stable way.
   Vector3!T a_norm = (a0 - a1).crossProd(a0 + a1);
@@ -356,7 +356,7 @@ in {
   // Make sure that the intersection point lies on both edges.
   assert(approximatelyOrdered(a0, result, a1, INTERSECTION_ERROR.radians()));
   assert(approximatelyOrdered(b0, result, b1, INTERSECTION_ERROR.radians()));
-} body {
+} do {
 
   // It is difficult to compute the intersection point of two edges accurately
   // when the angle between the edges is very small.  Previously we handled
@@ -443,7 +443,7 @@ package S2Point getIntersectionExact(
     in S2Point a0, in S2Point a1, in S2Point b0, in S2Point b1)
 out(x) {
   assert(isUnitLength(x));
-} body {
+} do {
   // Since we are using exact arithmetic, we don't need to worry about
   // numerical stability.
   Vector3_xf a0_xf = Vector3_xf.from(a0);

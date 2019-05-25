@@ -69,7 +69,7 @@ public:
   void setMaxPoints(int max_points)
   in {
     assert(max_points >= 1);
-  } body {
+  } do {
     _maxPoints = max_points;
   }
 
@@ -411,7 +411,7 @@ public:
   Result findClosestPoint(Target target, Options options)
   in {
     assert(options.maxPoints() == 1);
-  } body {
+  } do {
     findClosestPointsInternal(target, options);
     return _resultSingleton;
   }
@@ -487,7 +487,7 @@ private:
   void initQueue()
   in {
     assert(_queue.empty());
-  } body {
+  } do {
     // Optimization: rather than starting with the entire index, see if we can
     // limit the search region to a small disc.  Then we can find a covering for
     // that disc and intersect it with the covering for the index.  This can

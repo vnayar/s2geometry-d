@@ -69,7 +69,7 @@ void getFaceSegments(in S2Point a, in S2Point b, out FaceSegmentVector segments)
 in {
   assert(isUnitLength(a));
   assert(isUnitLength(b));
-} body {
+} do {
   // Fast path: both endpoints are on the same face.
   FaceSegment segment;
   int a_face = XYZtoFaceUV(a, segment.a);
@@ -136,7 +136,7 @@ private int clipDestination(
     out R2Point uv)
 in {
   assert(intersectsFace(scaled_n));
-} body {
+} do {
 
   // Optimization: if B is within the safe region of the face, use it.
   const double kMaxSafeUVCoord = 1 - FACE_CLIP_ERROR_UV_COORD;
@@ -201,7 +201,7 @@ bool clipToPaddedFace(
     out R2Point a_uv, out R2Point b_uv)
 in {
   assert(padding >= 0);
-} body {
+} do {
   // Fast path: both endpoints are on the given face.
   if (GetFace(a_xyz) == face && GetFace(b_xyz) == face) {
     ValidFaceXYZtoUV(face, a_xyz, a_uv);
@@ -399,7 +399,7 @@ enum double EDGE_CLIP_ERROR_UV_DIST = 2.25 * double.epsilon;
 double interpolateDouble(double x, double a, double b, double a1, double b1)
 in {
   assert(a != b);
-} body {
+} do {
   // To get results that are accurate near both A and B, we interpolate
   // starting from the closer of the two points.
   if (fabs(a - x) <= fabs(b - x)) {
@@ -460,7 +460,7 @@ private int moveOriginToValidFace(int face, in S2Point a, in S2Point ab, ref R2P
 private int getExitAxis(in S2PointUVW n)
 in {
   assert(intersectsFace(n));
-} body {
+} do {
   if (intersectsOppositeEdges(n)) {
     // The line passes through through opposite edges of the face.
     // It exits through the v=+1 or v=-1 edge if the u-component of N has a

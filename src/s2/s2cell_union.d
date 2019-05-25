@@ -155,7 +155,7 @@ public:
   void initFromMinMax(S2CellId min_id, S2CellId max_id)
   in {
     assert(max_id.isValid());
-  } body {
+  } do {
     initFromBeginEnd(min_id, max_id.next());
   }
 
@@ -167,7 +167,7 @@ public:
   } out {
     // The output is already normalized.
     assert(isNormalized());
-  } body {
+  } do {
     // We repeatedly add the largest cell we can.
     _cellIds.length = 0;
     for (S2CellId id = begin.maximumTile(end);
@@ -434,7 +434,7 @@ public:
   out (result) {
     // The output is normalized as long as at least one input is normalized.
     assert(result.isNormalized() || (!isNormalized() && !y.isNormalized()));
-  } body {
+  } do {
     auto result = new S2CellUnion();
     getIntersection(_cellIds, y._cellIds, result._cellIds);
     return result;
@@ -446,7 +446,7 @@ public:
   S2CellUnion intersect(S2CellId id) const
   out (result) {
     assert(result.isNormalized() || !isNormalized());
-  } body {
+  } do {
     auto result = new S2CellUnion();
     if (contains(id)) {
       result._cellIds ~= id;
@@ -468,7 +468,7 @@ public:
   out (result) {
     // The output is normalized as long as the first argument is normalized.
     assert(result.isNormalized() || !isNormalized());
-  } body {
+  } do {
     // TODO(ericv): this is approximately O(N*log(N)), but could probably
     // use similar techniques as GetIntersection() to be more efficient.
 
@@ -750,7 +750,7 @@ public:
     assert(level_mod >= 1);
     assert(level_mod <= 3);
     assert(input.length == 0 || output !is input);
-  } body {
+  } do {
     output.reserve(input.length);
     foreach (S2CellId id; input) {
       int level = id.level();
@@ -793,7 +793,7 @@ public:
   } out {
     // The output is generated in sorted order.
     assert(isSorted(output));
-  } body {
+  } do {
     // This is a fairly efficient calculation that uses binary search to skip
     // over sections of both input vectors.  It takes logarithmic time if all the
     // cells of "x" come before or after all the cells of "y" in S2CellId order.

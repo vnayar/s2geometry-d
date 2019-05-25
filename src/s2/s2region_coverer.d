@@ -141,7 +141,7 @@ public:
     in {
       assert(min_level >=  0);
       assert(min_level <= S2CellId.MAX_LEVEL);
-    } body {
+    } do {
       _minLevel = max(0, min(S2CellId.MAX_LEVEL, min_level));
     }
 
@@ -154,7 +154,7 @@ public:
     in {
       assert(max_level >= 0);
       assert(max_level <= S2CellId.MAX_LEVEL);
-    } body {
+    } do {
       _maxLevel = max(0, min(S2CellId.MAX_LEVEL, max_level));
     }
 
@@ -181,7 +181,7 @@ public:
     in {
       assert(level_mod >= 1);
       assert(level_mod <= 3);
-    } body {
+    } do {
       _levelMod = max(1, min(3, level_mod));
     }
 
@@ -418,7 +418,7 @@ public:
   void canonicalizeCovering(ref S2CellId[] covering)
   out {
     assert(isCanonical(covering));
-  } body {
+  } do {
     // Note that when the covering parameters have their default values, almost
     // all of the code in this function is skipped.
 
@@ -631,7 +631,7 @@ public:
     assert(_result.length == 0);
   } out {
     assert(isCanonical(_result));
-  } body {
+  } do {
     // Strategy: Start with the 6 faces of the cube.  Discard any
     // that do not intersect the shape.  Then repeatedly choose the
     // largest cell that intersects the shape and subdivide it.
@@ -718,7 +718,7 @@ public:
   void adjustCellLevels(ref S2CellId[] cells) const
   in {
     assert(isSorted(cells));
-  } body {
+  } do {
     if (_options.levelMod() == 1) return;
 
     int output = 0;

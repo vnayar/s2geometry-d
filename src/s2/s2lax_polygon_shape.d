@@ -156,7 +156,7 @@ public:
   int numLoopVertices(int i) const
   in {
     assert(i < numLoops());
-  } body {
+  } do {
     if (numLoops() == 1) {
       return _numVertices;
     } else {
@@ -169,7 +169,7 @@ public:
   in {
     assert(i < numLoops());
     assert(j < numLoopVertices(i));
-  } body {
+  } do {
     if (numLoops() == 1) {
       return _vertices[j];
     } else {
@@ -180,7 +180,7 @@ public:
   const(S2Point[]) loopVertices(int i) const
   in {
     assert(i < numLoops());
-  } body {
+  } do {
     if (numLoops() == 1) {
       return _vertices;
     } else {
@@ -199,7 +199,7 @@ public:
   Edge edge(int e0) const
   in {
     assert(e0 < numEdges());
-  } body {
+  } do {
     int e1 = e0 + 1;
     if (numLoops() == 1) {
       if (e1 == _numVertices) { e1 = 0; }
@@ -242,7 +242,7 @@ public:
   Chain chain(int i) const
   in {
     assert(i < numLoops());
-  } body {
+  } do {
     if (numLoops() == 1) {
       return Chain(0, _numVertices);
     } else {
@@ -256,7 +256,7 @@ public:
   in {
     assert(i < numLoops());
     assert(j < numLoopVertices(i));
-  } body {
+  } do {
     int n = numLoopVertices(i);
     int k = (j + 1 == n) ? 0 : j + 1;
     if (numLoops() == 1) {
@@ -271,7 +271,7 @@ public:
   ChainPosition chainPosition(int e) const
   in {
     assert(e < numEdges());
-  } body {
+  } do {
     const int kMaxLinearSearchLoops = 12;  // From benchmarks.
     if (numLoops() == 1) {
       return ChainPosition(0, e);

@@ -79,7 +79,7 @@ public:
   Edge chainEdge(int i, int j) const
   in {
     assert(j == 0);
-  } body {
+  } do {
     return Edge(_points[i], _points[i]);
   }
 

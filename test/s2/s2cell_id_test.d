@@ -452,7 +452,7 @@ private void testAllNeighbors(S2CellId id, int level)
 in {
   assert(level >= id.level());
   assert(level < S2CellId.MAX_LEVEL);
-} body {
+} do {
 
   // We compute AppendAllNeighbors, and then add in all the children of "id"
   // at the given level.  We then compare this against the result of finding

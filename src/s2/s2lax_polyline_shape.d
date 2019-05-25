@@ -88,7 +88,7 @@ public:
   Edge edge(int e) const
   in {
     assert(e < numEdges());
-  } body {
+  } do {
     return Edge(_vertices[e], _vertices[e + 1]);
   }
 
@@ -117,7 +117,7 @@ public:
   in {
     assert(i == 0);
     assert(j < numEdges());
-  } body {
+  } do {
     return Edge(_vertices[j], _vertices[j + 1]);
   }
 

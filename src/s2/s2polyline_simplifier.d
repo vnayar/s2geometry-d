@@ -123,7 +123,7 @@ public:
     // Shrink the target interval by the maximum error from all sources.  This
     // guarantees that the output edge will intersect the given disc.
     double semiwidth = getSemiwidth(p, r, -1 /*round down*/);
-    if (semiwidth >= cast(double) PI) {
+    if (semiwidth >= M_PI) {
       // The target disc contains "src", so there is nothing to do.
       return true;
     }
@@ -159,13 +159,13 @@ public:
     // Expand the interval by the maximum error from all sources.  This
     // guarantees that the final output edge will avoid the given disc.
     double semiwidth = getSemiwidth(p, r, 1 /*round up*/);
-    if (semiwidth >= cast(double) PI) {
+    if (semiwidth >= M_PI) {
       // The avoidance disc contains "src", so it is impossible to avoid.
       _window = S1Interval.empty();
       return false;
     }
     double center = getAngle(p);
-    double opposite = (center > 0) ? center - cast(double) PI : center + cast(double) PI;
+    double opposite = (center > 0) ? center - M_PI : center + M_PI;
     S1Interval target =
         (disc_on_left ? S1Interval(opposite, center) : S1Interval(center, opposite));
     _window = _window.intersection(target.expanded(-semiwidth));
@@ -201,7 +201,7 @@ private:
     double r2 = r.length2();
     double a2 = S1ChordAngle(_src, p).length2();
     a2 -= 64 * DBL_ERR * DBL_ERR * round_direction;
-    if (a2 <= r2) return cast(double) PI;  // The given disc contains "src".
+    if (a2 <= r2) return M_PI;  // The given disc contains "src".
 
     double sin2_r = r2 * (1 - 0.25 * r2);
     double sin2_a = a2 * (1 - 0.25 * a2);

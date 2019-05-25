@@ -124,7 +124,7 @@ immutable uint MAX_SI_TI = 1U << (MAX_CELL_LEVEL + 1);
 double IJtoSTMin(int i)
 in {
   assert(i >= 0 && i <= LIMIT_IJ);
-} body {
+} do {
   return (1.0 / LIMIT_IJ) * i;
 }
 
@@ -141,7 +141,7 @@ int STtoIJ(double s) {
 double SiTitoST(uint si)
 in {
   assert(si >= 0 && si <= MAX_SI_TI);
-} body {
+} do {
   return (1.0 / MAX_SI_TI) * si;
 }
 
@@ -193,7 +193,7 @@ bool FaceXYZtoUV(int face, in S2Point p, out R2Point puv) {
 void ValidFaceXYZtoUV(int face, in S2Point p, out double pu, out double pv)
 in {
   assert(p.dotProd(GetNorm(face)) > 0);
-} body {
+} do {
   switch (face) {
     case 0:  pu =  p[1] / p[0]; pv =  p[2] / p[0]; break;
     case 1:  pu = -p[0] / p[1]; pv =  p[2] / p[1]; break;
@@ -345,7 +345,7 @@ in {
   assert(face >= 0 && face <= 5);
   assert(axis >= 0 && axis <= 2);
   assert(direction >= 0 && direction <= 1);
-} body {
+} do {
   return FACE_UVW_FACES[face][axis][direction];
 }
 

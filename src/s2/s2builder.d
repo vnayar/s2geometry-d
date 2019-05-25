@@ -273,7 +273,7 @@ public:
     S1Angle maxEdgeDeviation() const
     in {
       assert(snapRadius() <= kMaxSnapRadius());
-    } body {
+    } do {
       // We want max_edge_deviation() to be large enough compared to snap_radius()
       // such that edge splitting is rare.
       //
@@ -667,7 +667,7 @@ public:
   void addEdge(in S2Point v0, in S2Point v1)
   in {
     assert(!_layers.empty(), "Call StartLayer before adding any edges");
-  } body {
+  } do {
     if (v0 == v1
         && _layerOptions.back().degenerateEdges() == GraphOptions.DegenerateEdges.DISCARD) {
       return;
@@ -811,7 +811,7 @@ public:
   void pushLabel(Label label)
   in {
     assert(label >= 0);
-  } body {
+  } do {
     _labelSet ~= label;
     _labelSetModified = true;
   }
@@ -829,7 +829,7 @@ public:
   void setLabel(Label label)
   in {
     assert(label >= 0);
-  } body {
+  } do {
     _labelSet.length = 1;
     _labelSet[0] = label;
     _labelSetModified = true;

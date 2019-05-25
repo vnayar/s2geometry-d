@@ -42,10 +42,10 @@ unittest {
     S2Point x, y, z;
     S2Testing.getRandomFrame(x, y, z);
     Assert.equal(S1Angle.zero(), S1ChordAngle(z, z).toS1Angle());
-    Assert.approximately(S1ChordAngle(-z, z).radians(), math.PI, 1e-7);
-    Assert.approximately(S1ChordAngle(x, z).radians(), math.PI_2, EPSILON);
+    Assert.approximately(S1ChordAngle(-z, z).radians(), M_PI, 1e-7);
+    Assert.approximately(S1ChordAngle(x, z).radians(), M_PI_2, EPSILON);
     S2Point w = (y + z).normalize();
-    Assert.approximately(S1ChordAngle(w, z).radians(), math.PI_4, EPSILON);
+    Assert.approximately(S1ChordAngle(w, z).radians(), M_PI_4, EPSILON);
   }
 }
 
@@ -102,8 +102,8 @@ unittest {
 @("ToFromS1Angle")
 unittest {
   Assert.equal(S1ChordAngle(S1Angle.zero()).radians(), 0);
-  Assert.equal(S1ChordAngle(S1Angle.fromRadians(math.PI)).length2(), 4);
-  Assert.equal(S1ChordAngle(S1Angle.fromRadians(math.PI)).radians(), math.PI);
+  Assert.equal(S1ChordAngle(S1Angle.fromRadians(M_PI)).length2(), 4);
+  Assert.equal(S1ChordAngle(S1Angle.fromRadians(M_PI)).radians(), M_PI);
   Assert.equal(S1Angle.infinity(), S1ChordAngle(S1Angle.infinity()).toS1Angle());
   Assert.lessThan(S1ChordAngle(S1Angle.fromRadians(-1)).radians(), 0);
   Assert.equal(1.0, S1ChordAngle(S1Angle.fromRadians(1.0)).radians());
@@ -167,7 +167,7 @@ unittest {
 unittest {
   immutable int kIters = 20;
   foreach (int iter; 0 .. kIters) {
-    double rads = math.PI * iter / kIters;
+    double rads = M_PI * iter / kIters;
     S1ChordAngle angle = S1ChordAngle(S1Angle.fromRadians(rads));
     Assert.approximately(math.sin(rads), angle.sin(), 1e-15);
     Assert.approximately(math.cos(rads), angle.cos(), 1e-15);

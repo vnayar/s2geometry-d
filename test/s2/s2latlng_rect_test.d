@@ -80,8 +80,8 @@ unittest {
   Assert.approximately(d1.latHi().degrees(), -45, DOUBLE_ERR);
   Assert.approximately(d1.lngLo().degrees(), 0, DOUBLE_ERR);
   Assert.approximately(d1.lngHi().degrees(), 180, DOUBLE_ERR);
-  Assert.equal(d1.lat(), R1Interval(-math.PI_2, -math.PI_4));
-  Assert.equal(d1.lng(), S1Interval(0, math.PI));
+  Assert.equal(d1.lat(), R1Interval(-M_PI_2, -M_PI_4));
+  Assert.equal(d1.lng(), S1Interval(0, M_PI));
 }
 
 @("S2LatLngRect.ApproxEquals")
@@ -148,29 +148,29 @@ unittest {
 
 @("S2LatLngRect.GetCenterSize")
 unittest {
-  S2LatLngRect r1 = new S2LatLngRect(R1Interval(0, math.PI_2), S1Interval(-math.PI, 0));
-  Assert.equal(r1.getCenter(), S2LatLng.fromRadians(math.PI_4, -math.PI_2));
-  Assert.equal(r1.getSize(), S2LatLng.fromRadians(math.PI_2, math.PI));
+  S2LatLngRect r1 = new S2LatLngRect(R1Interval(0, M_PI_2), S1Interval(-M_PI, 0));
+  Assert.equal(r1.getCenter(), S2LatLng.fromRadians(M_PI_4, -M_PI_2));
+  Assert.equal(r1.getSize(), S2LatLng.fromRadians(M_PI_2, M_PI));
   Assert.lessThan(S2LatLngRect.empty().getSize().lat().radians(), 0);
   Assert.lessThan(S2LatLngRect.empty().getSize().lng().radians(), 0);
 }
 
 @("S2LatLngRect.GetVertex")
 unittest {
-  S2LatLngRect r1 = new S2LatLngRect(R1Interval(0, math.PI_2), S1Interval(-math.PI, 0));
-  Assert.equal(r1.getVertex(0), S2LatLng.fromRadians(0, math.PI));
+  S2LatLngRect r1 = new S2LatLngRect(R1Interval(0, M_PI_2), S1Interval(-M_PI, 0));
+  Assert.equal(r1.getVertex(0), S2LatLng.fromRadians(0, M_PI));
   Assert.equal(r1.getVertex(1), S2LatLng.fromRadians(0, 0));
-  Assert.equal(r1.getVertex(2), S2LatLng.fromRadians(math.PI_2, 0));
-  Assert.equal(r1.getVertex(3), S2LatLng.fromRadians(math.PI_2, math.PI));
+  Assert.equal(r1.getVertex(2), S2LatLng.fromRadians(M_PI_2, 0));
+  Assert.equal(r1.getVertex(3), S2LatLng.fromRadians(M_PI_2, M_PI));
 
   // Make sure that GetVertex() returns vertices in CCW order.
   for (int i = 0; i < 4; ++i) {
-    double lat = math.PI_4 * (i - 2);
-    double lng = math.PI_2 * (i - 2) + 0.2;
+    double lat = M_PI_4 * (i - 2);
+    double lng = M_PI_2 * (i - 2) + 0.2;
     S2LatLngRect r = new S2LatLngRect(
-        R1Interval(lat, lat + math.PI_4),
+        R1Interval(lat, lat + M_PI_4),
         S1Interval(
-            math.remainder(lng, 2 * math.PI), math.remainder(lng + math.PI_2, 2 * math.PI)));
+            math.remainder(lng, 2 * M_PI), math.remainder(lng + M_PI_2, 2 * M_PI)));
     for (int k = 0; k < 4; ++k) {
       Assert.equal(
           sign(
@@ -185,8 +185,8 @@ unittest {
 @("S2LatLngRect.Contains")
 unittest {
   // Contains(S2LatLng), InteriorContains(S2LatLng), Contains()
-  S2LatLng eq_m180 = S2LatLng.fromRadians(0, -math.PI);
-  S2LatLng north_pole = S2LatLng.fromRadians(math.PI_2, 0);
+  S2LatLng eq_m180 = S2LatLng.fromRadians(0, -M_PI);
+  S2LatLng north_pole = S2LatLng.fromRadians(M_PI_2, 0);
   S2LatLngRect r1 = new S2LatLngRect(eq_m180, north_pole);
 
   Assert.equal(r1.contains(S2LatLng.fromDegrees(30, -45)), true);
@@ -351,9 +351,9 @@ unittest {
   S2LatLngRect p = S2LatLngRect.empty();
   p.addPoint(S2LatLng.fromDegrees(0, 0));
   Assert.equal(true, p.isPoint());
-  p.addPoint(S2LatLng.fromRadians(0, -math.PI_2));
+  p.addPoint(S2LatLng.fromRadians(0, -M_PI_2));
   Assert.equal(false, p.isPoint());
-  p.addPoint(S2LatLng.fromRadians(math.PI_4, -math.PI));
+  p.addPoint(S2LatLng.fromRadians(M_PI_4, -M_PI));
   p.addPoint(S2Point(0, 0, 1));
   Assert.equal(p, rectFromDegrees(0, -180, 90, 0));
 }
@@ -638,15 +638,15 @@ unittest {
 @("S2LatLngRect.Area")
 unittest {
   Assert.equal(S2LatLngRect.empty().area(), 0.0);
-  Assert.approximately(S2LatLngRect.full().area(), 4 * math.PI, DOUBLE_ERR);
-  Assert.approximately(rectFromDegrees(0, 0, 90, 90).area(), math.PI_2, DOUBLE_ERR);
+  Assert.approximately(S2LatLngRect.full().area(), 4 * M_PI, DOUBLE_ERR);
+  Assert.approximately(rectFromDegrees(0, 0, 90, 90).area(), M_PI_2, DOUBLE_ERR);
 }
 
 // Recursively verify that when a rectangle is split into two pieces, the
 // centroids of the children sum to give the centroid of the parent.
-static void testCentroidSplitting(in S2LatLngRect r, int splits_left) {
+private void testCentroidSplitting(in S2LatLngRect r, int splits_left, ref Random rnd) {
   S2LatLngRect child0, child1;
-  if (S2Testing.rnd.oneIn(2)) {
+  if (rnd.oneIn(2)) {
     double lat = S2Testing.rnd.uniformDouble(r.lat().lo(), r.lat().hi());
     child0 = new S2LatLngRect(R1Interval(r.lat().lo(), lat), r.lng());
     child1 = new S2LatLngRect(R1Interval(lat, r.lat().hi()), r.lng());
@@ -660,14 +660,14 @@ static void testCentroidSplitting(in S2LatLngRect r, int splits_left) {
       (r.getCentroid() - child0.getCentroid() - child1.getCentroid()).norm(),
       2e-15);
   if (splits_left > 0) {
-    testCentroidSplitting(child0, splits_left - 1);
-    testCentroidSplitting(child1, splits_left - 1);
+    testCentroidSplitting(child0, splits_left - 1, rnd);
+    testCentroidSplitting(child1, splits_left - 1, rnd);
   }
 }
 
 @("S2LatLngRect.GetCentroid")
 unittest {
-  Random rnd = S2Testing.rnd;
+  Random rnd = Random();
 
   // Empty and full rectangles.
   Assert.equal(S2LatLngRect.empty().getCentroid(), S2Point());
@@ -675,8 +675,8 @@ unittest {
 
   // Rectangles that cover the full longitude range.
   for (int i = 0; i < 100; ++i) {
-    double lat1 = rnd.uniformDouble(-math.PI_2, math.PI_2);
-    double lat2 = rnd.uniformDouble(-math.PI_2, math.PI_2);
+    double lat1 = rnd.uniformDouble(-M_PI_2, M_PI_2);
+    double lat2 = rnd.uniformDouble(-M_PI_2, M_PI_2);
     S2LatLngRect r = new S2LatLngRect(R1Interval.fromPointPair(lat1, lat2), S1Interval.full());
     S2Point centroid = r.getCentroid();
     Assert.approximately(0.5 * (math.sin(lat1) + math.sin(lat2)) * r.area(), centroid.z(), 1e-14);
@@ -685,8 +685,8 @@ unittest {
 
   // Rectangles that cover the full latitude range.
   for (int i = 0; i < 100; ++i) {
-    double lng1 = rnd.uniformDouble(-math.PI, math.PI);
-    double lng2 = rnd.uniformDouble(-math.PI, math.PI);
+    double lng1 = rnd.uniformDouble(-M_PI, M_PI);
+    double lng2 = rnd.uniformDouble(-M_PI, M_PI);
     S2LatLngRect r =
         new S2LatLngRect(S2LatLngRect.fullLat(), S1Interval.fromPointPair(lng1, lng2));
     S2Point centroid = r.getCentroid();
@@ -694,7 +694,7 @@ unittest {
     Assert.approximately(r.lng().getCenter(), S2LatLng(centroid).lng().radians(), 1e-15);
     double alpha = 0.5 * r.lng().getLength();
     Assert.approximately(
-        0.25 * math.PI * math.sin(alpha) / alpha * r.area(),
+        0.25 * M_PI * math.sin(alpha) / alpha * r.area(),
         Vector2_d(centroid.x(), centroid.y()).norm(),
         1e-15);
   }
@@ -704,7 +704,7 @@ unittest {
   // To make the code simpler we avoid rectangles that cross the 180 degree
   // line of longitude.
   testCentroidSplitting(
-      new S2LatLngRect(S2LatLngRect.fullLat(), S1Interval(-3.14, 3.14)), 10 /*splits_left*/);
+      new S2LatLngRect(S2LatLngRect.fullLat(), S1Interval(-3.14, 3.14)), 10 /*splits_left*/, rnd);
 }
 
 // Returns the minimum distance from X to the latitude line segment defined by

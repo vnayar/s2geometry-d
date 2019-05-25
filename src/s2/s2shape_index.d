@@ -69,7 +69,7 @@ public:
   int edge(int i) const
   in {
     assert(0 <= i && i < numEdges());
-  } body {
+  } do {
     return isInline() ? _inlineEdges[i] : _edges[i];
   }
 
@@ -165,7 +165,7 @@ public:
   in {
     assert(0 <= i && i < numClipped(),
         "clipped(" ~ i.to!string ~ ") but numClipped()=" ~ numClipped.to!string);
-  } body {
+  } do {
     return _shapes[i];
   }
 
@@ -400,7 +400,7 @@ public:
     S2Point center() const
     in {
       assert(!done());
-    } body {
+    } do {
       return id().toS2Point();
     }
 
@@ -408,7 +408,7 @@ public:
     inout(S2ShapeIndexCell) cell() inout
     in {
       assert(!done());
-    } body {
+    } do {
       return _iter.cell();
     }
 
@@ -431,7 +431,7 @@ public:
     void next()
     in {
       assert(!done());
-    } body {
+    } do {
       _iter.next();
     }
 
@@ -521,7 +521,7 @@ protected:
     S2Point center() const
     in {
       assert(!done());
-    } body {
+    } do {
       return id().toS2Point();
     }
 
@@ -529,7 +529,7 @@ protected:
     inout(S2ShapeIndexCell) cell() inout
     in {
       assert(!done());
-    } body {
+    } do {
       auto cell = _cell;
       // if (cell == null) {
       //   cell = getCell();
@@ -607,7 +607,7 @@ protected:
     void setState(S2CellId id, S2ShapeIndexCell cell)
     in {
       assert(cell !is null);
-    } body {
+    } do {
       _id = id;
       setCell(cell);
     }

@@ -36,6 +36,7 @@ import s2.s2point;
 import s2.s2pointutil;
 import s2.s2testing;
 import s2.s2text_format;
+import s2.util.math.s2const;
 
 import algorithm = std.algorithm;
 import fluent.asserts;
@@ -100,7 +101,7 @@ private void gatherStats(in S2Cell cell) {
     max_edge = algorithm.max(edge, max_edge);
     avg_edge += 0.25 * edge;
     S2Point mid = cell.getVertexRaw(i) + cell.getVertexRaw(i + 1);
-    double width = math.PI_2 - mid.angle(cell.getEdgeRaw(i + 2));
+    double width = M_PI_2 - mid.angle(cell.getEdgeRaw(i + 2));
     min_width = algorithm.min(width, min_width);
     max_width = algorithm.max(width, max_width);
     if (i < 2) {
@@ -207,8 +208,8 @@ private void testSubdivide(in S2Cell cell) {
             ++rect_count;
         }
         Assert.notGreaterThan(cap_count, 2);
-        if (child_rect.latLo().radians() > -S1Angle.PI_2 &&
-            child_rect.latHi().radians() < S1Angle.PI_2) {
+        if (child_rect.latLo().radians() > -M_PI_2 &&
+            child_rect.latHi().radians() < M_PI_2) {
           // Bounding rectangles may be too large at the poles because the
           // pole itself has an arbitrary fixed longitude.
           Assert.notGreaterThan(rect_count, 2);
@@ -528,11 +529,11 @@ S1ChordAngle getMaxDistanceToPointBruteForce(in S2Cell cell, in S2Point target) 
     Assert.approximately(actual_to_boundary.radians(), expected_to_boundary.radians(), 1e-12);
     Assert.approximately(actual_to_interior.radians(), expected_to_interior.radians(), 1e-12);
     Assert.approximately(actual_max.radians(), expected_max.radians(), 1e-12);
-    if (expected_to_boundary.radians() <= math.PI / 3) {
+    if (expected_to_boundary.radians() <= M_PI / 3) {
       Assert.approximately(actual_to_boundary.radians(), expected_to_boundary.radians(), 1e-15);
       Assert.approximately(actual_to_interior.radians(), expected_to_interior.radians(), 1e-15);
     }
-    if (expected_max.radians() <= math.PI / 3) {
+    if (expected_max.radians() <= M_PI / 3) {
       Assert.approximately(actual_max.radians(), expected_max.radians(), 1e-15);
     }
   }
@@ -550,7 +551,7 @@ static void chooseEdgeNearCell(in S2Cell cell, out S2Point a, out S2Point b) {
   // Now choose a maximum edge length ranging from very short to very long
   // relative to the cell size, and choose the other endpoint.
   double max_length = algorithm.min(
-      100.0 * math.pow(1e-4, S2Testing.rnd.randDouble()) * cap.getRadius().radians(), math.PI_2);
+      100.0 * math.pow(1e-4, S2Testing.rnd.randDouble()) * cap.getRadius().radians(), M_PI_2);
   b = S2Testing.samplePoint(new S2Cap(a, S1Angle.fromRadians(max_length)));
 
   if (S2Testing.rnd.oneIn(20)) {
@@ -614,17 +615,17 @@ static S1ChordAngle getMaxDistanceToEdgeBruteForce(in S2Cell cell, in S2Point a,
     S1Angle actual_max = cell.getMaxDistance(a, b).toS1Angle();
     // The error has a peak near Pi/2 for edge distance, and another peak near
     // Pi for vertex distance.
-    if (expected_min.radians() > math.PI/2) {
+    if (expected_min.radians() > M_PI/2) {
       // Max error for S1ChordAngle as it approaches Pi is about 2e-8.
       Assert.approximately(actual_min.radians(), expected_min.radians(), 3e-8);
-    } else if (expected_min.radians() <= math.PI / 3) {
+    } else if (expected_min.radians() <= M_PI / 3) {
       Assert.approximately(actual_min.radians(), expected_min.radians(), 1e-15);
     } else {
       Assert.approximately(actual_min.radians(), expected_min.radians(), 1e-12);
     }
 
     Assert.approximately(actual_max.radians(), expected_max.radians(), 1e-12);
-    if (expected_max.radians() <= math.PI / 3) {
+    if (expected_max.radians() <= M_PI / 3) {
       Assert.approximately(actual_max.radians(), expected_max.radians(), 1e-15);
     }
   }

@@ -299,7 +299,7 @@ static double getRadius(in S2CellUnion covering, in S2Point axis) {
       //
       // TODO(ericv): Improve S2::GetDistance() accuracy near Pi.
       if (a.angle(axis) > math.PI_2 || b.angle(axis) > math.PI_2) {
-        dist = math.PI - getDistance(-axis, a, b).radians();
+        dist = M_PI - getDistance(-axis, a, b).radians();
       } else {
         dist = a.angle(axis);
       }
@@ -319,7 +319,7 @@ static double getRadius(in S2CellUnion covering, in S2Point axis) {
   for (int i = 0; i < 1000; ++i) {
     //SCOPED_TRACE(StrCat("Iteration ", i));
     S2Cap cap = S2Testing.getRandomCap(
-        S2Cell.averageArea(S2CellId.MAX_LEVEL), 4 * math.PI);
+        S2Cell.averageArea(S2CellId.MAX_LEVEL), 4 * M_PI);
 
     // Expand the cap area by a random factor whose log is uniformly
     // distributed between 0 and log(1e2).

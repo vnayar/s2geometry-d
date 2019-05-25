@@ -373,7 +373,7 @@ private:
     assert(_numElements >= _numDeleted);
     assert((bucketCount() & (bucketCount() - 1)) == 0); // is a power of two
     assert(bucketCount() >= HT_MIN_BUCKETS);
-  } body {
+  } do {
     bool retval = false;
 
     // If you construct a hashtable with < HT_DEFAULT_STARTING_BUCKETS,
@@ -1015,7 +1015,7 @@ public:
     if (op == "*")
   in {
     assert(!_data.empty(), "Iterator is already at end!");
-  } body {
+  } do {
     // return _data.front(); -- Bug: See https://issues.dlang.org/show_bug.cgi?id=19518
     return _data[0];
   }
@@ -1030,7 +1030,7 @@ public:
   DenseHashTableIterator opUnary(string op)() if (op == "++")
   in {
     assert(!_data.empty());
-  } body {
+  } do {
     _data.popFront();
     advancePastEmptyAndDeleted();
     return this;

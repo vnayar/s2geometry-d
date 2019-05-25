@@ -65,12 +65,12 @@ private void testRotate(in S2Point p, in S2Point axis, in S1Angle angle) {
   double axis_distance = p.crossProd(axis).norm();
   double max_rotation_error;
   if (axis_distance < kMaxPositionError) {
-    max_rotation_error = 2 * math.PI;
+    max_rotation_error = 2 * M_PI;
   } else {
     max_rotation_error = math.asin(kMaxPositionError / axis_distance);
   }
-  double actual_rotation = turnAngle(p, axis, result) + math.PI;
-  double rotation_error = math.remainder(angle.radians() - actual_rotation, 2 * math.PI);
+  double actual_rotation = turnAngle(p, axis, result) + M_PI;
+  double rotation_error = math.remainder(angle.radians() - actual_rotation, 2 * M_PI);
   Assert.notGreaterThan(rotation_error, max_rotation_error);
 }
 
@@ -80,14 +80,14 @@ unittest {
     S2Point axis = S2Testing.randomPoint();
     S2Point target = S2Testing.randomPoint();
     // Choose a distance whose logarithm is uniformly distributed.
-    double distance = math.PI * math.pow(1e-15, S2Testing.rnd.randDouble());
+    double distance = M_PI * math.pow(1e-15, S2Testing.rnd.randDouble());
     // Sometimes choose points near the far side of the axis.
     if (S2Testing.rnd.oneIn(5)) {
-      distance = math.PI - distance;
+      distance = M_PI - distance;
     }
     S2Point p = interpolateAtDistance(S1Angle.fromRadians(distance), axis, target);
     // Choose the rotation angle.
-    double angle = 2 * math.PI * math.pow(1e-15, S2Testing.rnd.randDouble());
+    double angle = 2 * M_PI * math.pow(1e-15, S2Testing.rnd.randDouble());
     if (S2Testing.rnd.oneIn(3)) angle = -angle;
     if (S2Testing.rnd.oneIn(10)) angle = 0;
     testRotate(p, axis, S1Angle.fromRadians(angle));

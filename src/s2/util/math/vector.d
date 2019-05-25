@@ -145,7 +145,7 @@ public:
   in {
     assert(i1 >= 0);
     assert(i1 < SizeV);
-  } body {
+  } do {
     _data[i1] = value;
   }
 
@@ -154,7 +154,7 @@ public:
   in {
     assert(i1 >= 0);
     assert(i1 < SizeV);
-  } body {
+  } do {
     return _data[i1];
   }
 

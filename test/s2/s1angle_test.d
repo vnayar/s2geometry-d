@@ -50,9 +50,9 @@ unittest {
 @("S1Angle.PiRadiansExactly180Degrees")
 unittest {
   // Check that the conversion between Pi radians and 180 degrees is exact.
-  Assert.equal(S1Angle.fromRadians(math.PI).radians(), math.PI);
-  Assert.equal(S1Angle.fromRadians(math.PI).degrees(), 180.0);
-  Assert.equal(S1Angle.fromDegrees(180).radians(), math.PI);
+  Assert.equal(S1Angle.fromRadians(M_PI).radians(), M_PI);
+  Assert.equal(S1Angle.fromRadians(M_PI).degrees(), 180.0);
+  Assert.equal(S1Angle.fromDegrees(180).radians(), M_PI);
   Assert.equal(S1Angle.fromDegrees(180).degrees(), 180.0);
 
   Assert.equal(S1Angle.fromRadians(math.PI_2).degrees(), 90.0);
@@ -251,15 +251,15 @@ unittest {
 @("S1Angle.DegreesVsRadians")
 unittest {
   for (int k = -8; k <= 8; ++k) {
-    Assert.equal(S1Angle.fromDegrees(45 * k), S1Angle.fromRadians(k * S1Angle.PI / 4));
+    Assert.equal(S1Angle.fromDegrees(45 * k), S1Angle.fromRadians(k * M_PI / 4));
     Assert.equal(S1Angle.fromDegrees(45 * k).degrees(), 45 * k);
   }
   for (int k = 0; k <= 30; ++k) {
     int n = 1 << k;
-    Assert.equal(S1Angle.fromDegrees(180.0 / n), S1Angle.fromRadians(S1Angle.PI / n));
-    Assert.equal(S1Angle.fromDegrees(60.0 / n), S1Angle.fromRadians(S1Angle.PI / (3.0 * n)));
-    Assert.equal(S1Angle.fromDegrees(36.0 / n), S1Angle.fromRadians(S1Angle.PI / (5.0 * n)));
-    Assert.equal(S1Angle.fromDegrees(20.0 / n), S1Angle.fromRadians(S1Angle.PI / (9.0 * n)));
-    Assert.equal(S1Angle.fromDegrees(4.0 / n), S1Angle.fromRadians(S1Angle.PI / (45.0 * n)));
+    Assert.equal(S1Angle.fromDegrees(180.0 / n), S1Angle.fromRadians(M_PI / n));
+    Assert.equal(S1Angle.fromDegrees(60.0 / n), S1Angle.fromRadians(M_PI / (3.0 * n)));
+    Assert.equal(S1Angle.fromDegrees(36.0 / n), S1Angle.fromRadians(M_PI / (5.0 * n)));
+    Assert.equal(S1Angle.fromDegrees(20.0 / n), S1Angle.fromRadians(M_PI / (9.0 * n)));
+    Assert.equal(S1Angle.fromDegrees(4.0 / n), S1Angle.fromRadians(M_PI / (45.0 * n)));
   }
 }

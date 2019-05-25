@@ -82,7 +82,7 @@ unique_ptr<S2Polyline> MakePolyline(const string& str) {
     S2Testing.getRandomFrame(x, y, z);
 
     S2Point[] vertices;
-    for (double theta = 0; theta < 2 * PI;
+    for (double theta = 0; theta < 2 * M_PI;
          theta += pow(S2Testing.rnd.randDouble(), 10.0)) {
       S2Point p = cos(theta) * x + sin(theta) * y;
       if (vertices.empty() || p != vertices.back())
@@ -92,7 +92,7 @@ unique_ptr<S2Polyline> MakePolyline(const string& str) {
     vertices ~= vertices[0];
     auto line = new S2Polyline(vertices);
     S1Angle length = line.getLength();
-    Assert.notGreaterThan(fabs(length.radians() - 2 * PI), 2e-14);
+    Assert.notGreaterThan(fabs(length.radians() - 2 * M_PI), 2e-14);
     S2Point centroid = line.getCentroid();
     Assert.notGreaterThan(centroid.norm(), 2e-14);
   }
@@ -116,7 +116,7 @@ unique_ptr<S2Polyline> MakePolyline(const string& str) {
   auto line = new S2Polyline(vertices);
   Assert.equal(vertices[0], line.interpolate(-0.1));
   Assert.equal(
-      approxEquals(line.interpolate(0.1), S2Point(1, tan(0.2 * PI / 2), 0).normalize()), true);
+      approxEquals(line.interpolate(0.1), S2Point(1, tan(0.2 * M_PI / 2), 0).normalize()), true);
   Assert.equal(approxEquals(line.interpolate(0.25), S2Point(1, 1, 0).normalize()), true);
   Assert.equal(vertices[1], line.interpolate(0.5));
   Assert.equal(approxEquals(vertices[2], line.interpolate(0.75)), true);

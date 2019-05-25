@@ -185,7 +185,7 @@ public:
   }
 
   // The full allowable range of latitudes and longitudes.
-  static R1Interval fullLat() { return R1Interval(-S1Angle.PI_2, S1Angle.PI_2); }
+  static R1Interval fullLat() { return R1Interval(-M_PI_2, M_PI_2); }
   static S1Interval fullLng() { return S1Interval.full(); }
 
   // Returns true if the rectangle is valid, which essentially just means
@@ -194,8 +194,8 @@ public:
   // either the latitude or longitude bound is empty then both must be.
   bool isValid() const {
     // The lat/lng ranges must either be both empty or both non-empty.
-    return (math.fabs(_lat.lo()) <= S1Angle.PI_2
-        && math.fabs(_lat.hi()) <= S1Angle.PI_2
+    return (math.fabs(_lat.lo()) <= M_PI_2
+        && math.fabs(_lat.hi()) <= M_PI_2
         && _lng.isValid()
         && _lat.isEmpty() == _lng.isEmpty());
   }
@@ -420,10 +420,10 @@ public:
       if (intersectsLngEdge(v0, v1, _lat, _lng.lo())) return true;
       if (intersectsLngEdge(v0, v1, _lat, _lng.hi())) return true;
     }
-    if (_lat.lo() != -S1Angle.PI_2 && intersectsLatEdge(v0, v1, _lat.lo(), _lng)) {
+    if (_lat.lo() != -M_PI_2 && intersectsLatEdge(v0, v1, _lat.lo(), _lng)) {
       return true;
     }
-    if (_lat.hi() != S1Angle.PI_2 && intersectsLatEdge(v0, v1, _lat.hi(), _lng)) {
+    if (_lat.hi() != M_PI_2 && intersectsLatEdge(v0, v1, _lat.hi(), _lng)) {
       return true;
     }
     return false;
@@ -482,7 +482,7 @@ public:
    * contains all possible representations of the contained pole(s).
    */
   S2LatLngRect polarClosure() const {
-    if (_lat.lo() == -S1Angle.PI_2 || _lat.hi() == S1Angle.PI_2) {
+    if (_lat.lo() == -M_PI_2 || _lat.hi() == M_PI_2) {
       return new S2LatLngRect(_lat, S1Interval.full());
     }
     return new S2LatLngRect(this);
@@ -588,7 +588,7 @@ public:
       // When sin_a >= sin_c, the cap covers all the latitude.
       double sin_a = math.sin(-distance.radians());
       double sin_c = math.cos(max_abs_lat);
-      double max_lng_margin = sin_a < sin_c ? math.asin(sin_a / sin_c) : S1Angle.PI_2;
+      double max_lng_margin = sin_a < sin_c ? math.asin(sin_a / sin_c) : M_PI_2;
 
       S1Interval lng_result = lng().expanded(-max_lng_margin);
       if (lng_result.isEmpty()) {
@@ -604,7 +604,7 @@ public:
   in {
     assert(!this.isEmpty());
     assert(!other.isEmpty());
-  } body {
+  } do {
     const S2LatLngRect a = this;
     const S2LatLngRect b = other;
 
@@ -708,7 +708,7 @@ public:
       return S1Angle.fromRadians(0);
     }
     if (other.isEmpty()) {
-      return S1Angle.fromRadians(S1Angle.PI);  // maximum possible distance on S2
+      return S1Angle.fromRadians(M_PI);  // maximum possible distance on S2
     }
 
     double lng_distance = lng().getDirectedHausdorffDistance(other.lng());
@@ -761,10 +761,10 @@ public:
     if (_lat.lo() + _lat.hi() < 0) {
       // South pole axis yields smaller cap.
       pole_z = -1;
-      pole_angle = S1Angle.PI_2 + _lat.hi();
+      pole_angle = M_PI_2 + _lat.hi();
     } else {
       pole_z = 1;
-      pole_angle = S1Angle.PI_2 - _lat.lo();
+      pole_angle = M_PI_2 - _lat.lo();
     }
     S2Cap pole_cap = new S2Cap(S2Point(0, 0, pole_z), S1Angle.fromRadians(pole_angle));
 
@@ -773,7 +773,7 @@ public:
     // rectangles that are larger than 180 degrees, we punt and always return a
     // bounding cap centered at one of the two poles.
     double lng_span = _lng.hi() - _lng.lo();
-    if (math.remainder(lng_span, 2 * S1Angle.PI) >= 0 && lng_span < 2 * S1Angle.PI) {
+    if (math.remainder(lng_span, 2 * M_PI) >= 0 && lng_span < 2 * M_PI) {
       auto mid_cap = new S2Cap(getCenter().toS2Point(), S1Angle.fromRadians(0));
       for (int k = 0; k < 4; ++k) {
         mid_cap.addPoint(getVertex(k).toS2Point());
@@ -854,7 +854,7 @@ public:
   in {
     assert(isUnitLength(a));
     assert(isUnitLength(b));
-  } body {
+  } do {
     // Return true if the segment AB intersects the given edge of constant
     // latitude.  Unfortunately, lines of constant latitude are curves on
     // the sphere.  They can intersect a straight edge in 0, 1, or 2 points.
@@ -918,8 +918,8 @@ public:
   static S1Angle getDirectedHausdorffDistance(double lng_diff, in R1Interval a, in R1Interval b)
   in {
     assert(lng_diff >= 0);
-    assert(lng_diff <= S1Angle.PI);
-  } body {
+    assert(lng_diff <= M_PI);
+  } do {
     // By symmetry, we can assume a's longtitude is 0 and b's longtitude is
     // lng_diff. Call b's two endpoints b_lo and b_hi. Let H be the hemisphere
     // containing a and delimited by the longitude line of b. The Voronoi diagram
@@ -967,7 +967,7 @@ public:
     max_distance = edgedistances.getDistance(a_lo, b_lo, b_hi);
     max_distance = algorithm.max(max_distance, edgedistances.getDistance(a_hi, b_lo, b_hi));
 
-    if (lng_diff <= S1Angle.PI_2) {
+    if (lng_diff <= M_PI_2) {
       // Case A2.
       if (a.contains(0) && b.contains(0)) {
         max_distance = algorithm.max(max_distance, S1Angle.fromRadians(lng_diff));
@@ -1028,9 +1028,9 @@ public:
     // A vector orthogonal to the bisector of the given longitudinal edge.
     S2LatLng ortho_bisector;
     if (lat_center >= 0) {
-      ortho_bisector = S2LatLng.fromRadians(lat_center - S1Angle.PI_2, lng);
+      ortho_bisector = S2LatLng.fromRadians(lat_center - M_PI_2, lng);
     } else {
-      ortho_bisector = S2LatLng.fromRadians(-lat_center - S1Angle.PI_2, lng - S1Angle.PI);
+      ortho_bisector = S2LatLng.fromRadians(-lat_center - M_PI_2, lng - M_PI);
     }
     // A vector orthogonal to longitude 0.
     static const S2Point ortho_lng = S2Point(0, -1, 0);

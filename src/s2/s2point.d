@@ -20,12 +20,7 @@ module s2.s2point;
 
 import s2.util.math.vector;
 
-import std.math;
-
-enum double M_PI = cast(double) PI;
-enum double M_PI_2 = cast(double) PI_2;
-enum double M_SQRT1_2 = cast(double) SQRT1_2;
-enum double M_SQRT2 = cast(double) SQRT2;
+public import s2.util.math.s2const;
 
 // An S2Point represents a point on the unit sphere as a 3D vector.  Usually
 // points are normalized to be unit length, but some methods do not require

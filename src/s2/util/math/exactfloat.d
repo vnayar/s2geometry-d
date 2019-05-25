@@ -116,6 +116,10 @@ import std.bigint;
 import std.range;
 import traits = std.traits;
 
+version(unittest) {
+  import std.conv;
+}
+
 struct ExactFloat {
 public:
   // The following limits are imposed by OpenSSL.
@@ -278,7 +282,7 @@ public:
   int exp() const
   in {
     assert(isNormal());
-  } body {
+  } do {
     return _bnExp + prec();
   }
 
@@ -410,7 +414,7 @@ public:
   string toStringWithMaxDigits(int max_digits) const
   in {
     assert(max_digits >= 0);
-  } body {
+  } do {
     if (!isNormal()) {
       if (isNan()) return "nan";
       if (isZero()) return (_sign < 0) ? "-0" : "0";
@@ -509,7 +513,7 @@ public:
     // (otherwise both adjacent representable values may be odd).
     assert(max_prec >= 2);
     assert(max_prec <= MAX_PREC);
-  } body {
+  } do {
     // The following test also catches zero, infinity, and NaN.
     int shift = prec() - max_prec;
     if (shift <= 0) {
@@ -624,7 +628,7 @@ public:
   int scaleAndCompare(in ExactFloat b) const
   in {
     assert(isNormal() && b.isNormal() && _bnExp >= b._bnExp);
-  } body {
+  } do {
     ExactFloat tmp = this;
     tmp._bnExp <<= _bnExp - b._bnExp;
     if (tmp._bn > b._bn) return 1;
@@ -698,8 +702,10 @@ private:
   // "double".  This method handles non-normal values (NaN, etc).
   double toDoubleHelper() const
   in {
-    assert(prec() <= DOUBLE_MANTISSA_BITS);
-  } body {
+    assert(prec() <= DOUBLE_MANTISSA_BITS,
+        "_bn=" ~ format.format("%d", _bn)
+        ~ "\nprec()=" ~ prec().to!string ~ " should be < " ~ DOUBLE_MANTISSA_BITS.to!string);
+  } do {
     if (!isNormal()) {
       if (isZero()) {
         return math.copysign(0, cast(double) _sign);
@@ -721,7 +727,7 @@ private:
   in {
     assert(bit_exp >= MIN_EXP - MAX_PREC);
     assert(bit_exp <= MAX_EXP);
-  } body {
+  } do {
     // If the exponent is already large enough, or the value is zero, infinity,
     // or NaN, then there is nothing to do.
     int shift = bit_exp - _bnExp;
@@ -807,7 +813,7 @@ private:
   int getDecimalDigits(int max_digits, out char[] digits) const
   in {
     assert(isNormal());
-  } body {
+  } do {
     // Convert the value to the form (bn * (10 ** bn_exp10)) where "bn" is a
     // positive integer (BIGNUM).
     BigInt bn = BigInt();

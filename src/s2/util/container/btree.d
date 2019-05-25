@@ -316,7 +316,7 @@ public:
     void popFront()
     in {
       assert(!empty());
-    } body {
+    } do {
       _begin.increment();
     }
 
@@ -343,7 +343,7 @@ public:
     in {
       assert(!_isLeaf);
       assert(i >= 0);
-    } body {
+    } do {
       _children[i] = child;
       _children[i]._position = i;
       _children[i]._parent = this;
@@ -416,7 +416,7 @@ public:
     } out {
       assert(_children[i]._numValues == MIN_DEGREE - 1);
       assert(_children[i+1]._numValues == MIN_DEGREE - 1);
-    } body {
+    } do {
       Node toSplitNode = _children[i];
 
       // Prepare a new node containing the right half of the node at _children[i].
@@ -462,7 +462,7 @@ public:
     void insertNonFull(ValueT v)
     in {
       assert(!isFull());
-    } body {
+    } do {
       int i = cast(int) _numValues - 1;
       if (_isLeaf) {
         // Shift over the values to make room.
@@ -558,7 +558,7 @@ public:
       assert(!_isLeaf);
       assert(i >= 0);
       assert(i <= _numValues);
-    } body {
+    } do {
       return _children[i];
     }
 
@@ -768,7 +768,7 @@ public:
     in {
       assert(i >= 0);
       assert(i < _numValues, format("Value at %d is beyond numValues %d.", i, _numValues));
-    } body {
+    } do {
       return _values[i];
     }
 

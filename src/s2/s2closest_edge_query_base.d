@@ -139,7 +139,7 @@ public:
     void setMaxEdges(int max_edges)
     in {
       assert(max_edges >= 1);
-    } body {
+    } do {
       _maxEdges = max_edges;
     }
 
@@ -342,7 +342,7 @@ public:
   Result findClosestEdge(Target target, Options options)
   in {
     assert(options.maxEdges() == 1);
-  } body {
+  } do {
     findClosestEdgesInternal(target, options);
     return _resultSingleton;
   }
@@ -358,7 +358,7 @@ public:
     assert(_resultVector.empty());
     assert(_resultSet.empty());
     assert(target.maxBruteForceIndexSize() >= 0);
-  } body {
+  } do {
     _target = target;
     _options = options;
 
@@ -497,7 +497,7 @@ public:
   void initQueue()
   in {
     assert(_queue.empty());
-  } body {
+  } do {
     if (_indexCovering.empty()) {
       // We delay iterator initialization until now to make queries on very
       // small indexes a bit faster (i.e., where brute force is used).
@@ -719,7 +719,7 @@ public:
   void enqueueCurrentCell(S2CellId id)
   in {
     assert(id.contains(_iter.id()));
-  } body {
+  } do {
     if (_iter.id() == id) {
       enqueueCell(id, _iter.cell());
     } else {

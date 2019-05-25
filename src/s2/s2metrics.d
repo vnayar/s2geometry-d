@@ -30,6 +30,7 @@ module s2.s2metrics;
 import s2coords = s2.s2coords;
 import algorithm = std.algorithm;
 import math = std.math;
+import s2.util.math.s2const;
 
 // Defines a cell metric of the given dimension (1 == length, 2 == area).
 struct Metric(int DimV) {
@@ -72,7 +73,7 @@ public:
   out (level) {
     assert(level == s2coords.MAX_CELL_LEVEL || getValue(level) <= value);
     assert(level == 0 || getValue(level - 1) > value);
-  } body {
+  } do {
     if (value <= 0) {
       return s2coords.MAX_CELL_LEVEL;
     }
@@ -94,7 +95,7 @@ public:
   out (level) {
     assert(level == 0 || getValue(level) >= value);
     assert(level == s2coords.MAX_CELL_LEVEL || getValue(level + 1) < value);
-  } body {
+  } do {
     if (value <= 0) {
       return s2coords.MAX_CELL_LEVEL;
     }
@@ -124,8 +125,8 @@ version (S2_LINEAR_PROJECTION) {
   immutable LengthMetric MAX_ANGLE_SPAN = LengthMetric(2.0);           // 2.000
 }
 version (S2_TAN_PROJECTION) {
-  immutable LengthMetric MIN_ANGLE_SPAN = LengthMetric(math.PI / 2);   // 1.571
-  immutable LengthMetric MAX_ANGLE_SPAN = LengthMetric(math.PI / 2);   // 1.571
+  immutable LengthMetric MIN_ANGLE_SPAN = LengthMetric(M_PI / 2);   // 1.571
+  immutable LengthMetric MAX_ANGLE_SPAN = LengthMetric(M_PI / 2);   // 1.571
 }
 version (S2_QUADRATIC_PROJECTION) {
   immutable LengthMetric MIN_ANGLE_SPAN = LengthMetric(4.0 / 3);       // 1.333
@@ -133,7 +134,7 @@ version (S2_QUADRATIC_PROJECTION) {
 }
 
 // This is true for all projections.
-immutable LengthMetric AVG_ANGLE_SPAN = LengthMetric(math.PI / 2);     // 1.571
+immutable LengthMetric AVG_ANGLE_SPAN = LengthMetric(M_PI / 2);     // 1.571
 
 // The width of geometric figure is defined as the distance between two
 // parallel bounding lines in a given direction.  For cells, the minimum
@@ -163,7 +164,7 @@ version (S2_LINEAR_PROJECTION) {
 }
 
 version (S2_TAN_PROJECTION) {
-  immutable LengthMetric MIN_WIDTH = LengthMetric(math.PI / (2 * math.sqrt(2.0))); // 1.111
+  immutable LengthMetric MIN_WIDTH = LengthMetric(M_PI / (2 * math.sqrt(2.0))); // 1.111
   immutable LengthMetric AVG_WIDTH = LengthMetric(1.437318638925160885);           // 1.437
 }
 
@@ -185,16 +186,16 @@ immutable LengthMetric MAX_WIDTH = LengthMetric(MAX_ANGLE_SPAN.deriv());
 // between adjacent cell centers along the space-filling Hilbert curve for
 // cells at any given level.
 version (S2_LINEAR_PROJECTION) {
-  immutable LengthMetric MIN_EDGE = LengthMetric(2 * math.sqrt(2) / 3);          // 0.943
+  immutable LengthMetric MIN_EDGE = LengthMetric(2 * math.sqrt(2.0) / 3);        // 0.943
   immutable LengthMetric AVG_EDGE = LengthMetric(1.440034192955603643);          // 1.440
 }
 version (S2_TAN_PROJECTION) {
-  immutable LengthMetric MIN_EDGE = LengthMetric(math.PI / (2 * math.sqrt(2)));  // 1.111
-  immutable LengthMetric AVG_EDGE = LengthMetric(1.461667032546739266);          // 1.462
+  immutable LengthMetric MIN_EDGE = LengthMetric(M_PI / (2 * math.sqrt(2.0)));  // 1.111
+  immutable LengthMetric AVG_EDGE = LengthMetric(1.461667032546739266);         // 1.462
 }
 version (S2_QUADRATIC_PROJECTION) {
-  immutable LengthMetric MIN_EDGE = LengthMetric(2 * math.sqrt(2.0) / 3);        // 0.943
-  immutable LengthMetric AVG_EDGE = LengthMetric(1.459213746386106062);          // 1.459
+  immutable LengthMetric MIN_EDGE = LengthMetric(2 * math.sqrt(2.0) / 3);       // 0.943
+  immutable LengthMetric AVG_EDGE = LengthMetric(1.459213746386106062);         // 1.459
 }
 // This is true for all projections.
 immutable LengthMetric MAX_EDGE = LengthMetric(MAX_ANGLE_SPAN.deriv());
@@ -208,13 +209,13 @@ immutable LengthMetric MAX_EDGE = LengthMetric(MAX_ANGLE_SPAN.deriv());
 // example, the distance from an arbitrary point to the closest cell center
 // at a given level is at most half the maximum diagonal length.
 version (S2_LINEAR_PROJECTION) {
-  immutable LengthMetric MIN_DIAG = LengthMetric(2 * math.sqrt(2) / 3);          // 0.943
-  immutable LengthMetric MAX_DIAG = LengthMetric(2 * math.sqrt(2));              // 2.828
+  immutable LengthMetric MIN_DIAG = LengthMetric(2 * math.sqrt(2.0) / 3);        // 0.943
+  immutable LengthMetric MAX_DIAG = LengthMetric(2 * math.sqrt(2.0));            // 2.828
   immutable LengthMetric AVG_DIAG = LengthMetric(2.031817866418812674);          // 2.032
 }
 version (S2_TAN_PROJECTION) {
-  immutable LengthMetric MIN_DIAG = LengthMetric(math.PI * math.sqrt(2) / 3);    // 1.481
-  immutable LengthMetric MAX_DIAG = LengthMetric(math.PI * math.sqrt(2. / 3));   // 2.565
+  immutable LengthMetric MIN_DIAG = LengthMetric(M_PI * math.sqrt(2.0) / 3);     // 1.481
+  immutable LengthMetric MAX_DIAG = LengthMetric(M_PI * math.sqrt(2.0 / 3));     // 2.565
   immutable LengthMetric AVG_DIAG = LengthMetric(2.063623197195635753);          // 2.064
 }
 version (S2_QUADRATIC_PROJECTION) {
@@ -231,14 +232,14 @@ version (S2_LINEAR_PROJECTION) {
   immutable AreaMetric MAX_AREA = AreaMetric(4);                             // 4.000
 }
 version (S2_TAN_PROJECTION) {
-  immutable AreaMetric MIN_AREA = AreaMetric((math.PI*math.PI) / (4*math.sqrt(2))); // 1.745
-  immutable AreaMetric MAX_AREA = AreaMetric(math.PI * math.PI / 4);         // 2.467
+  immutable AreaMetric MIN_AREA = AreaMetric((M_PI*M_PI) / (4*math.sqrt(2.0))); // 1.745
+  immutable AreaMetric MAX_AREA = AreaMetric(M_PI * M_PI / 4);               // 2.467
 }
 version (S2_QUADRATIC_PROJECTION) {
   immutable AreaMetric MIN_AREA = AreaMetric(8 * math.sqrt(2.0) / 9);        // 1.257
   immutable AreaMetric MAX_AREA = AreaMetric(2.635799256963161491);          // 2.636
 }
-immutable AreaMetric AVG_AREA = AreaMetric(4 * math.PI / 6);                 // 2.094
+immutable AreaMetric AVG_AREA = AreaMetric(4 * M_PI / 6);                    // 2.094
 
 // This is the maximum edge aspect ratio over all cells at any level, where
 // the edge aspect ratio of a cell is defined as the ratio of its longest

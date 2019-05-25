@@ -31,7 +31,7 @@ public:
   void unlock() shared @safe nothrow @nogc
   in {
     assert(_flag == true);
-  } body {
+  } do {
     while (!cas(&_flag, true, false)) {
       // Spin.
       continue;

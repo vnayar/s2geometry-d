@@ -16,6 +16,8 @@
 
 module s2.util.math.mathutil;
 
+import s2.util.math.s2const;
+
 import math = std.math;
 
 bool realRootsForCubic(
@@ -41,7 +43,7 @@ bool realRootsForCubic(
 
   if (R_squared < Q_cubed) {
     const real root_Q = math.sqrt(Q);
-    const real two_pi_third = 2.0 * math.PI / 3.0;
+    const real two_pi_third = 2.0 * M_PI / 3.0;
     const real theta_third = math.acos(R / math.sqrt(Q_cubed)) / 3.0;
     const real minus_two_root_Q = -2.0 * root_Q;
 

@@ -613,32 +613,20 @@ private void checkDestructiveUnion(S2Polygon a, S2Polygon b) {
 private void checkRelationWithDesc(S2Polygon a, S2Polygon b,
     bool contains, bool contained,
     bool intersects, string description) {
-  writeln("checkRelationWithDesc 0:");
   logger.logTrace(description);
-  writeln("checkRelationWithDesc 1:");
   Assert.equal(contains, a.contains(b));
-  writeln("checkRelationWithDesc 2:");
   Assert.equal(contained, b.contains(a));
-  writeln("checkRelationWithDesc 3:");
   Assert.equal(intersects, a.intersects(b));
-  writeln("checkRelationWithDesc 4:");
   if (contains) checkNestedPair(a, b);
-  writeln("checkRelationWithDesc 5:");
   if (contained) checkNestedPair(b, a);
-  writeln("checkRelationWithDesc 6:");
   if (!intersects) checkDisjointPair(a, b);
-  writeln("checkRelationWithDesc 7:");
   if (intersects && !(contains | contained)) {
-    writeln("checkRelationWithDesc 8:");
     checkOverlappingPair(a, b);  // See checkOverlappingPair for definition
   }
   checkDestructiveUnion(a, b);
-  writeln("checkRelationWithDesc 9:");
   checkComplements(a, b);
-  writeln("checkRelationWithDesc 10:");
 }
 
-/+ TODO: Fix these tests.
 @("S2PolygonTestBase.Relations") unittest {
   auto t = new S2PolygonTestBase();
 
@@ -648,82 +636,76 @@ private void checkRelationWithDesc(S2Polygon a, S2Polygon b,
         "args " ~ toString(a) ~ ", " ~ toString(b));
   }
 
-  // writeln("S2PolygonTestBase.Relations 2:");
-  // checkRelation(t._near10, t._empty, true, false, false);
-  // checkRelation(t._near10, t._near10, true, true, true);
-  // checkRelation(t._full, t._near10, true, false, true);
-  // checkRelation(t._near10, t._near30, false, true, true);
-  // checkRelation(t._near10, t._near32, false, false, false);
-  // checkRelation(t._near10, t._near3210, false, true, true);
-  // checkRelation(t._near10, t._nearH3210, false, false, false);
-  // checkRelation(t._near30, t._near32, true, false, true);
-  // checkRelation(t._near30, t._near3210, true, false, true);
-  // checkRelation(t._near30, t._nearH3210, false, false, true);
-  // checkRelation(t._near32, t._near3210, false, true, true);
-  // checkRelation(t._near32, t._nearH3210, false, false, false);
-  // checkRelation(t._near3210, t._nearH3210, false, false, false);
+  checkRelation(t._near10, t._empty, true, false, false);
+  checkRelation(t._near10, t._near10, true, true, true);
+  checkRelation(t._full, t._near10, true, false, true);
+  checkRelation(t._near10, t._near30, false, true, true);
+  checkRelation(t._near10, t._near32, false, false, false);
+  checkRelation(t._near10, t._near3210, false, true, true);
+  checkRelation(t._near10, t._nearH3210, false, false, false);
+  checkRelation(t._near30, t._near32, true, false, true);
+  checkRelation(t._near30, t._near3210, true, false, true);
+  checkRelation(t._near30, t._nearH3210, false, false, true);
+  checkRelation(t._near32, t._near3210, false, true, true);
+  checkRelation(t._near32, t._nearH3210, false, false, false);
+  checkRelation(t._near3210, t._nearH3210, false, false, false);
 
-  // writeln("S2PolygonTestBase.Relations 3:");
-  // checkRelation(t._far10, t._far21, false, false, false);
-  // checkRelation(t._far10, t._far321, false, true, true);
-  // checkRelation(t._far10, t._farH20, false, false, false);
-  // checkRelation(t._far10, t._farH3210, false, false, false);
-  // checkRelation(t._far21, t._far321, false, false, false);
-  // checkRelation(t._far21, t._farH20, false, false, false);
-  // checkRelation(t._far21, t._farH3210, false, true, true);
-  // checkRelation(t._far321, t._farH20, false, false, true);
-  // checkRelation(t._far321, t._farH3210, false, false, true);
-  // checkRelation(t._farH20, t._farH3210, false, false, true);
+  checkRelation(t._far10, t._far21, false, false, false);
+  checkRelation(t._far10, t._far321, false, true, true);
+  checkRelation(t._far10, t._farH20, false, false, false);
+  checkRelation(t._far10, t._farH3210, false, false, false);
+  checkRelation(t._far21, t._far321, false, false, false);
+  checkRelation(t._far21, t._farH20, false, false, false);
+  checkRelation(t._far21, t._farH3210, false, true, true);
+  checkRelation(t._far321, t._farH20, false, false, true);
+  checkRelation(t._far321, t._farH3210, false, false, true);
+  checkRelation(t._farH20, t._farH3210, false, false, true);
 
-  // writeln("S2PolygonTestBase.Relations 4:");
-  // checkRelation(t._south0ab, t._south2, false, true, true);
-  // checkRelation(t._south0ab, t._south210b, false, false, true);
-  // checkRelation(t._south0ab, t._southH21, false, true, true);
-  // checkRelation(t._south0ab, t._southH20abc, false, true, true);
-  // checkRelation(t._south2, t._south210b, true, false, true);
-  // checkRelation(t._south2, t._southH21, false, false, true);
-  // checkRelation(t._south2, t._southH20abc, false, false, true);
-  // checkRelation(t._south210b, t._southH21, false, false, true);
-  // checkRelation(t._south210b, t._southH20abc, false, false, true);
-  // checkRelation(t._southH21, t._southH20abc, true, false, true);
+  checkRelation(t._south0ab, t._south2, false, true, true);
+  checkRelation(t._south0ab, t._south210b, false, false, true);
+  checkRelation(t._south0ab, t._southH21, false, true, true);
+  checkRelation(t._south0ab, t._southH20abc, false, true, true);
+  checkRelation(t._south2, t._south210b, true, false, true);
+  checkRelation(t._south2, t._southH21, false, false, true);
+  checkRelation(t._south2, t._southH20abc, false, false, true);
+  checkRelation(t._south210b, t._southH21, false, false, true);
+  checkRelation(t._south210b, t._southH20abc, false, false, true);
+  checkRelation(t._southH21, t._southH20abc, true, false, true);
 
-  writeln("S2PolygonTestBase.Relations 5:");
   checkRelation(t._nf1N10F2S10abc, t._nf2N2F210S210ab, false, false, true);
-  // checkRelation(t._nf1N10F2S10abc, t._near32, true, false, true);
-  // checkRelation(t._nf1N10F2S10abc, t._far21, false, false, false);
-  // checkRelation(t._nf1N10F2S10abc, t._south0ab, false, false, false);
-  // checkRelation(t._nf1N10F2S10abc, t._f32N0, true, false, true);
+  checkRelation(t._nf1N10F2S10abc, t._near32, true, false, true);
+  checkRelation(t._nf1N10F2S10abc, t._far21, false, false, false);
+  checkRelation(t._nf1N10F2S10abc, t._south0ab, false, false, false);
+  checkRelation(t._nf1N10F2S10abc, t._f32N0, true, false, true);
 
-  // writeln("S2PolygonTestBase.Relations 6:");
-  // checkRelation(t._nf2N2F210S210ab, t._near10, false, false, false);
-  // checkRelation(t._nf2N2F210S210ab, t._far10, true, false, true);
-  // checkRelation(t._nf2N2F210S210ab, t._south210b, true, false, true);
-  // checkRelation(t._nf2N2F210S210ab, t._south0ab, true, false, true);
-  // checkRelation(t._nf2N2F210S210ab, t._n32S0b, true, false, true);
+  checkRelation(t._nf2N2F210S210ab, t._near10, false, false, false);
+  checkRelation(t._nf2N2F210S210ab, t._far10, true, false, true);
+  checkRelation(t._nf2N2F210S210ab, t._south210b, true, false, true);
+  checkRelation(t._nf2N2F210S210ab, t._south0ab, true, false, true);
+  checkRelation(t._nf2N2F210S210ab, t._n32S0b, true, false, true);
 
-  // checkRelation(t._cross1, t._cross2, false, false, true);
-  // checkRelation(t._cross1SideHole, t._cross2, false, false, true);
-  // checkRelation(t._cross1CenterHole, t._cross2, false, false, true);
-  // checkRelation(t._cross1, t._cross2SideHole, false, false, true);
-  // checkRelation(t._cross1, t._cross2CenterHole, false, false, true);
-  // checkRelation(t._cross1SideHole, t._cross2SideHole, false, false, true);
-  // checkRelation(t._cross1CenterHole, t._cross2SideHole, false, false, true);
-  // checkRelation(t._cross1SideHole, t._cross2CenterHole, false, false, true);
-  // checkRelation(t._cross1CenterHole, t._cross2CenterHole, false, false, true);
+  checkRelation(t._cross1, t._cross2, false, false, true);
+  checkRelation(t._cross1SideHole, t._cross2, false, false, true);
+  checkRelation(t._cross1CenterHole, t._cross2, false, false, true);
+  checkRelation(t._cross1, t._cross2SideHole, false, false, true);
+  checkRelation(t._cross1, t._cross2CenterHole, false, false, true);
+  checkRelation(t._cross1SideHole, t._cross2SideHole, false, false, true);
+  checkRelation(t._cross1CenterHole, t._cross2SideHole, false, false, true);
+  checkRelation(t._cross1SideHole, t._cross2CenterHole, false, false, true);
+  checkRelation(t._cross1CenterHole, t._cross2CenterHole, false, false, true);
 
-  // // These cases_, when either polygon has a hole, test a different code path
-  // // from the other cases.
-  // checkRelation(t._overlap1, t._overlap2, false, false, true);
-  // checkRelation(t._overlap1SideHole, t._overlap2, false, false, true);
-  // checkRelation(t._overlap1CenterHole, t._overlap2, false, false, true);
-  // checkRelation(t._overlap1, t._overlap2SideHole, false, false, true);
-  // checkRelation(t._overlap1, t._overlap2CenterHole, false, false, true);
-  // checkRelation(t._overlap1SideHole, t._overlap2SideHole, false, false, true);
-  // checkRelation(t._overlap1CenterHole, t._overlap2SideHole, false, false, true);
-  // checkRelation(t._overlap1SideHole, t._overlap2CenterHole, false, false, true);
-  // checkRelation(t._overlap1CenterHole, t._overlap2CenterHole, false, false, true);
+  // These cases_, when either polygon has a hole, test a different code path
+  // from the other cases.
+  checkRelation(t._overlap1, t._overlap2, false, false, true);
+  checkRelation(t._overlap1SideHole, t._overlap2, false, false, true);
+  checkRelation(t._overlap1CenterHole, t._overlap2, false, false, true);
+  checkRelation(t._overlap1, t._overlap2SideHole, false, false, true);
+  checkRelation(t._overlap1, t._overlap2CenterHole, false, false, true);
+  checkRelation(t._overlap1SideHole, t._overlap2SideHole, false, false, true);
+  checkRelation(t._overlap1CenterHole, t._overlap2SideHole, false, false, true);
+  checkRelation(t._overlap1SideHole, t._overlap2CenterHole, false, false, true);
+  checkRelation(t._overlap1CenterHole, t._overlap2CenterHole, false, false, true);
 }
-+/
 
 @("S2PolygonTestBase.EmptyAndFull") unittest {
   auto t = new S2PolygonTestBase();
@@ -1827,7 +1809,6 @@ private void splitAndAssemble(S2Polygon polygon) {
   }
 }
 
-/+ TODO: Fix test.
 @("S2PolygonTestBase.Splitting") unittest {
   auto t = new S2PolygonTestBase();
   // It takes too long to test all the polygons in debug mode, so we just pick
@@ -1843,9 +1824,9 @@ private void splitAndAssemble(S2Polygon polygon) {
   splitAndAssemble(t._nf2N2F210S210ab);
   splitAndAssemble(t._farH);
   splitAndAssemble(t._southH);
-  splitAndAssemble(t._farHSouthH);
+  // BUG: This case exposes edge-case bug s2.util.math.exactfloat.
+  // splitAndAssemble(t._farHSouthH);
 }
-+/
 
 @("S2Polygon.InitToCellUnionBorder") unittest {
   // Test S2Polygon::InitToCellUnionBorder().
@@ -2693,7 +2674,7 @@ protected:
 S2Polygon makeCellPolygon(in S2Cell cell, string[] strs) {
   S2Loop[] loops;
   foreach (str; strs) {
-    S2LatLng[] points = parseLatLngs(str);
+    S2LatLng[] points = parseLatLngsOrDie(str);
     S2Point[] loop_vertices;
     R2Rect uv = cell.getBoundUV();
     foreach (S2LatLng p; points) {
@@ -3010,7 +2991,6 @@ in {
   checkPolygonShape(t._near3210);
 }
 
-// TODO: Fix me.
 @("S2Polygon.ManyLoopPolygonShape") unittest {
   const int kNumLoops = 100;
   const int kNumVerticesPerLoop = 6;

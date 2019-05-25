@@ -48,7 +48,7 @@ import std.exception : enforce;
 S2Shape.ReferencePoint getReferencePoint(in S2Shape shape)
 in {
   assert(shape.hasInterior());
-} body {
+} do {
   if (shape.numEdges() == 0) {
     // A shape with no edges is defined to be "full" if and only if it
     // contains an empty loop.

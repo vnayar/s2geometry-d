@@ -50,7 +50,7 @@ private:
   this(double length2)
   in {
     assert(isValid());
-  } body {
+  } do {
     _length2 = length2;
   }
 
@@ -65,7 +65,7 @@ public:
     assert(s2pointutil.isUnitLength(y));
   } out {
     isValid();
-  } body {
+  } do {
     // The distance may slightly exceed MAX_LENGTH2 due to roundoff errors.
     // The maximum error in the result is 2 * DBL_EPSILON * length2_.
     _length2 = algorithm.min(MAX_LENGTH2, (x - y).norm2());
@@ -89,7 +89,7 @@ public:
   this(in S1Angle angle)
   out {
     assert(isValid(), toString() ~ " is invalid.");
-  } body {
+  } do {
     if (angle.radians() < 0) {
       this = negative();
     } else if (angle == S1Angle.infinity()) {
@@ -97,7 +97,7 @@ public:
     } else {
       // The chord length is 2 * sin(angle / 2).
       double length = 2 * math.sin(0.5 * algorithm.min(
-              cast(double) math.PI,
+              M_PI,
               math.isFinite(angle.radians()) ? angle.radians() : double.max));
       _length2 = length * length;
     }
@@ -272,7 +272,7 @@ public:
   in {
     assert(!isSpecial());
     assert(!b.isSpecial());
-  } body {
+  } do {
     // Note that this method is much more efficient than converting the chord
     // angles to S1Angles and adding those.  It requires only one square root
     // plus a few additions and multiplications.
@@ -305,7 +305,7 @@ public:
   in {
     assert(!isSpecial());
     assert(!b.isSpecial());
-  } body {
+  } do {
     // See comments in opBinary!"+"().
     double a2 = length2(), b2 = b.length2();
     if (b2 == 0) {
@@ -333,7 +333,7 @@ public:
   double cos() const
   in {
     assert(!isSpecial());
-  } body {
+  } do {
     // cos(2*A) = cos^2(A) - sin^2(A) = 1 - 2*sin^2(A)
     return 1 - 0.5 * length2();
   }
@@ -346,7 +346,7 @@ public:
   double sin2() const
   in {
     assert(!isSpecial());
-  } body {
+  } do {
     // Let "a" be the (non-squared) chord length, and let A be the corresponding
     // half-angle (a = 2*sin(A)).  The formula below can be derived from:
     //   sin(2*A) = 2 * sin(A) * cos(A)

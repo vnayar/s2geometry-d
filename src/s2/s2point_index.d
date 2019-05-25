@@ -194,7 +194,7 @@ public:
     S2CellId id() const
     in {
       assert(!done());
-    } body {
+    } do {
       return _iter.getValue().key;
     }
 
@@ -203,7 +203,7 @@ public:
     const(S2Point) point() const
     in {
       assert(!done());
-    } body {
+    } do {
       return _iter.getValue().value.point();
     }
 
@@ -212,7 +212,7 @@ public:
     inout(DataT) data() inout
     in {
       assert(!done());
-    } body {
+    } do {
       return _iter.getValue().value.data();
     }
 
@@ -221,7 +221,7 @@ public:
     inout(PointData) pointData() inout
     in {
       assert(!done());
-    } body {
+    } do {
       return _iter.getValue().value;
     }
 
@@ -245,7 +245,7 @@ public:
     void next()
     in {
       assert(!done());
-    } body {
+    } do {
       ++_iter;
     }
 

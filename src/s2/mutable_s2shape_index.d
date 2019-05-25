@@ -213,7 +213,7 @@ public:
   void initialize(Options options)
   in {
     assert(_shapes.length == 0);
-  } body {
+  } do {
     _options = options;
   }
 
@@ -308,7 +308,7 @@ public:
     in {
       // Make sure that the index has not been modified since Init() was called.
       assert(_index.isFresh());
-    } body {
+    } do {
       _iter = _index._cellMap.begin();
       _end = _index._cellMap.end();
       refresh();
@@ -324,7 +324,7 @@ public:
     void next()
     in {
       assert(!done());
-    } body {
+    } do {
       ++_iter;
       refresh();
     }
@@ -459,7 +459,7 @@ public:
   S2Shape[] releaseAll()
   in {
     assert(_updateState is null);
-  } body {
+  } do {
     _cellMap.clear();
     _pendingAdditionsBegin = 0;
     _pendingRemovals.length = 0;
@@ -721,7 +721,7 @@ public:
     void saveAndClearStateBefore(int limit_shape_id)
     in {
       assert(_savedIds.length == 0);
-    } body {
+    } do {
       size_t limit = lowerBound(limit_shape_id);
       _savedIds = _shapeIds[0 .. limit];
       _shapeIds = _shapeIds[limit .. $];
@@ -1322,7 +1322,7 @@ public:
   in {
     // Cases where an index cell is not needed should be detected before this.
     assert(edges.length != 0 || tracker.shapeIds().length != 0);
-  } body {
+  } do {
     // This function is recursive with a maximum recursion depth of 30
     // (S2CellId::kMaxLevel).  Note that using an explicit stack does not seem
     // to be any faster based on profiling.
@@ -1456,7 +1456,7 @@ public:
       InteriorTracker tracker, EdgeAllocator alloc)
   in {
     assert(pcell.id() == iter.id());
-  } body {
+  } do {
     import s2.s2edge_clipping : clipToPaddedFace;
     // When we absorb a cell, we erase all the edges that are being removed.
     // However when we are finished with this cell, we want to restore the state

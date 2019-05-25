@@ -215,7 +215,7 @@ public:
   double project(double p) const
   in {
     assert(!isEmpty());
-  } body {
+  } do {
     return algorithm.max(lo(), algorithm.min(hi(), p));
   }
 

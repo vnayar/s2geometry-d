@@ -1,9 +1,11 @@
 module s2.util.math.vector_test;
 
-import fluent.asserts;
+import s2.util.math.s2const;
 import s2.util.math.vector;
+
 import traits = std.traits;
 import math = std.math;
+import fluent.asserts;
 
 @("Construction")
 unittest {
@@ -209,8 +211,8 @@ unittest {
   // Cross product is 0 for colinear vectors.
   Assert.equal(Vector2_d(3.0, -4.0).crossProd(Vector2_d(-3.0, 4.0)), 0);
 
-  Assert.approximately(Vector2_d(3.0, -4.0).angle(Vector2_d(4.0, 3.0)), math.PI/2.0, delta);
-  Assert.approximately(Vector2_d(3.0, -4.0).angle(Vector2_d(-3.0, 4.0)), math.PI, delta);
+  Assert.approximately(Vector2_d(3.0, -4.0).angle(Vector2_d(4.0, 3.0)), M_PI_2, delta);
+  Assert.approximately(Vector2_d(3.0, -4.0).angle(Vector2_d(-3.0, 4.0)), M_PI, delta);
 
   // Counterclockwise orthoginal vector.
   Assert.equal(Vector2_d(-3.0, 4.0).ortho(), Vector2_d(-4.0, -3.0));

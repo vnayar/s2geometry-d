@@ -71,7 +71,7 @@ in {
   assert(isUnitLength(a));
   assert(isUnitLength(b));
   assert(isUnitLength(c));
-} body {
+} do {
 
   // I couldn't find any references for computing the true centroid of a
   // spherical triangle...  I have a truly marvellous demonstration of this

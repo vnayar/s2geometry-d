@@ -190,7 +190,7 @@ public:
   in {
     assert(k >= 0);
     assert(k < _vertices.length);
-  } body {
+  } do {
     return _vertices[k];
   }
 
@@ -264,7 +264,7 @@ public:
   S2Point getSuffix(double fraction, out int next_vertex) const
   in {
     assert(numVertices() > 0);
-  } body {
+  } do {
     // We intentionally let the (fraction >= 1) case fall through, since
     // we need to handle it in the loop below in any case because of
     // possible roundoff errors.
@@ -306,7 +306,7 @@ public:
   double unInterpolate(in S2Point point, int next_vertex) const
   in {
     assert(numVertices() > 0);
-  } body {
+  } do {
     if (numVertices() < 2) {
       return 0;
     }
@@ -334,7 +334,7 @@ public:
   S2Point project(in S2Point point, out int next_vertex) const
   in {
     assert(numVertices() > 0);
-  } body {
+  } do {
     import s2.s2edge_distances : project;
 
     if (numVertices() == 1) {
@@ -375,7 +375,7 @@ public:
   bool isOnRight(in S2Point point) const
   in {
     assert(numVertices() >= 2);
-  } body {
+  } do {
     int next_vertex;
     S2Point closest_point = project(point, next_vertex);
 
@@ -774,7 +774,7 @@ public:
     Chain chain(int i) const
     in {
       assert(i == 0);
-    } body {
+    } do {
       return Chain(0, numEdges());  // Avoid virtual call.
     }
 
@@ -782,7 +782,7 @@ public:
     Edge chainEdge(int i, int j) const
     in {
       assert(i == 0);
-    } body {
+    } do {
       return Edge(_polyline.vertex(j), _polyline.vertex(j + 1));
     }
 
@@ -825,7 +825,7 @@ public:
   in {
     assert(tolerance.radians() >= 0);
     assert((index + 1) < polyline.numVertices());
-  } body {
+  } do {
 
     // The basic idea is to keep track of the "pie wedge" of angles from the
     // starting vertex such that a ray from the starting vertex at that angle
@@ -858,7 +858,7 @@ public:
       // We don't allow simplification to create edges longer than 90 degrees,
       // to avoid numeric instability as lengths approach 180 degrees.  (We do
       // need to allow for original edges longer than 90 degrees, though.)
-      if (distance > PI/2 && last_distance > 0) break;
+      if (distance > M_PI_2 && last_distance > 0) break;
 
       // Vertices must be in increasing order along the ray, except for the
       // initial disc around the origin.

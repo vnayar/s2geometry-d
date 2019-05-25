@@ -1056,7 +1056,7 @@ public:
     // If there are no loops, check whether the result should be the full
     // polygon rather than the empty one.  (See InitToApproxIntersection.)
     if (numLoops() == 0) {
-      if (a._bound.area() > 2 * PI && a.getArea() > 2 * PI) invert();
+      if (a._bound.area() > 2 * M_PI && a.getArea() > 2 * M_PI) invert();
     }
   }
 

@@ -81,16 +81,13 @@ private:
   }
 
 public:
-  static immutable double PI = math.PI;
-  static immutable double PI_2 = math.PI_2;
-
   /// These methods construct S1Angle objects from their measure in radians or degrees.
   static S1Angle fromRadians(double radians) {
     return S1Angle(radians);
   }
 
   static S1Angle fromDegrees(double degrees) {
-    return S1Angle((PI / 180) * degrees);
+    return S1Angle((M_PI / 180) * degrees);
   }
 
   static S1Angle fromE5(int e5) {
@@ -148,7 +145,7 @@ public:
   }
 
   double degrees() const {
-    return (180 / PI) * _radians;
+    return (180 / M_PI) * _radians;
   }
 
   // Note that the E5, E6, and E7 conversion involve two multiplications rather
@@ -224,9 +221,9 @@ public:
 
   // Normalize this angle to the range (-180, 180] degrees.
   void normalize() {
-    _radians = math.remainder(_radians, 2.0 * PI);
-    if (_radians <= -PI) {
-      _radians = PI;
+    _radians = math.remainder(_radians, 2.0 * M_PI);
+    if (_radians <= -M_PI) {
+      _radians = M_PI;
     }
   }
 
