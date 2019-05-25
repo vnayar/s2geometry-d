@@ -9,7 +9,7 @@ jobs:
 
       - run:
           name: Build
-          command: dub
+          command: dub build
 
       - run:
           name: Test
