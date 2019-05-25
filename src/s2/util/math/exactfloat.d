@@ -116,10 +116,6 @@ import std.bigint;
 import std.range;
 import traits = std.traits;
 
-version(unittest) {
-  import std.conv;
-}
-
 struct ExactFloat {
 public:
   // The following limits are imposed by OpenSSL.
@@ -702,9 +698,7 @@ private:
   // "double".  This method handles non-normal values (NaN, etc).
   double toDoubleHelper() const
   in {
-    assert(prec() <= DOUBLE_MANTISSA_BITS,
-        "_bn=" ~ format.format("%d", _bn)
-        ~ "\nprec()=" ~ prec().to!string ~ " should be < " ~ DOUBLE_MANTISSA_BITS.to!string);
+    assert(prec() <= DOUBLE_MANTISSA_BITS);
   } do {
     if (!isNormal()) {
       if (isZero()) {
