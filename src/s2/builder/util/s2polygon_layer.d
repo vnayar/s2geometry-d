@@ -256,8 +256,8 @@ private:
 
   void initializeLoopMap(in S2Loop[] loops, ref LoopMap loop_map) const {
     if (!_labelSetIds) return;
-    foreach (int i, loop; loops) {
-      loop_map[loop] = tuple(i, loop.containsOrigin());
+    foreach (i, loop; loops) {
+      loop_map[loop] = tuple(cast(int) i, loop.containsOrigin());
     }
   }
 

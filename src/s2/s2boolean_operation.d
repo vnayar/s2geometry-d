@@ -324,19 +324,26 @@ public:
     int _edgeId = -1;
   }
 
-  struct Options {
+  final static class Options {
   public:
+    this() {
+      this(new IdentitySnapFunction(S1Angle.zero()));
+    }
+
     /// Convenience constructor that calls set_snap_function().
     this(in S2Builder.SnapFunction snap_function) {
       _snapFunction = snap_function.clone();
+      _polygonModel = PolygonModel.SEMI_OPEN;
+      _polylineModel = PolylineModel.CLOSED;
+      _sourceIdLexicon = new ValueLexicon!SourceId();
     }
 
     // Options may be assigned and copied.
     this(in Options options) {
-      _sourceIdLexicon = new ValueLexicon!SourceId();
       _snapFunction = options._snapFunction.clone();
       _polygonModel = options._polygonModel;
       _polylineModel = options._polylineModel;
+      _sourceIdLexicon = new ValueLexicon!SourceId();
     }
 
     /**
@@ -463,17 +470,17 @@ public:
     }
 
   private:
-    S2Builder.SnapFunction _snapFunction = new IdentitySnapFunction(S1Angle.zero());
-    PolygonModel _polygonModel = PolygonModel.SEMI_OPEN;
-    PolylineModel _polylineModel = PolylineModel.CLOSED;
+    S2Builder.SnapFunction _snapFunction;
+    PolygonModel _polygonModel;
+    PolylineModel _polylineModel;
     Precision _precision;
     bool _conservative;
-    ValueLexicon!SourceId _sourceIdLexicon = new ValueLexicon!SourceId();
+    ValueLexicon!SourceId _sourceIdLexicon;
   }
 
-  this(OpType op_type, Layer layer, Options options = Options()) {
+  this(OpType op_type, Layer layer, Options options = null) {
     _opType = op_type;
-    _options = options;
+    _options = options is null ? new Options() : options;
     _resultEmpty = null;
     _layers ~= layer;
   }
@@ -498,9 +505,9 @@ public:
    * objects, in order to make it easier to write classes that process all the
    * edges in parallel.
    */
-  this(OpType op_type, Layer[] layers, Options options = Options()) {
+  this(OpType op_type, Layer[] layers, Options options = null) {
     _opType = op_type;
-    _options = options;
+    _options = options is null ? new Options() : options;
     _layers = layers;
     _resultEmpty = null;
   }
@@ -522,9 +529,10 @@ public:
 
   /// Convenience method that returns true if the result of the given operation is empty.
   static bool isEmpty(
-      OpType op_type, S2ShapeIndex a, S2ShapeIndex b, Options options = Options()) {
+      OpType op_type, S2ShapeIndex a, S2ShapeIndex b, Options options = null) {
     bool result_empty;
-    auto op = new S2BooleanOperation(op_type, &result_empty, options);
+    auto op = new S2BooleanOperation(
+        op_type, &result_empty, options is null ? new Options() : options);
     S2Error error;
     op.build(a, b, error);
     debug enforce(error.ok());
@@ -532,14 +540,14 @@ public:
   }
 
   /// Convenience method that returns true if A intersects B.
-  static bool intersects(S2ShapeIndex a, S2ShapeIndex b, Options options = Options()) {
-    return !isEmpty(OpType.INTERSECTION, b, a, options);
+  static bool intersects(S2ShapeIndex a, S2ShapeIndex b, Options options = null) {
+    return !isEmpty(OpType.INTERSECTION, b, a, options is null ? new Options() : options);
   }
 
   /// Convenience method that returns true if A contains B, i.e., if the
   /// difference (B - A) is empty.
-  static bool contains(S2ShapeIndex a, S2ShapeIndex b, Options options = Options()) {
-    return isEmpty(OpType.DIFFERENCE, b, a, options);
+  static bool contains(S2ShapeIndex a, S2ShapeIndex b, Options options = null) {
+    return isEmpty(OpType.DIFFERENCE, b, a, options is null ? new Options() : options);
   }
 
   /**
@@ -547,8 +555,8 @@ public:
    * B is empty.  (Note that A and B may still not be identical, e.g. A may
    * contain two copies of a polyline while B contains one.)
    */
-  static bool equals(S2ShapeIndex a, S2ShapeIndex b, Options options = Options()) {
-    return isEmpty(OpType.SYMMETRIC_DIFFERENCE, b, a, options);
+  static bool equals(S2ShapeIndex a, S2ShapeIndex b, Options options = null) {
+    return isEmpty(OpType.SYMMETRIC_DIFFERENCE, b, a, options is null ? new Options() : options);
   }
 
 private:
@@ -1831,9 +1839,9 @@ private:
    * result of the operation is empty (contains no edges).  This constructor
    * is used to efficiently test boolean relationships (see IsEmpty above).
    */
-  this(OpType op_type, bool* result_empty, Options options = Options()) {
+  this(OpType op_type, bool* result_empty, Options options = null) {
     _opType = op_type;
-    _options = options;
+    _options = options is null ? new Options() : options;
     _resultEmpty = result_empty;
   }
 

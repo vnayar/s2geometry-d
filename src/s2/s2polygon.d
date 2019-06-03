@@ -1958,7 +1958,7 @@ private:
   /// Initializes the polygon to the result of the given boolean operation.
   bool initializeToOperation(S2BooleanOperation.OpType op_type,
       S2Builder.SnapFunction snap_function, S2Polygon a, S2Polygon b) {
-    S2BooleanOperation.Options options;
+    auto options = new S2BooleanOperation.Options();
     options.setSnapFunction(snap_function);
     auto op = new S2BooleanOperation(op_type, new S2PolygonLayer(this), options);
     S2Error error;
@@ -1991,7 +1991,7 @@ private:
 
   S2Polyline[] operationWithPolyline(
       S2BooleanOperation.OpType op_type, S2Builder.SnapFunction snap_function, in S2Polyline a) {
-    S2BooleanOperation.Options options;
+    auto options = new S2BooleanOperation.Options();
     options.setSnapFunction(snap_function);
     S2Polyline[] result;
     S2PolylineVectorLayer.Options layer_options;

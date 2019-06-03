@@ -145,7 +145,7 @@ void expectResult(
 // are computed using geodesics.  We can compensate for this by rounding the
 // intersection points to a fixed precision in degrees (e.g., 2 decimals).
 private S2BooleanOperation.Options roundToE(int exp) {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setSnapFunction(new IntLatLngSnapFunction(exp));
   return options;
 }
@@ -193,7 +193,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 
 @("S2BooleanOperation.DegeneratePolylines") unittest {
   // Verify that degenerate polylines are preserved under all boundary models.
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   auto a = "# 0:0, 0:0 #";
   auto b = "# #";
   options.setPolylineModel(PolylineModel.OPEN);
@@ -207,7 +207,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 @("S2BooleanOperation.DegeneratePolygons") unittest {
   // Verify that degenerate polygon features (single-vertex and sibling pair
   // shells and holes) are preserved under all boundary models.
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   auto a = "# # 0:0, 0:5, 5:5, 5:0; 1:1; 2:2, 3:3; 6:6; 7:7, 8:8";
   auto b = "# #";
   options.setPolygonModel(PolygonModel.OPEN);
@@ -219,7 +219,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 }
 
 @("S2BooleanOperation.PointPoint") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   auto a = "0:0 | 1:0 # #";
   auto b = "0:0 | 2:0 # #";
   // Note that these results have duplicates, which is correct.  Clients can
@@ -237,7 +237,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
   // no points (since polyline_model() is OPEN).  Since S2BooleanOperation
   // preserves degeneracies, this means that the union includes *both* the
   // point 3:0 and the degenerate polyline 3:0, since they do not intersect.
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolylineModel(PolylineModel.OPEN);
   auto a = "0:0 | 1:0 | 2:0 | 3:0 # #";
   auto b = "# 0:0, 1:0, 2:0 | 3:0, 3:0 #";
@@ -255,7 +255,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
   // Degenerate polylines are defined not contain any points under the
   // SEMI_OPEN model either, so again the point 3:0 and the degenerate
   // polyline "3:0, 3:0" do not intersect.
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolylineModel(PolylineModel.SEMI_OPEN);
   auto a = "0:0 | 1:0 | 2:0 | 3:0 # #";
   auto b = "# 0:0, 1:0, 2:0 | 3:0, 3:0 #";
@@ -275,7 +275,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
   // point 3:0 and the polyline 3:0 is the polyline only.  Similarly, since
   // subtracting a point from a polyline has no effect, the symmetric
   // difference includes only the polyline objects.
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolylineModel(PolylineModel.CLOSED);
   auto a = "0:0 | 1:0 | 2:0 | 3:0 # #";
   auto b = "# 0:0, 1:0, 2:0 | 3:0, 3:0 #";
@@ -290,7 +290,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 }
 
 @("S2BooleanOperation.PointPolygonInterior") unittest {
-  S2BooleanOperation.Options options;  // PolygonModel is irrelevant.
+  auto options = new S2BooleanOperation.Options();  // PolygonModel is irrelevant.
   // One interior point and one exterior point.
   auto a = "1:1 | 4:4 # #";
   auto b = "# # 0:0, 0:3, 3:0";
@@ -305,7 +305,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 }
 
 @("S2BooleanOperation.PointOpenPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.OPEN);
   // See notes about the two vertices below.
   auto a = "0:1 | 1:0 # #";
@@ -321,7 +321,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 }
 
 @("S2BooleanOperation.PointSemiOpenPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.SEMI_OPEN);
   // The two vertices are chosen such that the polygon contains one vertex but
   // not the other under PolygonModel::SEMI_OPEN.  (The same vertices are used
@@ -342,7 +342,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 }
 
 @("S2BooleanOperation.PointClosedPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.CLOSED);
   // See notes about the two vertices above.
   auto a = "0:1 | 1:0 # #";
@@ -360,7 +360,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 @("S2BooleanOperation.PolylineVertexOpenPolylineVertex") unittest {
   // Test starting, ending, and middle vertices of both polylines.  Degenerate
   // polylines are tested in PolylineEdgePolylineEdgeOverlap below.
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolylineModel(PolylineModel.OPEN);
   auto a = "# 0:0, 0:1, 0:2 #";
   auto b = "# 0:0, 1:0 | -1:1, 0:1, 1:1 | -1:2, 0:2 #";
@@ -384,7 +384,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 }
 
 @("S2BooleanOperation.PolylineVertexSemiOpenPolylineVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolylineModel(PolylineModel.SEMI_OPEN);
   auto a = "# 0:0, 0:1, 0:2 #";
   auto b = "# 0:0, 1:0 | -1:1, 0:1, 1:1 | -1:2, 0:2 #";
@@ -399,7 +399,7 @@ private S2BooleanOperation.Options roundToE(int exp) {
 }
 
 @("S2BooleanOperation.PolylineVertexClosedPolylineVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolylineModel(PolylineModel.CLOSED);
   auto a = "# 0:0, 0:1, 0:2 #";
   auto b = "# 0:0, 1:0 | -1:1, 0:1, 1:1 | -1:2, 0:2 #";
@@ -437,7 +437,7 @@ private string kVertexTestPolygonStr() {
 // above.  It is sufficient to use PolylineModel::CLOSED with the various
 // PolygonModel options.
 @("S2BooleanOperation.PolylineVertexOpenPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.OPEN);
 
   // Define some constants to reduce code duplication.
@@ -468,7 +468,7 @@ private string kVertexTestPolygonStr() {
       "-2:0, 0:1 | -2:1, 0:2 | -2:2, 0:3 | -2:3, 0:4 | "
       ~ "7:0, 5:1 | 7:1, 5:2 | 7:2, 5:3 | 7:3, 5:4 # " ~ kVertexTestPolygonStr();
 
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.OPEN);
   auto a = "# 1:1, 0:1 | 0:2, 1:2 | -1:3, 0:3 | 0:4, -1:4 "
       ~ "| 6:1, 5:1 | 5:2, 6:2 | 4:3, 5:3 | 5:4, 4:4 #";
@@ -491,7 +491,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolylineVertexSemiOpenPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.SEMI_OPEN);
   // Test all combinations of polylines that start or end on a polygon vertex,
   // where the polygon vertex is open or closed using semi-open boundaries,
@@ -515,7 +515,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolylineVertexClosedPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.CLOSED);
   // Test all combinations of polylines that start or end on a polygon vertex,
   // where the polygon vertex is open or closed using semi-open boundaries,
@@ -554,7 +554,7 @@ private string kVertexTestPolygonStr() {
   // The PolylineModel does not affect this calculation.  In particular the
   // intersection of a degenerate polyline edge with itself is non-empty, even
   // though the edge contains no points in the OPEN and SEMI_OPEN models.
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.OPEN);
   // Test edges in the same and reverse directions, and degenerate edges.
   auto a = "# 0:0, 1:0, 2:0, 2:5 | 3:0, 3:0 | 6:0, 5:0, 4:0 #";
@@ -574,7 +574,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolylineEdgeOpenPolygonEdgeOverlap") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.OPEN);
   // A polygon and two polyline edges that coincide with the polygon boundary,
   // one in the same direction and one in the reverse direction.
@@ -596,7 +596,7 @@ private string kVertexTestPolygonStr() {
   Assert.equal(polygon.contains(makePointOrDie("1:3")), true);
   Assert.equal(polygon.contains(makePointOrDie("3:3")), false);
   Assert.equal(polygon.contains(makePointOrDie("3:1")), false);
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.SEMI_OPEN);
   auto a = "# 1:1, 1:3, 3:3 | 3:3, 1:3 # ";
   auto b = "# # 1:1, 1:3, 3:3, 3:1";
@@ -611,7 +611,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolylineEdgeClosedPolygonEdgeOverlap") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.CLOSED);
   auto a = "# 1:1, 1:3, 3:3 | 3:3, 1:3 # ";
   auto b = "# # 1:1, 1:3, 3:3, 3:1";
@@ -630,7 +630,7 @@ private string kVertexTestPolygonStr() {
   // a0_matches_polygon and a1_matches_polygon correctly even when (a0, a1)
   // itself is a polygon edge (or its sibling).  (It requires degenerate
   // polygon geometry to demonstrate this.)
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolylineModel(PolylineModel.CLOSED);
   options.setPolygonModel(PolygonModel.CLOSED);
   auto a = "# 0:0, 1:1 # ";
@@ -639,7 +639,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolylineEdgePolygonInterior") unittest {
-  S2BooleanOperation.Options options;  // PolygonModel is irrelevant.
+  auto options = new S2BooleanOperation.Options();  // PolygonModel is irrelevant.
   // One normal and one degenerate polyline edge in the polygon interior, and
   // similarly for the polygon exterior.
   auto a = "# 1:1, 2:2 | 3:3, 3:3 | 6:6, 7:7 | 8:8, 8:8 # ";
@@ -655,7 +655,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolygonVertexOpenPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.OPEN);
   auto a = "# # 0:0, 0:5, 1:5, 0:0, 2:5, 3:5";
   auto b = "# # 0:0, 5:3, 5:2";
@@ -670,7 +670,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolygonVertexSemiOpenPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.SEMI_OPEN);
   auto a = "# # 0:0, 0:5, 1:5, 0:0, 2:5, 3:5";
   auto b = "# # 0:0, 5:3, 5:2";
@@ -685,7 +685,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolygonVertexClosedPolygonVertex") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.CLOSED);
   auto a = "# # 0:0, 0:5, 1:5, 0:0, 2:5, 3:5";
   auto b = "# # 0:0, 5:3, 5:2";
@@ -718,7 +718,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolygonEdgeOpenPolygonEdgeOverlap") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   // One shape is a rectangle, the other consists of one triangle inside the
   // rectangle and one triangle outside the rectangle, where each triangle
   // shares one edge with the rectangle.  This implies that the edges are in
@@ -737,7 +737,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolygonEdgeSemiOpenPolygonEdgeOverlap") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.SEMI_OPEN);
   auto a = "# # 0:0, 0:4, 2:4, 2:0";
   auto b = "# # 0:0, 1:1, 2:0; 0:4, 1:5, 2:4";
@@ -755,7 +755,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolygonEdgeClosedPolygonEdgeOverlap") unittest {
-  S2BooleanOperation.Options options;
+  auto options = new S2BooleanOperation.Options();
   options.setPolygonModel(PolygonModel.CLOSED);
   auto a = "# # 0:0, 0:4, 2:4, 2:0";
   auto b = "# # 0:0, 1:1, 2:0; 0:4, 1:5, 2:4";
@@ -772,7 +772,7 @@ private string kVertexTestPolygonStr() {
 }
 
 @("S2BooleanOperation.PolygonPolygonInterior") unittest {
-  S2BooleanOperation.Options options;  // PolygonModel is irrelevant.
+  auto options = new S2BooleanOperation.Options();  // PolygonModel is irrelevant.
   // One loop in the interior of another polygon and one loop in the exterior.
   auto a = "# # 0:0, 0:4, 4:4, 4:0";
   auto b = "# # 1:1, 1:2, 2:2, 2:1; 5:5, 5:6, 6:6, 6:5";
