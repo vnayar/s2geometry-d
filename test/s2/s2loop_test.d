@@ -41,17 +41,16 @@ import s2.s2pointutil;
 import s2.s2predicates;
 import s2.s2testing;
 import s2.s2text_format;
+import s2.util.coding.coder;
 import s2.util.math.matrix3x3;
 import s2.util.math.vector;
 
-import std.algorithm;
-import std.math;
-import std.conv;
-
-import std.stdio;
-import std.exception : enforce;
 import std.algorithm : find;
+import std.conv;
+import std.exception : enforce;
+import std.math;
 import std.range;
+import std.stdio;
 
 class S2LoopTestBase {
 public:
@@ -1049,31 +1048,29 @@ private void checkIdentical(S2Loop loop, S2Loop loop2) {
   Assert.equal(loop.getRectBound(), loop2.getRectBound());
 }
 
-/+ TODO: Convert when encode/decode are implemented.
-private void TestEncodeDecode(const S2Loop& loop) {
-  Encoder encoder;
-  loop.Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  S2Loop loop2;
-  loop2.set_s2debug_override(loop.s2debug_override());
-  ASSERT_TRUE(loop2.Decode(&decoder));
-  CheckIdentical(loop, loop2);
+private void checkEncodeDecode(S2Loop loop) {
+  auto encoder = makeEncoder();
+  loop.encode(encoder);
+  auto decoder = makeDecoder(encoder.buffer().data());
+  auto loop2 = new S2Loop();
+  loop2.s2DebugOverride = loop.s2DebugOverride;
+  Assert.equal(loop2.decode(decoder), true);
+  checkIdentical(loop, loop2);
 }
 
-TEST(S2Loop, EncodeDecode) {
-  unique_ptr<S2Loop> l(s2textformat::MakeLoop("30:20, 40:20, 39:43, 33:35"));
-  l->set_depth(3);
-  TestEncodeDecode(*l);
+@("S2Loop.EncodeDecode") unittest {
+  auto l = makeLoop("30:20, 40:20, 39:43, 33:35");
+  l.setDepth(3);
+  checkEncodeDecode(l);
 
-  S2Loop empty(S2Loop::kEmpty());
-  TestEncodeDecode(empty);
-  S2Loop full(S2Loop::kFull());
-  TestEncodeDecode(full);
+  auto empty = new S2Loop(S2Loop.empty());
+  checkEncodeDecode(empty);
+  auto full = new S2Loop(S2Loop.full());
+  checkEncodeDecode(full);
 
-  S2Loop uninitialized;
-  TestEncodeDecode(uninitialized);
+  auto uninitialized = new S2Loop();
+  checkEncodeDecode(uninitialized);
 }
-+/
 
 private void checkEmptyFullSnapped(S2Loop loop, int level) {
   Assert.equal(loop.isEmptyOrFull(), true);

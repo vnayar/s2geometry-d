@@ -283,7 +283,7 @@ import std.range;
   // cases, the conservative distance test was actually necessary.
   Assert.notLessThan(num_tested, 300);
   Assert.notGreaterThan(num_tested, 700);
-  Assert.notLessThan(num_conservative_needed, 25);
+  Assert.notLessThan(num_conservative_needed, 15);
 }
 
 // An abstract class that adds edges to a MutableS2ShapeIndex for benchmarking.

@@ -47,6 +47,7 @@ import s2.s2shape;
 import s2.s2shape_index;
 import s2.s2wedge_relations : wedgeContains, wedgeIntersects;
 import s2.shapeutil.visit_crossing_edge_pairs : findSelfIntersection;
+import s2.util.coding.coder;
 import s2.util.math.matrix3x3;
 import s2.util.math.vector;
 
@@ -1033,22 +1034,46 @@ public:
     return contains(it, p);
   }
 
-  // Appends a serialized representation of the S2Loop to "encoder".
-  //
-  // Generally clients should not use S2Loop::Encode().  Instead they should
-  // encode an S2Polygon, which unlike this method supports (lossless)
-  // compression.
-  //
-  // REQUIRES: "encoder" uses the default constructor, so that its buffer
-  //           can be enlarged as necessary by calling Ensure(int).
-  // void Encode(Encoder* const encoder) const;
+  /**
+   * Appends a serialized representation of the S2Loop to "encoder".
+   *
+   * Generally clients should not use S2Loop::Encode().  Instead they should
+   * encode an S2Polygon, which unlike this method supports (lossless)
+   * compression.
+   *
+   * REQUIRES: "encoder" uses the default constructor, so that its buffer
+   *           can be enlarged as necessary by calling Ensure(int).
+   */
+  void encode(ORangeT)(Encoder!ORangeT encoder) const
+  out (; encoder.avail >= 0) {
+    encoder.ensure(numVertices() * S2Point.sizeof + 20);  // sufficient
 
-  // Decodes a loop encoded with Encode() or the private method
-  // EncodeCompressed() (used by the S2Polygon encoder).  Returns true on
-  // success.
-  //
-  // This method may be called with loops that have already been initialized.
-  // bool Decode(Decoder* const decoder);
+    encoder.put8(CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER);
+    encoder.put32(numVertices());
+    encoder.putRaw(_vertices);
+    encoder.put8(_originInside);
+    encoder.put32(_depth);
+
+    _bound.encode(encoder);
+  }
+
+  /**
+   * Decodes a loop encoded with Encode() or the private method
+   * EncodeCompressed() (used by the S2Polygon encoder).  Returns true on
+   * success.
+   *
+   * This method may be called with loops that have already been initialized.
+   */
+  bool decode(IRangeT)(Decoder!IRangeT decoder) {
+    if (decoder.avail() < ubyte.sizeof) return false;
+    ubyte versionNum = decoder.get8();
+    switch (versionNum) {
+      case CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER:
+        return decodeInternal(decoder);
+      default:
+        return false;
+    }
+  }
 
   // Provides the same functionality as Decode, except that decoded regions
   // are allowed to point directly into the Decoder's memory buffer rather
@@ -1398,12 +1423,43 @@ private:
     return inside;
   }
 
-  // Internal implementation of the Decode and DecodeWithinScope methods above.
-  // If within_scope is true, memory is allocated for vertices_ and data
-  // is copied from the decoder using std::copy. If it is false, vertices_
-  // will point to the memory area inside the decoder, and the field
-  // owns_vertices_ is set to false.
-  //bool DecodeInternal(Decoder* const decoder, bool within_scope);
+  /**
+   * Internal implementation of the Decode and DecodeWithinScope methods above.
+   * If within_scope is true, memory is allocated for vertices_ and data
+   * is copied from the decoder using std::copy. If it is false, vertices_
+   * will point to the memory area inside the decoder, and the field
+   * owns_vertices_ is set to false.
+   */
+  bool decodeInternal(IRangeT)(Decoder!IRangeT decoder) {
+    // Perform all checks before modifying vertex state. Empty loops are
+    // explicitly allowed here: a newly created loop has zero vertices
+    // and such loops encode and decode properly.
+    if (decoder.avail() < uint.sizeof) return false;
+    uint num_vertices = decoder.get32();
+    if (num_vertices > DECODE_MAX_NUM_VERTICES) {
+      return false;
+    }
+    if (decoder.avail() < (num_vertices * S2Point.sizeof + ubyte.sizeof + uint.sizeof)) {
+      return false;
+    }
+    clearIndex();
+    _vertices = decoder.getRaw!S2Point(num_vertices);
+
+    _originInside = cast(bool) decoder.get8();
+    _depth = decoder.get32();
+    if (!_bound.decode(decoder)) return false;
+    _subregionBound = S2LatLngRectBounder.expandForSubregions(_bound);
+
+    // An initialized loop will have some non-zero count of vertices. A default
+    // (uninitialized) has zero vertices. This code supports encoding and
+    // decoding of uninitialized loops, but we only want to call InitIndex for
+    // initialized loops. Otherwise we defer InitIndex until the call to Init().
+    if (numVertices() > 0) {
+      initIndex();
+    }
+
+    return true;
+  }
 
   // Converts the loop vertices to the S2XYZFaceSiTi format and store the result
   // in the given array, which must be large enough to store all the vertices.
@@ -2146,3 +2202,6 @@ private bool matchBoundaries(in S2Loop a, in S2Loop b, int a_offset, S1Angle max
   }
   return false;
 }
+
+private enum ubyte CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER = 1;
+private enum uint DECODE_MAX_NUM_VERTICES = 50000000;
