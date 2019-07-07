@@ -19,23 +19,25 @@ module s2.s2cell;
 
 import algorithm = std.algorithm;
 import math = std.math;
+import s2.r1interval;
 import s2.r2point;
 import s2.r2rect;
 import s2.s1chord_angle;
+import s2.s1interval;
 import s2.s2cap;
 import s2.s2cell_id;
-import s2.r1interval;
-import s2.s1interval;
 import s2.s2edge_crosser;
 import s2.s2latlng;
 import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2region;
+import s2.util.coding.coder;
 import s2.util.math.vector;
 import s2coords = s2.s2coords;
 import s2edge_distances = s2.s2edge_distances;
 import s2measures = s2.s2measures;
 import s2metrics = s2.s2metrics;
+
 import std.exception;
 
 // An S2Cell is an S2Region object that represents a cell.  Unlike S2CellIds,
@@ -54,13 +56,7 @@ public:
   // An S2Cell always corresponds to a particular S2CellId.  The other
   // constructors are just convenience methods.
   this(in S2CellId id) {
-    _id = id;
-    int[2] ij;
-    int orientation;
-    _face = cast(byte) id.toFaceIJOrientation(ij[0], ij[1], orientation);
-    _orientation = cast(byte) orientation;  // Compress int to a byte.
-    _level = cast(byte) id.level();
-    _uv = S2CellId.IJLevelToBoundUV(ij, _level);
+    initFromS2CellId(id);
   }
 
   this(in S2Cell cell) {
@@ -93,6 +89,16 @@ public:
   // the arguments represent.
   static S2Cell fromFacePosLevel(int face, ulong pos, int level) {
     return new S2Cell(S2CellId.fromFacePosLevel(face, pos, level));
+  }
+
+  void initFromS2CellId(in S2CellId id) {
+    _id = id;
+    int[2] ij;
+    int orientation;
+    _face = cast(byte) id.toFaceIJOrientation(ij[0], ij[1], orientation);
+    _orientation = cast(byte) orientation;  // Compress int to a byte.
+    _level = cast(byte) id.level();
+    _uv = S2CellId.IJLevelToBoundUV(ij, _level);
   }
 
   S2CellId id() const {
@@ -598,14 +604,23 @@ public:
     return _uv.expanded(double.epsilon).contains(uv);
   }
 
-  // Appends a serialized representation of the S2Cell to "encoder".
-  //
-  // REQUIRES: "encoder" uses the default constructor, so that its buffer
-  //           can be enlarged as necessary by calling Ensure(int).
-  //void Encode(Encoder* const encoder) const;
+  /**
+   * Appends a serialized representation of the S2Cell to "encoder".
+   *
+   * REQUIRES: "encoder" uses the default constructor, so that its buffer
+   *           can be enlarged as necessary by calling Ensure(int).
+   */
+  void encode(ORangeT)(Encoder!ORangeT encoder) const {
+    _id.encode(encoder);
+  }
 
-  // Decodes an S2Cell encoded with Encode().  Returns true on success.
-  //bool Decode(Decoder* const decoder);
+  /// Decodes an S2Cell encoded with Encode().  Returns true on success.
+  bool decode(IRangeT)(Decoder!IRangeT decoder) {
+    S2CellId id;
+    if (!id.decode(decoder)) return false;
+    initFromS2CellId(id);
+    return true;
+  }
 
   override
   string toString() const {

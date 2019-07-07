@@ -31,11 +31,14 @@ import s2.s2edge_crossings : crossingSign;
 import s2.s2edge_distances : interpolate, updateMinDistance, updateMaxDistance;
 import s2.s2latlng;
 import s2.s2latlng_rect;
+import s2.s2latlng_rect_bounder;
+import s2.s2loop;
 import s2.s2metrics;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.s2testing;
 import s2.s2text_format;
+import s2.util.coding.coder;
 import s2.util.math.s2const;
 
 import algorithm = std.algorithm;
@@ -411,7 +414,6 @@ TEST(S2Cell, TestPerformance) {
 }
 +/
 
-/+ TODO: Implement when S2Loop is done.
 @("S2Cell.CellVsLoopRectBound")
 unittest {
   // This test verifies that the S2Cell and S2Loop bounds contain each other
@@ -435,8 +437,8 @@ unittest {
     S2Loop loop = new S2Loop(cell);
     S2LatLngRect cell_bound = cell.getRectBound();
     S2LatLngRect loop_bound = loop.getRectBound();
-    Assert.equal(true, loop_bound.Expanded(kCellError).contains(cell_bound));
-    Assert.equal(true, cell_bound.Expanded(kLoopError).contains(loop_bound));
+    Assert.equal(true, loop_bound.expanded(kCellError).contains(cell_bound));
+    Assert.equal(true, cell_bound.expanded(kLoopError).contains(loop_bound));
   }
 }
 
@@ -451,13 +453,12 @@ unittest {
     S2Point v2 = S2Testing.samplePoint(
         new S2Cap(cell.getVertex(i + 1), S1Angle.fromRadians(1e-15)));
     S2Point p = interpolate(S2Testing.rnd.randDouble(), v1, v2);
-    if (S2Loop(cell).contains(p)) {
+    if (new S2Loop(cell).contains(p)) {
       Assert.equal(true, cell.getRectBound().contains(S2LatLng(p)));
       ++iter;
     }
   }
 }
-+/
 
 @("S2Cell.ConsistentWithS2CellIdFromPoint") unittest {
   // Construct many points that are nearly on an S2Cell edge, and verify that
@@ -666,21 +667,19 @@ static S1ChordAngle getMaxDistanceToEdgeBruteForce(in S2Cell cell, in S2Point a,
   }
 }
 
-/+ TODO: Implement when Encoder/Decoder are implemented.
 @("S2Cell.EncodeDecode") unittest {
   auto orig_cell = new S2Cell(S2LatLng.fromDegrees(40.7406264, -74.0029963));
-  Encoder encoder;
-  orig_cell.Encode(&encoder);
+  auto encoder = makeEncoder();
+  orig_cell.encode(encoder);
 
-  S2Cell decoded_cell(S2LatLng::FromDegrees(51.494987, -0.146585));
-  Decoder decoder(encoder.base(), encoder.length());
-  decoded_cell.Decode(&decoder);
+  auto decoded_cell = new S2Cell(S2LatLng.fromDegrees(51.494987, -0.146585));
+  auto decoder = makeDecoder(encoder.buffer().data());
+  decoded_cell.decode(decoder);
 
   Assert.equal(orig_cell, decoded_cell);
   Assert.equal(orig_cell.face(), decoded_cell.face());
   Assert.equal(orig_cell.level(), decoded_cell.level());
   Assert.equal(orig_cell.orientation(), decoded_cell.orientation());
   Assert.equal(orig_cell.id(), decoded_cell.id());
-  Assert.equal(orig_cell.GetBoundUV(), decoded_cell.GetBoundUV());
+  Assert.equal(orig_cell.getBoundUV(), decoded_cell.getBoundUV());
 }
-+/
