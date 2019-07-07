@@ -17,44 +17,13 @@
 
 module s2.s2cell_id;
 
-// An S2CellId is a 64-bit unsigned integer that uniquely identifies a
-// cell in the S2 cell decomposition.  It has the following format:
-//
-//   id = [face][face_pos]
-//
-//   face:     a 3-bit number (range 0..5) encoding the cube face.
-//
-//   face_pos: a 61-bit number encoding the position of the center of this
-//             cell along the Hilbert curve over this face (see the Wiki
-//             pages for details).
-//
-// Sequentially increasing cell ids follow a continuous space-filling curve
-// over the entire sphere.  They have the following properties:
-//
-//  - The id of a cell at level k consists of a 3-bit face number followed
-//    by k bit pairs that recursively select one of the four children of
-//    each cell.  The next bit is always 1, and all other bits are 0.
-//    Therefore, the level of a cell is determined by the position of its
-//    lowest-numbered bit that is turned on (for a cell at level k, this
-//    position is 2 * (MAX_LEVEL - k).)
-//
-//  - The id of a parent cell is at the midpoint of the range of ids spanned
-//    by its children (or by its descendants at any level).
-//
-// Leaf cells are often used to represent points on the unit sphere, and
-// this class provides methods for converting directly between these two
-// representations.  For cells that represent 2D regions rather than
-// discrete point, it is better to use the S2Cell class.
-//
-// This class is intended to be copied by value as desired.  It uses
-// the default copy constructor and assignment operator.
-
 import s2.r1interval;
 import s2.r2point;
 import s2.r2rect;
 import s2.s1angle;
 import s2.s2latlng;
 import s2.s2point;
+import s2.util.coding.coder;
 import s2coords = s2.s2coords;
 
 import algorithm = std.algorithm;
@@ -65,7 +34,39 @@ import format = std.format;
 import math = std.math;
 import range = std.range;
 
-
+/**
+ * An S2CellId is a 64-bit unsigned integer that uniquely identifies a
+ * cell in the S2 cell decomposition.  It has the following format:
+ *
+ *   id = [face][face_pos]
+ *
+ *   face:     a 3-bit number (range 0..5) encoding the cube face.
+ *
+ *   face_pos: a 61-bit number encoding the position of the center of this
+ *             cell along the Hilbert curve over this face (see the Wiki
+ *             pages for details).
+ *
+ * Sequentially increasing cell ids follow a continuous space-filling curve
+ * over the entire sphere.  They have the following properties:
+ *
+ *  - The id of a cell at level k consists of a 3-bit face number followed
+ *    by k bit pairs that recursively select one of the four children of
+ *    each cell.  The next bit is always 1, and all other bits are 0.
+ *    Therefore, the level of a cell is determined by the position of its
+ *    lowest-numbered bit that is turned on (for a cell at level k, this
+ *    position is 2 * (MAX_LEVEL - k).)
+ *
+ *  - The id of a parent cell is at the midpoint of the range of ids spanned
+ *    by its children (or by its descendants at any level).
+ *
+ * Leaf cells are often used to represent points on the unit sphere, and
+ * this class provides methods for converting directly between these two
+ * representations.  For cells that represent 2D regions rather than
+ * discrete point, it is better to use the S2Cell class.
+ *
+ * This class is intended to be copied by value as desired.  It uses
+ * the default copy constructor and assignment operator.
+ */
 struct S2CellId {
 private:
   // The default constructor returns an invalid cell id.
@@ -733,16 +734,21 @@ public:
     return S2CellId(id);
   }
 
-  // Use encoder to generate a serialized representation of this cell id.
-  // Can also encode an invalid cell.
-  //
-  // TODO: What is a good serialization approach?
-  // void Encode(Encoder* const encoder) const;
+  /**
+   * Use encoder to generate a serialized representation of this cell id.
+   * Can also encode an invalid cell.
+   */
+  void encode(ORangeT)(Encoder!ORangeT encoder) const {
+    encoder.ensure(ulong.sizeof);  // A single uint64.
+    encoder.put64(_id);
+  }
 
-  // Decodes an S2CellId encoded by Encode(). Returns true on success.
-  //
-  // TODO: What is a good deserialization approach?
-  // bool Decode(Decoder* const decoder);
+  /// Decodes an S2CellId encoded by Encode(). Returns true on success.
+  bool decode(IRangeT)(Decoder!IRangeT decoder) {
+    if (decoder.avail() < ulong.sizeof) return false;
+    _id = decoder.get64();
+    return true;
+  }
 
   // Creates a human readable debug string.  Used for << and available for
   // direct usage as well.  The format is "f/dd..d" where "f" is a digit in

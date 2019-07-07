@@ -24,11 +24,13 @@ import std.bitmanip : append, read;
 import std.range;
 import std.traits;
 
-auto encoder() {
+/// Constructs a new Encoder using an `Appender!(ubyte[])` as the buffer.
+auto makeEncoder() {
   return new Encoder!(Appender!(ubyte[]))(appender(new ubyte[0]));
 }
 
-auto encoder(RangeT)(RangeT r) {
+/// Constructs a new Encoder with a given output range as the buffer.
+auto makeEncoder(RangeT)(RangeT r) {
   return new Encoder!RangeT(r);
 }
 
@@ -107,26 +109,28 @@ public:
     }
   }
 
-  // Return number of bytes encoded so far
+  /// Return number of bytes encoded so far
   final size_t length() const {
     return _pos;
   }
 
-  // Return number of bytes of space remaining in buffer
+  /// Return number of bytes of space remaining in buffer
   final size_t avail() const {
     return _limit - _pos;
   }
 
-  // REQUIRES: Encoder was created with the 0-argument constructor interface.
-  //
-  // This interface ensures that at least "N" more bytes are available
-  // in the underlying buffer by resizing the buffer (if necessary).
-  //
-  // Note that no bounds checking is done on any of the put routines,
-  // so it is the client's responsibility to call Ensure() at
-  // appropriate intervals to ensure that enough space is available
-  // for the data being added.
   static if (hasMember!(RangeT, "reserve")) {
+    /**
+     * REQUIRES: Encoder was created with the 0-argument constructor interface.
+     *
+     * This interface ensures that at least "N" more bytes are available
+     * in the underlying buffer by resizing the buffer (if necessary).
+     *
+     * Note that no bounds checking is done on any of the put routines,
+     * so it is the client's responsibility to call Ensure() at
+     * appropriate intervals to ensure that enough space is available
+     * for the data being added.
+     */
     void ensure(size_t n) {
       _buf.reserve(n);
     }
@@ -149,7 +153,7 @@ private:
 
 @("Encoder.put")
 unittest {
-  auto enc = encoder();
+  auto enc = makeEncoder();
   // Use hex just to make the bytes easier to identify.
   enc.put8(0x0a);
   assert(enc.buffer().data == [0x0a]);
@@ -162,7 +166,7 @@ unittest {
 
 @("Encoder.putRaw")
 unittest {
-  auto enc = encoder();
+  auto enc = makeEncoder();
   struct Thing {
     int a;
     double b;
@@ -177,7 +181,8 @@ unittest {
   assert(enc.length() == (things.length + 1) * Thing.sizeof);
 }
 
-auto decoder(RangeT)(RangeT r) {
+/// Constructs a new Decoder with the given input range as the buffer to read from.
+auto makeDecoder(RangeT)(RangeT r) {
   static if (hasLength!RangeT) {
     return new Decoder!RangeT(r, r.length);
   } else {
@@ -185,7 +190,8 @@ auto decoder(RangeT)(RangeT r) {
   }
 }
 
-auto decoder(RangeT)(RangeT r, size_t maxn) {
+/// Constructs a new Decoder with the given input range and limit of byte to be read.
+auto makeDecoder(RangeT)(RangeT r, size_t maxn) {
   return new Decoder!RangeT(r, maxn);
 }
 
@@ -294,7 +300,7 @@ version(unittest) {
 
 @("Decoder.get")
 unittest {
-  auto dec = decoder(cast(ubyte[]) [0x0a, 0x0b, 0x0c]);
+  auto dec = makeDecoder(cast(ubyte[]) [0x0a, 0x0b, 0x0c]);
   assert(dec.avail() == 3);
   assert(dec.get8() == 0x0a);
   assert(dec.avail() == 2);
@@ -316,7 +322,7 @@ unittest {
   byte testB = 0x03;
   short testC = 0x0405;
 
-  auto dec = decoder(chain(
+  auto dec = makeDecoder(chain(
           toNativeBytes(testA)[],
           toNativeBytes(testB)[], [cast(ubyte) 0x00],
           toNativeBytes(testC)[])
@@ -335,7 +341,7 @@ unittest {
   foreach (data; testData) {
     buffer ~= toNativeBytes(data);
   }
-  auto dec = decoder(buffer);
+  auto dec = makeDecoder(buffer);
   short[] result = dec.getRaw!short(3);
   assert(result == testData);
 }

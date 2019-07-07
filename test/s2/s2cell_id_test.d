@@ -30,6 +30,7 @@ import s2.s2coords;
 import s2.s2latlng;
 import s2.s2point;
 import s2.s2testing;
+import s2.util.coding.coder;
 import s2.util.math.matrix3x3;
 import s2coords = s2.s2coords;
 import s2metrics = s2.s2metrics;
@@ -315,39 +316,38 @@ unittest {
   Assert.equal(S2CellId.none(), S2CellId.fromToken(" 876bee99"));
 }
 
-/+
-TEST(S2CellId, EncodeDecode) {
-  S2CellId id(0x7837423);
-  Encoder encoder;
-  id.Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
+@("S2CellId.EncodeDecode") unittest {
+  auto id = S2CellId(0x7837423);
+  auto enc = makeEncoder();
+  id.encode(enc);
+
+  auto dec = makeDecoder(enc.buffer().data());
   S2CellId decoded_id;
-  EXPECT_TRUE(decoded_id.Decode(&decoder));
-  EXPECT_EQ(id, decoded_id);
+  Assert.equal(decoded_id.decode(dec), true);
+  Assert.equal(decoded_id, id);
 }
 
-TEST(S2CellId, EncodeDecodeNoneCell) {
-  S2CellId none_id = S2CellId::None();
-  Encoder encoder;
-  none_id.Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
+@("S2CellId.EncodeDecodeNoneCell") unittest {
+  S2CellId none_id = S2CellId.none();
+  auto enc = makeEncoder();
+  none_id.encode(enc);
+
+  auto dec = makeDecoder(enc.buffer().data());
   S2CellId decoded_id;
-  EXPECT_TRUE(decoded_id.Decode(&decoder));
-  EXPECT_EQ(none_id, decoded_id);
+  Assert.equal(decoded_id.decode(dec), true);
+  Assert.equal(none_id, decoded_id);
 }
 
-TEST(S2CellId, DecodeFailsWithTruncatedBuffer) {
-  S2CellId id(0x7837423);
-  Encoder encoder;
-  id.Encode(&encoder);
+@("S2CellId.DecodeFailsWithTruncatedBuffer") unittest {
+  auto id = S2CellId(0x7837423);
+  auto enc = makeEncoder();
+  id.encode(enc);
 
   // Truncate encoded buffer.
-  Decoder decoder(encoder.base(), encoder.length() - 2);
+  auto dec = makeDecoder(enc.buffer.data(), enc.length() - 2);
   S2CellId decoded_id;
-  EXPECT_FALSE(decoded_id.Decode(&decoder));
+  Assert.equal(decoded_id.decode(dec), false);
 }
-+/
-
 
 private immutable int MAX_EXPAND_LEVEL = 3;
 
