@@ -21,7 +21,6 @@ module s2.s2latlng_rect_test;
 // use the R1Interval and S1Interval classes, so most of the testing
 // is done in those unit tests.
 
-// #include "s2/util/coding/coder.h"
 import algorithm = std.algorithm;
 import fluent.asserts;
 import math = std.math;
@@ -36,9 +35,10 @@ import s2.s2latlng;
 import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2pointutil;
-import s2.s2testing;
-import s2.util.math.vector;
 import s2.s2predicates : sign;
+import s2.s2testing;
+import s2.util.coding.coder;
+import s2.util.math.vector;
 
 enum double DOUBLE_ERR = 0.0001;
 
@@ -621,22 +621,17 @@ unittest {
               cell202, 2);
 }
 
-/+
-// TODO: Enable after encode and decode are added.
-@("S2LatLngRect.EncodeDecode")
-unittest {
+@("S2LatLngRect.EncodeDecode") unittest {
   S2LatLngRect r = rectFromDegrees(-20, -80, 10, 20);
-  Encoder encoder;
-  r.Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
+  auto encoder = makeEncoder();
+  r.encode(encoder);
+  auto decoder = makeDecoder(encoder.buffer().data());
   S2LatLngRect decoded_rect = S2LatLngRect.empty();
-  Assert.equal(true, decoded_rect.Decode(&decoder));
-  Assert.equal(r, decoded_rect);
+  Assert.equal(decoded_rect.decode(decoder), true);
+  Assert.equal(decoded_rect, r);
 }
-+/
 
-@("S2LatLngRect.Area")
-unittest {
+@("S2LatLngRect.Area") unittest {
   Assert.equal(S2LatLngRect.empty().area(), 0.0);
   Assert.approximately(S2LatLngRect.full().area(), 4 * M_PI, DOUBLE_ERR);
   Assert.approximately(rectFromDegrees(0, 0, 90, 90).area(), M_PI_2, DOUBLE_ERR);

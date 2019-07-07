@@ -30,23 +30,23 @@ auto makeEncoder() {
 }
 
 /// Constructs a new Encoder with a given output range as the buffer.
-auto makeEncoder(RangeT)(RangeT r) {
-  return new Encoder!RangeT(r);
+auto makeEncoder(ORangeT)(ORangeT r) {
+  return new Encoder!ORangeT(r);
 }
 
 /**
  * Class for encoding data into a memory buffer
  */
-class Encoder(RangeT)
-if (isOutputRange!(RangeT, ubyte) && isOutputRange!(RangeT, ubyte[])) {
+class Encoder(ORangeT)
+if (isOutputRange!(ORangeT, ubyte) && isOutputRange!(ORangeT, ubyte[])) {
 public:
   // Initialize encoder to encode into "buf"
-  this(RangeT buf, size_t maxn = size_t.max) {
+  this(ORangeT buf, size_t maxn = size_t.max) {
     _buf = buf;
     _limit = maxn;
   }
 
-  final void reset(RangeT buf, size_t maxn) {
+  final void reset(ORangeT buf, size_t maxn) {
     _buf = buf;
     _limit = maxn;
   }
@@ -76,7 +76,7 @@ public:
     _buf.append!ulong(v);
   }
 
-  final void putdouble(double v)
+  final void putDouble(double v)
   in (avail() >= v.sizeof) {
     _pos += v.sizeof;
     _buf.append!double(v);
@@ -119,7 +119,7 @@ public:
     return _limit - _pos;
   }
 
-  static if (hasMember!(RangeT, "reserve")) {
+  static if (hasMember!(ORangeT, "reserve")) {
     /**
      * REQUIRES: Encoder was created with the 0-argument constructor interface.
      *
@@ -138,13 +138,13 @@ public:
 
   // Return ptr to start of encoded data.  This pointer remains valid
   // until reset or Ensure is called.
-  final RangeT buffer() {
+  final ORangeT buffer() {
     return _buf;
   }
 
 private:
   // buf_ points into the orig_ buffer, just past the last encoded byte.
-  RangeT _buf;
+  ORangeT _buf;
 
   // limits_ points just past the last allocated byte in the orig_ buffer.
   size_t _limit;
@@ -182,29 +182,29 @@ unittest {
 }
 
 /// Constructs a new Decoder with the given input range as the buffer to read from.
-auto makeDecoder(RangeT)(RangeT r) {
-  static if (hasLength!RangeT) {
-    return new Decoder!RangeT(r, r.length);
+auto makeDecoder(IRangeT)(IRangeT r) {
+  static if (hasLength!IRangeT) {
+    return new Decoder!IRangeT(r, r.length);
   } else {
-    return new Decoder!RangeT(r, size_t.max);
+    return new Decoder!IRangeT(r, size_t.max);
   }
 }
 
 /// Constructs a new Decoder with the given input range and limit of byte to be read.
-auto makeDecoder(RangeT)(RangeT r, size_t maxn) {
-  return new Decoder!RangeT(r, maxn);
+auto makeDecoder(IRangeT)(IRangeT r, size_t maxn) {
+  return new Decoder!IRangeT(r, maxn);
 }
 
 /* Class for decoding data from a memory buffer */
-class Decoder(RangeT)
-if (isInputRange!RangeT && is(ElementType!RangeT == ubyte)) {
+class Decoder(IRangeT)
+if (isInputRange!IRangeT && is(ElementType!IRangeT == ubyte)) {
 public:
   // Initialize decoder to decode from "buf"
-  this(RangeT buf, size_t maxn = size_t.max) {
+  this(IRangeT buf, size_t maxn = size_t.max) {
     reset(buf, maxn);
   }
 
-  void reset(RangeT buf, size_t maxn) {
+  void reset(IRangeT buf, size_t maxn) {
     _buf = buf;
     _limit = maxn;
   }
@@ -234,7 +234,7 @@ public:
     return _buf.read!ulong();
   }
 
-  double getdouble()
+  double getDouble()
   in (avail() >= double.sizeof) {
     _pos += double.sizeof;
     return _buf.read!double();
@@ -279,7 +279,7 @@ public:
   }
 
 private:
-  RangeT _buf;
+  IRangeT _buf;
 
   size_t _pos;
   size_t _limit;

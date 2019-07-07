@@ -28,12 +28,14 @@ import s2.s1interval;
 import s2.s2cap;
 import s2.s2cell;
 import s2.s2cell_id;
+import s2.s2debug;
 import s2.s2edge_crossings;
 import s2.s2latlng;
 import s2.s2point;
 import s2.s2pointutil;
 import s2.s2predicates;
 import s2.s2region;
+import s2.util.coding.coder;
 import s2.util.math.vector;
 
 import std.conv;
@@ -825,17 +827,46 @@ public:
     return contains(S2LatLng(p));
   }
 
-  // Appends a serialized representation of the S2LatLngRect to "encoder".
-  //
-  // REQUIRES: "encoder" uses the default constructor, so that its buffer
-  //           can be enlarged as necessary by calling Ensure(int).
-  //void Encode(Encoder* const encoder) const;
+  /**
+   * Appends a serialized representation of the S2LatLngRect to "encoder".
+   *
+   * REQUIRES: "encoder" uses the default constructor, so that its buffer
+   *           can be enlarged as necessary by calling Ensure(int).
+   */
+  void encode(ORangeT)(Encoder!ORangeT encoder) const
+  out(; encoder.avail() >= 0) {
+    encoder.ensure(40);  // sufficient
 
-  // Decodes an S2LatLngRect encoded with Encode().  Returns true on success.
-  //bool Decode(Decoder* const decoder);
+    encoder.put8(CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER);
+    encoder.putDouble(_lat.lo());
+    encoder.putDouble(_lat.hi());
+    encoder.putDouble(_lng.lo());
+    encoder.putDouble(_lng.hi());
+  }
 
-  // Returns true if the edge AB intersects the given edge of constant
-  // longitude.
+  /// Decodes an S2LatLngRect encoded with Encode().  Returns true on success.
+  bool decode(IRangeT)(Decoder!IRangeT decoder) {
+    if (decoder.avail() < ubyte.sizeof + 4 * double.sizeof)
+      return false;
+    ubyte versionNum = decoder.get8();
+    if (versionNum > CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER) return false;
+
+    double lat_lo = decoder.getDouble();
+    double lat_hi = decoder.getDouble();
+    _lat = R1Interval(lat_lo, lat_hi);
+    double lng_lo = decoder.getDouble();
+    double lng_hi = decoder.getDouble();
+    _lng = S1Interval(lng_lo, lng_hi);
+
+    if (!isValid()) {
+      if (flagsS2Debug) logger.logError("Invalid result in S2LatLngRect.decode: ", this);
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Returns true if the edge AB intersects the given edge of constant longitude.
   static bool intersectsLngEdge(
       in S2Point a, in S2Point b, in R1Interval lat, double lng) {
     // Return true if the segment AB intersects the given edge of constant
@@ -847,8 +878,10 @@ public:
         S2LatLng.fromRadians(lat.hi(), lng).toS2Point()) > 0;
   }
 
-  // Returns true if the edge AB intersects the given edge of constant
-  // latitude.  Requires the vectors to have unit length.
+  /**
+   * Returns true if the edge AB intersects the given edge of constant
+   * latitude.  Requires the vectors to have unit length.
+   */
   static bool intersectsLatEdge(
       in S2Point a, in S2Point b, double lat, in S1Interval lng)
   in {
@@ -1040,3 +1073,5 @@ public:
   R1Interval _lat;
   S1Interval _lng;
 }
+
+private enum ubyte CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER = 1;
