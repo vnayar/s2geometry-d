@@ -31,6 +31,7 @@ import s2.s2pointutil : approxEquals;
 import s2.s2pointutil;
 import s2.s2testing;
 import s2.s2text_format;
+import s2.util.coding.coder;
 import s2.util.math.vector;
 
 import fluent.asserts;
@@ -38,20 +39,6 @@ import fluent.asserts;
 import std.math;
 import std.range;
 import std.conv;
-
-// TODO: Add then Encoder/Decoder is completed.
-/+
-// Wraps s2textformat::MakePolyline in order to test Encode/Decode.
-unique_ptr<S2Polyline> MakePolyline(const string& str) {
-  unique_ptr<S2Polyline> polyline(s2textformat::MakePolyline(str));
-  Encoder encoder;
-  polyline->Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  auto decoded_polyline = make_unique<S2Polyline>();
-  decoded_polyline->Decode(&decoder);
-  return decoded_polyline;
-}
-+/
 
 @("S2Polyline.Basic") unittest {
   S2Point[] vertices;
@@ -372,17 +359,15 @@ static bool testEquals(string a_str, string b_str, S1Angle max_error) {
   Assert.equal(testEquals("0:0, 5:5, 0:10", "5:5, 0:10, 0:0", 0.1 * degree), false);
 }
 
-/+ TODO: Add when Encode/Decode are added.
 @("S2Polyline.EncodeDecode") unittest {
   auto polyline = makePolylineOrDie("0:0, 0:10, 10:20, 20:30");
-  Encoder encoder;
-  polyline->Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  S2Polyline decoded_polyline;
-  EXPECT_TRUE(decoded_polyline.Decode(&decoder));
-  EXPECT_TRUE(decoded_polyline.ApproxEquals(*polyline, S1Angle::Zero()));
+  auto encoder = makeEncoder();
+  polyline.encode(encoder);
+  auto decoder = makeDecoder(encoder.buffer().data());
+  auto decoded_polyline = new S2Polyline();
+  Assert.equal(decoded_polyline.decode(decoder), true);
+  Assert.equal(decoded_polyline.approxEquals(polyline, S1Angle.zero()), true);
 }
-+/
 
 @("S2PolylineShape.Basic") unittest {
   auto polyline = makePolylineOrDie("0:0, 1:0, 1:1, 2:1");

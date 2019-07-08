@@ -36,6 +36,7 @@ import s2.s2pointutil : approxEquals, getFrame, isUnitLength, toFrame;
 import s2.s2predicates : orderedCCW, sign;
 import s2.s2region;
 import s2.s2shape;
+import s2.util.coding.coder;
 import s2.util.math.matrix3x3;
 
 import std.math;
@@ -688,23 +689,45 @@ public:
     return false;
   }
 
-  // Always return false, because "containment" is not numerically
-  // well-defined except at the polyline vertices.
+  /**
+   * Always return false, because "containment" is not numerically
+   * well-defined except at the polyline vertices.
+   */
   override
   bool contains(in S2Point p) const {
     return false;
   }
 
-  // TODO: Implement when Encoder is implemented.
-  // Appends a serialized representation of the S2Polyline to "encoder".
-  //
-  // REQUIRES: "encoder" uses the default constructor, so that its buffer
-  //           can be enlarged as necessary by calling Ensure(int).
-  //void Encode(Encoder* const encoder) const;
+  /**
+   * Appends a serialized representation of the S2Polyline to "encoder".
+   *
+   * REQUIRES: "encoder" uses the default constructor, so that its buffer
+   *           can be enlarged as necessary by calling Ensure(int).
+   */
+  void encode(ORangeT)(Encoder!ORangeT encoder) const
+  out (; encoder.avail() >= 0) {
+    encoder.ensure(numVertices() * S2Point.sizeof + 10);  // sufficient
 
-  // TODO: Implement when Decoder is implemented.
-  // Decodes an S2Polyline encoded with Encode().  Returns true on success.
-  //bool Decode(Decoder* const decoder);
+    encoder.put8(CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER);
+    encoder.put32(numVertices());
+    encoder.putRaw(_vertices);
+  }
+
+  /// Decodes an S2Polyline encoded with Encode().  Returns true on success.
+  bool decode(IRangeT)(Decoder!IRangeT decoder) {
+    if (decoder.avail() < ubyte.sizeof + uint.sizeof) return false;
+    ubyte versionNum = decoder.get8();
+    if (versionNum > CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER) return false;
+
+    uint num_vertices = decoder.get32();
+    if (decoder.avail() < num_vertices * S2Point.sizeof) return false;
+    _vertices = decoder.getRaw!S2Point(num_vertices);
+
+    if (flagsS2Debug && _s2debugOverride == S2Debug.ALLOW) {
+      enforce(isValid());
+    }
+    return true;
+  }
 
   /**
    * Wrapper class for indexing a polyline (see S2ShapeIndex).  Once this
@@ -925,3 +948,5 @@ public:
     }
   }
 }
+
+private enum CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER = 1;
