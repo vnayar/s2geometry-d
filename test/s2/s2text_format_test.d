@@ -66,6 +66,7 @@ void expectString(string expected, in S2LatLng ll) {
 }
 
 @("ToString.MinimalDigitsE5") unittest {
+  S2Testing.rnd.reset(1);
   for (int iter = 0; iter < kIters; ++iter) {
     auto ll = S2LatLng(S2Testing.randomPoint());
     auto ll_e5 = S2LatLng.fromE5(ll.lat().e5(), ll.lng().e5());

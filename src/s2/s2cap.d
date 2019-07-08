@@ -26,14 +26,18 @@ import s2.s1chord_angle;
 import s2.s1interval;
 import s2.s2cell;
 import s2.s2cell_id;
+import s2.s2debug;
 import s2.s2latlng;
 import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2region;
+import s2.util.coding.coder;
 import s2.util.math.vector;
 import s2edge_distances = s2.s2edge_distances;
 import s2metrics = s2.s2metrics;
 import s2pointutil = s2.s2pointutil;
+
+import std.exception : enforce;
 
 // S2Cap represents a disc-shaped region defined by a center and radius.
 // Technically this shape is called a "spherical cap" (rather than disc)
@@ -518,14 +522,37 @@ public:
     return S1ChordAngle(_center, p) <= _radius;
   }
 
-  // Appends a serialized representation of the S2Cap to "encoder".
-  //
-  // REQUIRES: "encoder" uses the default constructor, so that its buffer
-  //           can be enlarged as necessary by calling Ensure(int).
-  // void Encode(Encoder* const encoder) const;
+  /**
+   * Appends a serialized representation of the S2Cap to "encoder".
+   *
+   * REQUIRES: "encoder" uses the default constructor, so that its buffer
+   *           can be enlarged as necessary by calling Ensure(int).
+   */
+  void encode(ORangeT)(Encoder!ORangeT encoder) const
+  out (; encoder.avail() >= 0) {
+    encoder.ensure(4 * double.sizeof);
 
-  // Decodes an S2Cap encoded with Encode().  Returns true on success.
-  // bool Decode(Decoder* const decoder);
+    encoder.putDouble(_center.x());
+    encoder.putDouble(_center.y());
+    encoder.putDouble(_center.z());
+    encoder.putDouble(_radius.length2());
+  }
+
+  /// Decodes an S2Cap encoded with Encode().  Returns true on success.
+  bool decode(IRangeT)(Decoder!IRangeT decoder) {
+    if (decoder.avail() < 4 * double.sizeof) return false;
+
+    double x = decoder.getDouble();
+    double y = decoder.getDouble();
+    double z = decoder.getDouble();
+    _center = S2Point(x, y, z);
+    _radius = S1ChordAngle.fromLength2(decoder.getDouble());
+
+    if (flagsS2Debug) {
+      enforce(isValid(), "Invalid S2Cap: " ~ toString());
+    }
+    return true;
+  }
 
   ///////////////////////////////////////////////////////////////////////
   // The following static methods are convenience functions for assertions

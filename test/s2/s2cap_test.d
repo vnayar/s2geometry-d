@@ -31,6 +31,7 @@ import s2.s2latlng;
 import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2testing;
+import s2.util.coding.coder;
 import s2.util.math.vector;
 import s2metrics = s2.s2metrics;
 
@@ -362,16 +363,13 @@ unittest {
   Assert.equal(hemi.unite(hemi.complement()).isFull(), true);
 }
 
-/+
-// TODO: Add once encoders are implemented.
 @("S2Cap.EncodeDecode")
 unittest {
   S2Cap cap = S2Cap.fromCenterHeight(S2Point(3, 2, 1).normalize(), 1);
-  Encoder encoder;
+  auto encoder = makeEncoder();
   cap.encode(encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  S2Cap decoded_cap;
-  Assert.equal(decoded_cap.Decode(&decoder), true);
+  auto decoder = makeDecoder(encoder.buffer().data());
+  auto decoded_cap = new S2Cap();
+  Assert.equal(decoded_cap.decode(decoder), true);
   Assert.equal(decoded_cap, cap);
 }
-+/
