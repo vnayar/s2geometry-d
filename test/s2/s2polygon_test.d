@@ -51,6 +51,7 @@ import s2.s2polyline;
 import s2.s2region_coverer;
 import s2.s2testing;
 import s2.s2text_format;
+import s2.util.coding.coder;
 import s2.util.math.matrix3x3;
 
 import std.algorithm;
@@ -228,16 +229,14 @@ public:
   S2Polygon _farHSouthH;
 }
 
-/+ TODO: Convert when encode/decode is added.
-static bool TestEncodeDecode(const S2Polygon* src) {
-  Encoder encoder;
-  src->Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  S2Polygon dst;
-  dst.Decode(&decoder);
-  return src->Equals(&dst);
+static bool checkEncodeDecode(in S2Polygon src) {
+  auto encoder = makeEncoder();
+  src.encode(encoder);
+  auto decoder = makeDecoder(encoder.buffer().data());
+  auto dst = new S2Polygon();
+  dst.decode(decoder);
+  return src == dst;
 }
-+/
 
 private S2Polygon makePolygon(string str) {
   S2Polygon polygon = makeVerbatimPolygonOrDie(str);
@@ -2039,22 +2038,23 @@ private void splitAndAssemble(S2Polygon polygon) {
   Assert.equal(polygon.numVertices(), 3);
 }
 
+@("S2PolygonTestBase.TestSimpleEncodeDecode") unittest {
+  auto t = new S2PolygonTestBase();
+  auto encoder = makeEncoder();
+  t._cross1.encode(encoder);
+  auto decoder = makeDecoder(encoder.buffer().data());
+  auto decoded_polygon = new S2Polygon();
+  Assert.equal(decoded_polygon.decode(decoder), true);
+  Assert.equal(t._cross1.boundaryEquals(decoded_polygon), true);
+  Assert.equal(t._cross1.getRectBound(), decoded_polygon.getRectBound());
+}
+
+@("S2Polygon.TestEncodeDecodeDefaultPolygon") unittest {
+  auto polygon = new S2Polygon();
+  Assert.equal(checkEncodeDecode(polygon), true);
+}
+
 /+ TODO: Complete when encode/decode are added.
-
-TEST_F(S2PolygonTestBase, TestSimpleEncodeDecode) {
-  Encoder encoder;
-  cross1_->Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  S2Polygon decoded_polygon;
-  ASSERT_TRUE(decoded_polygon.Decode(&decoder));
-  EXPECT_TRUE(cross1_->BoundaryEquals(&decoded_polygon));
-  EXPECT_EQ(cross1_->GetRectBound(), decoded_polygon.GetRectBound());
-}
-
-TEST(S2Polygon, TestEncodeDecodeDefaultPolygon) {
-  S2Polygon polygon;
-  EXPECT_TRUE(TestEncodeDecode(&polygon));
-}
 
 TEST(S2Polygon, CompressedEmptyPolygonRequires3Bytes) {
   S2Polygon empty_polygon;

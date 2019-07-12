@@ -45,7 +45,7 @@ import s2.util.coding.coder;
 import s2.util.math.matrix3x3;
 import s2.util.math.vector;
 
-import std.algorithm : find;
+import std.algorithm : find, min;
 import std.conv;
 import std.exception : enforce;
 import std.math;
@@ -1059,7 +1059,7 @@ private void checkEncodeDecode(S2Loop loop) {
 }
 
 @("S2Loop.EncodeDecode") unittest {
-  auto l = makeLoop("30:20, 40:20, 39:43, 33:35");
+  auto l = makeLoopOrDie("30:20, 40:20, 39:43, 33:35");
   l.setDepth(3);
   checkEncodeDecode(l);
 

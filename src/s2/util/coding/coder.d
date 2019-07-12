@@ -119,19 +119,17 @@ public:
     return _limit - _pos;
   }
 
-  static if (hasMember!(ORangeT, "reserve")) {
-    /**
-     * REQUIRES: Encoder was created with the 0-argument constructor interface.
-     *
-     * This interface ensures that at least "N" more bytes are available
-     * in the underlying buffer by resizing the buffer (if necessary).
-     *
-     * Note that no bounds checking is done on any of the put routines,
-     * so it is the client's responsibility to call Ensure() at
-     * appropriate intervals to ensure that enough space is available
-     * for the data being added.
-     */
-    void ensure(size_t n) {
+  /**
+   * This interface ensures that at least "N" more bytes are available
+   * in the underlying buffer by resizing the buffer (if necessary).
+   *
+   * Note that no bounds checking is done on any of the put routines,
+   * so it is the client's responsibility to call Ensure() at
+   * appropriate intervals to ensure that enough space is available
+   * for the data being added.
+   */
+  void ensure(size_t n) {
+    static if (hasMember!(ORangeT, "reserve")) {
       _buf.reserve(n);
     }
   }

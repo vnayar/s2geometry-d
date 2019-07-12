@@ -34,6 +34,7 @@ import s2.s2cell;
 import s2.s2cell_id;
 import s2.s2cell_union;
 import s2.s2contains_point_query;
+import s2.s2coords : MAX_CELL_LEVEL;
 import s2.s2debug;
 import s2.s2edge_crossings : INTERSECTION_ERROR, INTERSECTION_MERGE_RADIUS;
 import s2.s2error;
@@ -42,11 +43,13 @@ import s2.s2latlng_rect_bounder;
 import s2.s2loop;
 import s2.s2metrics;
 import s2.s2point;
+import s2.s2point_compression;
 import s2.s2polyline;
 import s2.s2region;
 import s2.s2shape;
 import s2.s2shape_index;
 import s2.s2shape_index_region : makeS2ShapeIndexRegion;
+import s2.util.coding.coder;
 import s2.util.container.btree_map;
 
 import core.atomic;
@@ -1569,27 +1572,88 @@ public:
     return makeS2ContainsPointQuery(_index).contains(p);
   }
 
-  // TODO: Implement when encode/decode support is added.
-  // Appends a serialized representation of the S2Polygon to "encoder".
-  //
-  // The encoding uses about 4 bytes per vertex for typical polygons in
-  // Google's geographic repository, assuming that most vertices have been
-  // snapped to the centers of S2Cells at some fixed level (typically using
-  // InitToSnapped). The remaining vertices are stored using 24 bytes.
-  // Decoding a polygon encoded this way always returns the original polygon,
-  // without any loss of precision.
-  //
-  // The snap level is chosen to be the one that has the most vertices snapped
-  // to S2Cells at that level.  If most vertices need 24 bytes, then all
-  // vertices are encoded this way (this method automatically chooses the
-  // encoding that has the best chance of giving the smaller output size).
-  //
-  // REQUIRES: "encoder" uses the default constructor, so that its buffer
-  //           can be enlarged as necessary by calling Ensure(int).
-  // void Encode(Encoder* const encoder) const;
+  /**
+   * Appends a serialized representation of the S2Polygon to "encoder".
+   *
+   * The encoding uses about 4 bytes per vertex for typical polygons in
+   * Google's geographic repository, assuming that most vertices have been
+   * snapped to the centers of S2Cells at some fixed level (typically using
+   * InitToSnapped). The remaining vertices are stored using 24 bytes.
+   * Decoding a polygon encoded this way always returns the original polygon,
+   * without any loss of precision.
+   *
+   * The snap level is chosen to be the one that has the most vertices snapped
+   * to S2Cells at that level.  If most vertices need 24 bytes, then all
+   * vertices are encoded this way (this method automatically chooses the
+   * encoding that has the best chance of giving the smaller output size).
+   */
+  void encode(ORangeT)(Encoder!ORangeT encoder) const {
+    // TODO: Add after encodeCompressed is implemented.
+    //if (num_vertices_ == 0) {
+    //  EncodeCompressed(encoder, nullptr, S2::kMaxCellLevel);
+    //  return;
+    //}
 
-  // Decodes a polygon encoded with Encode().  Returns true on success.
-  // bool Decode(Decoder* const decoder);
+    // Converts all the polygon vertices to S2XYZFaceSiTi format.
+    auto all_vertices = new S2XYZFaceSiTi[numVertices()];
+    size_t current_loop_index = 0;
+    foreach (loop; _loops) {
+      loop.getXYZFaceSiTiVertices(all_vertices, current_loop_index);
+      current_loop_index += loop.numVertices();
+    }
+    // Computes a histogram of the cell levels at which the vertices are snapped.
+    // cell_level is -1 for unsnapped, or 0 through kMaxCellLevel if snapped,
+    // so we add one to it to get a non-negative index.  (histogram[0] is the
+    // number of unsnapped vertices, histogram[i] the number of vertices
+    // snapped at level i-1).
+    int[MAX_CELL_LEVEL + 2] histogram;
+    foreach (v; all_vertices) {
+      histogram[v.cellLevel + 1] += 1;
+    }
+    // Compute the level at which most of the vertices are snapped.
+    // If multiple levels have the same maximum number of vertices
+    // snapped to it, the first one (lowest level number / largest
+    // area / smallest encoding length) will be chosen, so this
+    // is desired.  Start with histogram[1] since histogram[0] is
+    // the number of unsnapped vertices, which we don't care about.
+    const max_index = maxIndex(histogram[1..$]);
+    // snap_level will be at position histogram[snap_level + 1], see above.
+    const int snap_level = cast(int) max_index - 1;
+    const int num_snapped = histogram[max_index + 1];
+    // Choose an encoding format based on the number of unsnapped vertices and a
+    // rough estimate of the encoded sizes.
+
+    // The compressed encoding requires approximately 4 bytes per vertex plus
+    // "exact_point_size" for each unsnapped vertex (encoded as an S2Point plus
+    // the index at which it is located).
+    int exact_point_size = S2Point.sizeof + 2;
+    int num_unsnapped = numVertices() - num_snapped;
+    int compressed_size = 4 * numVertices() + exact_point_size * num_unsnapped;
+    int lossless_size = cast(int) S2Point.sizeof * numVertices();
+
+    // TODO: Add after encodeCompressed is implemented.
+    //if (compressed_size < lossless_size) {
+    //  EncodeCompressed(encoder, all_vertices.data(), snap_level);
+    //} else {
+      encodeLossless(encoder);
+    //}
+  }
+
+  /// Decodes a polygon encoded with Encode().  Returns true on success.
+  bool decode(IRangeT)(Decoder!IRangeT decoder) {
+    if (decoder.avail() < ubyte.sizeof) return false;
+    ubyte versionNum = decoder.get8();
+    switch (versionNum) {
+      case CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER:
+        return decodeLossless(decoder, false);
+      case CURRENT_COMPRESSED_ENCODING_VERSION_NUMBER:
+        // TODO: Add when compression is implemented.
+        //return DecodeCompressed(decoder);
+        return false;
+      default:
+        return false;
+    }
+  }
 
   // Decodes a polygon by pointing the S2Loop vertices directly into the
   // decoder's memory buffer (which needs to persist for the lifetime of the
@@ -2007,15 +2071,62 @@ private:
     return result;
   }
 
-  // TODO: Add when decode/encode are ready.
-  // Encode the polygon's S2Points directly as three doubles using
-  // (40 + 43 * num_loops + 24 * num_vertices) bytes.
-  // void EncodeLossless(Encoder* encoder) const;
+  /**
+   * Encode the polygon's S2Points directly as three doubles using
+   * (40 + 43 * num_loops + 24 * num_vertices) bytes.
+   */
+  void encodeLossless(ORangeT)(Encoder!ORangeT encoder) const
+  out (; encoder.avail() >= 0) {
+    encoder.ensure(10);  // Sufficient
+    encoder.put8(CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER);
+    // This code used to write "owns_loops_", so write "true" for compatibility.
+    encoder.put8(true);
+    // Encode obsolete "has_holes_" field for backwards compatibility.
+    bool has_holes = false;
+    for (int i = 0; i < numLoops(); ++i) {
+      if (loop(i).isHole()) has_holes = true;
+    }
+    encoder.put8(has_holes);
+    encoder.put32(cast(uint) _loops.length);
 
-  // Decode a polygon encoded with EncodeLossless().  Used by the Decode and
-  // DecodeWithinScope methods above.  The within_scope parameter specifies
-  // whether to call DecodeWithinScope on the loops.
-  // bool DecodeLossless(Decoder* const decoder, bool within_scope);
+    for (int i = 0; i < numLoops(); ++i) {
+      loop(i).encode(encoder);
+    }
+    _bound.encode(encoder);
+  }
+
+  /**
+   * Decode a polygon encoded with EncodeLossless().  Used by the Decode and
+   * DecodeWithinScope methods above.  The within_scope parameter specifies
+   * whether to call DecodeWithinScope on the loops.
+   */
+  bool decodeLossless(IRangeT)(Decoder!IRangeT decoder, bool within_scope) {
+    if (decoder.avail() < 2 * ubyte.sizeof + uint.sizeof) return false;
+    clearLoops();
+    decoder.get8();  // Ignore irrelevant serialized owns_loops_ value.
+    decoder.get8();  // Ignore irrelevant serialized has_holes_ value.
+    // Polygons with no loops are explicitly allowed here: a newly created
+    // polygon has zero loops and such polygons encode and decode properly.
+    uint num_loops = decoder.get32();
+    if (num_loops > S2POLYGON_DECODE_MAX_NUM_LOOPS) return false;
+    _loops.reserve(num_loops);
+    _numVertices = 0;
+    for (int i = 0; i < num_loops; ++i) {
+      _loops ~= new S2Loop();
+      _loops.back().s2DebugOverride(s2debugOverride());
+      if (within_scope) {
+        enforce("decodeWithinScope is not supported!");
+        // if (!loops_.back()->DecodeWithinScope(decoder)) return false;
+      } else {
+        if (!_loops.back().decode(decoder)) return false;
+      }
+      _numVertices += _loops.back().numVertices();
+    }
+    if (!_bound.decode(decoder)) return false;
+    _subregionBound = S2LatLngRectBounder.expandForSubregions(_bound);
+    initializeIndex();
+    return true;
+  }
 
   // Encode the polygon's vertices using about 4 bytes / vertex plus 24 bytes /
   // unsnapped vertex. All the loop vertices must be converted first to the
@@ -2177,3 +2288,11 @@ private ubyte getCellEdgeIncidenceMask(in S2Cell cell, in S2Point p, double tole
   }
   return mask;
 }
+
+// When adding a new encoding, be aware that old binaries will not
+// be able to decode it.
+private enum ubyte CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER = 1;
+private enum ubyte CURRENT_COMPRESSED_ENCODING_VERSION_NUMBER = 4;
+
+/// The upper limit on the number of loops that are allowed by the S2Polygon.decode method.
+private enum uint S2POLYGON_DECODE_MAX_NUM_LOOPS = 10000000;

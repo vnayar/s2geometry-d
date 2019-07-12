@@ -30,6 +30,7 @@ import s2.s2cell;
 import s2.s2cell_id;
 import s2.s2centroids : trueCentroid;
 import s2.s2closest_edge_query;
+import s2.s2coords : XYZtoFaceSiTi;
 import s2.s2crossing_edge_query;
 import s2.s2debug;
 import s2.s2edge_crosser;
@@ -40,6 +41,7 @@ import s2.s2latlng_rect_bounder;
 import s2.s2measures : signedArea, turnAngle;
 import s2.s2padded_cell;
 import s2.s2point;
+import s2.s2point_compression : S2XYZFaceSiTi;
 import s2.s2pointutil : approxEquals, fromFrame, getFrame, origin, robustCrossProd;
 import s2.s2predicates : orderedCCW;
 import s2.s2region;
@@ -1461,15 +1463,18 @@ private:
     return true;
   }
 
-  // Converts the loop vertices to the S2XYZFaceSiTi format and store the result
-  // in the given array, which must be large enough to store all the vertices.
-  // void getXYZFaceSiTiVertices(S2XYZFaceSiTi vertices) const {
-  //   for (int i = 0; i < num_vertices(); ++i) {
-  //     vertices[i].xyz = vertex(i);
-  //     vertices[i].cell_level = S2::XYZtoFaceSiTi(vertices[i].xyz,
-  //         &vertices[i].face, &vertices[i].si, &vertices[i].ti);
-  //   }
-  // }
+  /**
+   * Converts the loop vertices to the S2XYZFaceSiTi format and store the result
+   * in the given array, which must be large enough to store all the vertices.
+   */
+  package void getXYZFaceSiTiVertices(ref S2XYZFaceSiTi[] vertices, size_t current_index) const {
+    for (int i = 0; i < numVertices(); ++i) {
+      size_t index = current_index + i;
+      vertices[index].xyz = vertex(i);
+      vertices[index].cellLevel = XYZtoFaceSiTi(
+          vertices[index].xyz, vertices[index].face, vertices[index].si, vertices[index].ti);
+    }
+  }
 
   // Encode the loop's vertices using S2EncodePointsCompressed.  Uses
   // approximately 8 bytes for the first vertex, going down to less than 4 bytes
