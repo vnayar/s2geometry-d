@@ -26,6 +26,7 @@ import s2.s2cell_id;
 import s2.s2latlng_rect;
 import s2.s2point;
 import s2.s2region;
+import s2.util.coding.coder;
 
 import std.algorithm : countUntil, min, max, isSorted, sort;
 import std.exception : enforce;
@@ -33,6 +34,7 @@ import std.range;
 
 // The maximum number of cells allowed by S2CellUnion.Decode
 enum int S2CELL_UNION_DECODE_MAX_NUM_CELLS = 1_000_000;
+enum ubyte CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER = 1;
 
 /**
  * An S2CellUnion is a region consisting of cells of various sizes.  Typically
@@ -687,22 +689,47 @@ public:
    * The point 'p' does not need to be normalized.
    * This is a fast operation (logarithmic in the size of the cell union).
    */
-  override
   bool contains(in S2Point p) const {
     return contains(S2CellId(p));
   }
 
-  // TODO: Uncomment when support for encode/decode is added.
   /**
    * Appends a serialized representation of the S2CellUnion to "encoder".
    *
    * REQUIRES: "encoder" uses the default constructor, so that its buffer
    *           can be enlarged as necessary by calling Ensure(int).
    */
-  //void Encode(Encoder* const encoder) const;
+  void encode(ORangeT)(Encoder!ORangeT encoder) const {
+    // Unsigned char for version number, and N+1 uint64's for N cell_ids
+    // (1 for vector length, N for the ids).
+    encoder.ensure(ubyte.sizeof + ulong.sizeof * (1 + _cellIds.length));
+
+    encoder.put8(CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER);
+    encoder.put64(_cellIds.length);
+    foreach (cell_id; _cellIds) {
+      cell_id.encode(encoder);
+    }
+  }
 
   /// Decodes an S2CellUnion encoded with Encode().  Returns true on success.
-  //bool Decode(Decoder* const decoder);
+  bool decode(IRangeT)(Decoder!IRangeT decoder) {
+    // Should contain at least version and vector length.
+    if (decoder.avail() < ubyte.sizeof + ulong.sizeof) return false;
+    ubyte versionNum = decoder.get8();
+    if (versionNum > CURRENT_LOSSLESS_ENCODING_VERSION_NUMBER) return false;
+
+    ulong num_cells = decoder.get64();
+    if (num_cells > S2CELL_UNION_DECODE_MAX_NUM_CELLS) {
+      return false;
+    }
+
+    auto temp_cell_ids = new S2CellId[num_cells];
+    for (int i = 0; i < num_cells; ++i) {
+      if (!temp_cell_ids[i].decode(decoder)) return false;
+    }
+    _cellIds = temp_cell_ids;
+    return true;
+  }
 
   ////////////////////////////////////////////////////////////////////////
   // Static methods intended for high-performance clients that prefer to

@@ -104,34 +104,37 @@ interface S2Region {
   // Many S2Region subtypes also define the following non-virtual methods.
   //////////////////////////////////////////////////////////////////////////
 
-  // Appends a serialized representation of the region to "encoder".
-  //
-  // The representation chosen is left up to the sub-classes but it should
-  // satisfy the following constraints:
-  // - It should encode a version number.
-  // - It should be deserializable using the corresponding Decode method.
-  // - Performance, not space, should be the chief consideration. Encode() and
-  //   Decode() should be implemented such that the combination is equivalent
-  //   to calling Clone().
-  //
-  // REQUIRES: "encoder" uses the default constructor, so that its buffer
-  //           can be enlarged as necessary by calling Ensure(int).
-  //
-  // void Encode(Encoder* const encoder) const;
+  /**
+   * Appends a serialized representation of the region to "encoder".
+   *
+   * The representation chosen is left up to the sub-classes but it should
+   * satisfy the following constraints:
+   * - It should encode a version number.
+   * - It should be deserializable using the corresponding Decode method.
+   * - Performance, not space, should be the chief consideration. Encode() and
+   *   Decode() should be implemented such that the combination is equivalent
+   *   to calling Clone().
+   *
+   * REQUIRES: "encoder" uses the default constructor, so that its buffer
+   *           can be enlarged as necessary by calling Ensure(int).
+   *
+   */
+  //void encode(ORangeT)(Encoder!ORangeT encoder) const;
 
-  // Decodes an S2Region encoded with Encode().  Note that this method
-  // requires that an S2Region object of the appropriate concrete type has
-  // already been constructed.  It is not possible to decode regions of
-  // unknown type.
-  //
-  // Whenever the Decode method is changed to deal with new serialized
-  // representations, it should be done so in a manner that allows for
-  // older versions to be decoded i.e. the version number in the serialized
-  // representation should be used to decide how to decode the data.
-  //
-  // Returns true on success.
-  //
-  // bool Decode(Decoder* const decoder);
+  /**
+   * Decodes an S2Region encoded with Encode().  Note that this method
+   * requires that an S2Region object of the appropriate concrete type has
+   * already been constructed.  It is not possible to decode regions of
+   * unknown type.
+   *
+   * Whenever the Decode method is changed to deal with new serialized
+   * representations, it should be done so in a manner that allows for
+   * older versions to be decoded i.e. the version number in the serialized
+   * representation should be used to decide how to decode the data.
+   *
+   * Returns true on success.
+   */
+  //bool decode(IRangeT)(Decoder!IRangeT decoder);
 
   // Provides the same functionality as Decode, except that decoded regions
   // are allowed to point directly into the Decoder's memory buffer rather

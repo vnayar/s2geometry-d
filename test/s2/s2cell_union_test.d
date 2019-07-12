@@ -28,6 +28,7 @@ import s2.s2metrics;
 import s2.s2point;
 import s2.s2testing;
 import s2.s2region_coverer;
+import s2.util.coding.coder;
 
 import fluent.asserts;
 import std.stdio;
@@ -359,33 +360,32 @@ static double getRadius(in S2CellUnion covering, in S2Point axis) {
   }
 }
 
-/+ TODO: Add when encode/decode is implemented.
-TEST(S2CellUnion, EncodeDecode) {
-  vector<S2CellId> cell_ids = {S2CellId(0x33),
-                               S2CellId(0x8e3748fab),
-                               S2CellId(0x91230abcdef83427)};
-  auto cell_union = S2CellUnion::FromVerbatim(std::move(cell_ids));
+@("S2CellUnion.EncodeDecode") unittest {
+  S2CellId[] cell_ids = [
+    S2CellId(0x33),
+    S2CellId(0x8e3748fab),
+    S2CellId(0x91230abcdef83427)
+  ];
+  auto cell_union = S2CellUnion.fromVerbatim(cell_ids);
 
-  Encoder encoder;
-  cell_union.Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  S2CellUnion decoded_cell_union;
-  EXPECT_TRUE(decoded_cell_union.Decode(&decoder));
-  EXPECT_EQ(cell_union, decoded_cell_union);
+  auto encoder = makeEncoder();
+  cell_union.encode(encoder);
+  auto decoder = makeDecoder(encoder.buffer().data());
+  auto decoded_cell_union = new S2CellUnion();
+  Assert.equal(decoded_cell_union.decode(decoder), true);
+  Assert.equal(decoded_cell_union, cell_union);
 }
 
-TEST(S2CellUnion, EncodeDecodeEmpty) {
-  S2CellUnion empty_cell_union;
+@("S2CellUnion.EncodeDecodeEmpty") unittest {
+  auto empty_cell_union = new S2CellUnion();
 
-  Encoder encoder;
-  empty_cell_union.Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  S2CellUnion decoded_cell_union;
-  EXPECT_TRUE(decoded_cell_union.Decode(&decoder));
-  EXPECT_EQ(empty_cell_union, decoded_cell_union);
+  auto encoder = makeEncoder();
+  empty_cell_union.encode(encoder);
+  auto decoder = makeDecoder(encoder.buffer().data());
+  auto decoded_cell_union = new S2CellUnion();
+  Assert.equal(decoded_cell_union.decode(decoder), true);
+  Assert.equal(decoded_cell_union, empty_cell_union);
 }
-+/
-
 
 static void testFromMinMax(S2CellId min_id, S2CellId max_id) {
   auto cell_union = S2CellUnion.fromMinMax(min_id, max_id);
@@ -507,22 +507,20 @@ unittest {
   Assert.equal(face1_union.cellIds().capacity(), 0);
 }
 
-/+ TODO: Add when decode is added.
-TEST(S2CellUnion, RefuseToDecode) {
-  std::vector<S2CellId> cellids;
-  S2CellId id = S2CellId::Begin(S2CellId::kMaxLevel);
-  for (int i = 0; i <= FLAGS_s2cell_union_decode_max_num_cells; ++i) {
-    cellids.push_back(id);
+@("S2CellUnion.RefuseToDecode") unittest {
+  S2CellId[] cellids;
+  S2CellId id = S2CellId.begin(S2CellId.MAX_LEVEL);
+  for (int i = 0; i <= S2CELL_UNION_DECODE_MAX_NUM_CELLS; ++i) {
+    cellids ~= id;
     id = id.next();
   }
-  S2CellUnion cell_union = S2CellUnion::FromVerbatim(cellids);
-  Encoder encoder;
-  cell_union.Encode(&encoder);
-  Decoder decoder(encoder.base(), encoder.length());
-  S2CellUnion decoded_cell_union;
-  EXPECT_FALSE(decoded_cell_union.Decode(&decoder));
+  S2CellUnion cell_union = S2CellUnion.fromVerbatim(cellids);
+  auto encoder = makeEncoder();
+  cell_union.encode(encoder);
+  auto decoder = makeDecoder(encoder.buffer().data());
+  auto decoded_cell_union = new S2CellUnion();
+  Assert.equal(decoded_cell_union.decode(decoder), false);
 }
-+/
 
 @("Release")
 unittest {
