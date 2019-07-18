@@ -1,0 +1,1019 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>s2.s2predicates</title>
+    <style type="text/css" media="screen">
+      html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p,
+      blockquote, pre, a, abbr, address, cite, code, del, dfn, em, figure,
+      img, ins, kbd, q, s, samp, small, strong, sub, sup, var, b, u, i, dl,
+      dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption,
+      tbody, tfoot, thead, tr, th, td {
+        background: transparent none repeat scroll 0 0;
+        border: 0 none;
+        font-size: 100%;
+        margin: 0;
+        outline: 0 none;
+        padding: 0;
+        vertical-align: baseline;
+      }
+
+      h1 { font-size: 200%; }
+      h2 { font-size: 160%; }
+      h3 { font-size: 120%; }
+      h4 { font-size: 100%; }
+      h5 { font-size: 80%; }
+      h6 { font-size: 80%; font-weight: normal; }
+
+      ul, ol {
+        margin: 1.4em 0;
+      }
+      ul ul, ol ol, ul ol, ol ul {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      ul, ol {
+        margin-left: 2.8em;
+      }
+
+      ol {
+        list-style: decimal;
+      }
+      ol ol {
+        list-style: lower-alpha;
+      }
+      ol ol ol {
+        list-style: lower-roman;
+      }
+      ol ol ol ol {
+        list-style: decimal;
+      }
+
+      blockquote {
+        margin: 0.1em;
+        margin-left: 1em;
+        border-left: 2px solid #cccccc;
+        padding-left: 0.7em;
+      }
+
+      .color_red { color: #dc322f; }
+      .color_blue { color: #268bd2; }
+      .color_green { color: #859901; }
+      .color_yellow { color: #b58901; }
+      .color_black { color: black; }
+      .color_white { color: white; }
+
+      .font_big {
+        font-size: 1.2em;
+      }
+
+      .ddoc_section_h {
+        font-weight: bold;
+        font-size: 13px;
+        line-height: 19.5px;
+        margin-top: 11px;
+        display: block;
+      }
+
+      body.dlang .dlang {
+        display: inline-block;
+      }
+
+      body.dlang .declaration .dlang {
+          display: block;
+      }
+
+      body.dlang .ddoc_header_anchor a.dlang {
+        display: block;
+        color: rgba(0, 136, 204, 1);
+        text-decoration: none;
+      }
+
+      body.dlang .ddoc_header_anchor .code {
+        color: rgba(0, 136, 204, 1);
+      }
+
+      #ddoc_main .module {
+          border-color: currentColor rgba(233, 233, 233, 1) rgba(233, 233, 233, 1);
+          border-style: none solid solid;
+          border-width: 0 1px 1px;
+          overflow-x: hidden;
+          padding: 15px;
+      }
+
+      #ddoc_main .section .section {
+        margin-top: 0;
+      }
+
+      #ddoc_main .ddoc_module_members_section {
+          padding: 1px 0 0;
+          transition: transform 0.3s ease 0s;
+      }
+
+      #ddoc_main .ddoc_member, #ddoc_main .ddoc_module_members section.intro {
+          background: #fff none repeat scroll 0 0;
+          list-style-type: none;
+          width: 100%;
+      }
+
+      #ddoc_main .ddoc_header_anchor {
+          font-size: 1.4em;
+          transition: transform 0.3s ease 0s;
+      }
+
+      #ddoc_main .ddoc_header_anchor > .code {
+          display: inline-block;
+
+      }
+
+      #ddoc_main .ddoc_decl {
+        background-color: transparent;
+        height: 100%;
+        left: 0;
+        top: 0;
+        padding: 0;
+        padding-left: 15px;
+      }
+
+      #ddoc_main .ddoc_decl .section, #ddoc_main .section.ddoc_sections {
+        background: white none repeat scroll 0 0;
+        margin: 0;
+        padding: 5px;
+        position: relative;
+        border-radius: 5px;
+      }
+
+      #ddoc_main .ddoc_decl .section h4:first-of-type, #ddoc_main .section.ddoc_sections h4:first-of-type {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-top: 21px;
+      }
+
+      #ddoc_main .section .declaration {
+          margin-top: 21px;
+      }
+
+      #ddoc_main .section .declaration .code {
+          color: rgba(0, 0, 0, 1);
+          margin-bottom: 15px;
+          padding-bottom: 6px;
+      }
+
+      #ddoc_main .declaration div .para {
+          margin-bottom: 0;
+      }
+
+      #ddoc_main .ddoc_params .graybox tr td:first-of-type {
+        padding: 7px;
+        text-align: right;
+        vertical-align: top;
+        word-break: normal;
+        white-space: nowrap;
+      }
+
+      #ddoc_main .ddoc_params .graybox {
+        border: 0 none;
+      }
+
+      #ddoc_main .ddoc_params .graybox td {
+        border-color: rgba(214, 214, 214, 1);
+      }
+
+      #ddoc_main .ddoc_params .graybox tr:first-child > td {
+        border-top: 0 none;
+      }
+
+      #ddoc_main .ddoc_params .graybox tr:last-child > td {
+        border-bottom: 0 none;
+      }
+
+      #ddoc_main .ddoc_params .graybox tr > td:first-child {
+        border-left: 0 none;
+      }
+
+      #ddoc_main .ddoc_params .graybox tr > td:last-child {
+        border-right: 0 none;
+        width: 100%;
+      }
+
+      #ddoc_main em.term, #ddoc_main em.term .code {
+        color: rgba(65, 65, 65, 1);
+        font-size: 12px;
+        font-style: italic;
+        line-height: 1.5;
+      }
+
+      #ddoc_main .see-also {
+        cursor: pointer;
+        font-family: Menlo,monospace;
+      }
+
+      #ddoc_main .ddoc_decl .section > div:last-of-type {
+        margin-bottom: 15px;
+      }
+
+      #ddoc_main .ddoc_member, #ddoc_main .ddoc_module_members {
+          transition: transform 0.3s ease 0s;
+      }
+
+      #ddoc_main .code_sample {
+        background: inherit;
+      }
+
+      #ddoc_main .declaration .code-line {
+          display: block;
+          font: 1em Menlo,monospace;
+      }
+
+      #ddoc_main a[name] {
+        margin: -112px 0 0;
+        padding-top: 112px;
+      }
+
+      #ddoc_main .ddoc_decl td {
+        max-width: inherit;
+      }
+
+      #ddoc_main .declaration a {
+        color: inherit;
+      }
+
+      #ddoc_main .declaration a:hover {
+          color: rgba(0, 136, 204, 1);
+          text-decoration: underline;
+      }
+
+      body.ddoc {
+        background-color: transparent;
+        color: rgba(0, 0, 0, 1);
+        font-family: Helvetica,Arial,sans-serif;
+        font-size: 62.5%;
+        margin: 0;
+        border: 0;
+        left: 0;
+        top: 0;
+        padding: 0;
+      }
+
+      .ddoc a[name] {
+        display: block;
+        height: 0;
+        margin: -85px 0 0;
+        padding-top: 85px;
+        width: 0;
+      }
+
+      .ddoc .module {
+          border-color: transparent;
+          background-color: rgba(255, 255, 255, 1);
+          border-color: currentColor rgba(233, 233, 233, 1) rgba(233, 233, 233, 1);
+          border-image: none;
+          border-style: none solid solid;
+          border-width: 0 1px 1px;
+          box-shadow: 0 0 1px rgba(0, 0, 0, 0.07);
+          display: block;
+          margin-left: 0;
+          min-height: calc(100% - 173px);
+          overflow: auto;
+          padding-bottom: 100px;
+      }
+
+      .ddoc .content_wrapper {
+          background-color: rgba(242, 242, 242, 1);
+          margin: 0 auto;
+          max-width: 980px;
+      }
+
+      .ddoc .section {
+        padding: 15px 25px 30px;
+      }
+
+      .ddoc .section .section {
+        margin: 30px 0 0;
+        padding: 0;
+      }
+
+      .ddoc .para {
+        color: rgba(65, 65, 65, 1);
+        font-size: 1.4em;
+        line-height: 145%;
+        margin-bottom: 15px;
+      }
+
+      .ddoc .ddoc_examples .para {
+        margin-bottom: 0;
+      }
+
+      .ddoc .module_name {
+          color: rgba(0, 0, 0, 1);
+          display: block;
+          font-family: Helvetica;
+          font-size: 2.8em;
+          font-weight: 100;
+          margin-bottom: 0;
+          padding: 15px 0;
+      }
+
+      .ddoc .module a {
+          color: rgba(0, 136, 204, 1);
+          text-decoration: none;
+      }
+
+      .ddoc .code {
+        color: rgba(128, 128, 128, 1);
+        font-family: Menlo,monospace;
+        font-size: 0.85em;
+        word-wrap: break-word;
+      }
+
+      .ddoc .code i {
+        font-style: normal;
+      }
+
+      .ddoc .code .code {
+        font-size: 1em;
+      }
+
+      .ddoc .code_sample {
+        background-clip: padding-box;
+        margin: 1px 0;
+        text-align: left;
+      }
+
+      .ddoc .code_sample {
+        display: block;
+        font-size: 1.4em;
+        margin-left: 21px;
+      }
+
+      .ddoc ol .code_sample {
+        font-size: 1em;
+      }
+
+      .ddoc .code_lines {
+        counter-reset: li;
+        line-height: 1.6em;
+        list-style: outside none none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .ddoc .code_listing .code_sample div {
+        margin-left: 13px;
+        width: 93%;
+      }
+
+      .ddoc .code_listing .code_sample div .code_lines li {
+        list-style-type: none;
+        margin: 0;
+        padding-right: 10px;
+      }
+
+      .ddoc .code_sample div .code_lines li::before {
+        margin-left: -33px;
+        margin-right: 25px;
+      }
+
+      .ddoc .code_sample div .code_lines li:nth-child(n+10)::before {
+        margin-left: -39px;
+        margin-right: 25px;
+      }
+
+      .ddoc .code_sample div .code_lines li:nth-child(n+100)::before {
+        margin-left: -46px;
+        margin-right: 25px;
+      }
+
+      .ddoc .code_sample .code_lines .code {
+        color: #000;
+      }
+
+      .ddoc div.dlang {
+        margin: 10px 0 21px;
+        padding: 4px 0 2px 10px;
+      }
+
+      .ddoc div.dlang {
+          margin: 10px 0 21px;
+          padding: 4px 0 2px 10px;
+      }
+
+      .ddoc div.dlang {
+        border-left: 5px solid rgba(0, 155, 51, 0.2);
+      }
+
+      .ddoc .code_lines li::before {
+        color: rgba(128, 128, 128, 1);
+        content: counter(li, decimal);
+        counter-increment: li;
+        font-family: Menlo,monospace;
+        font-size: 0.9em;
+        margin-right: 16px;
+      }
+
+      .ddoc .code_lines li {
+        padding-left: 0;
+        white-space: pre-wrap;
+      }
+
+      .ddoc .code_lines li:only-of-type::before {
+        color: rgba(255, 255, 255, 1);
+        content: " ";
+      }
+
+      .ddoc .code_lines li:only-of-type {
+        color: rgba(255, 255, 255, 1);
+        content: " ";
+      }
+
+      .ddoc .code_lines li:nth-child(n+10) {
+        text-indent: -17px;
+      }
+
+      .ddoc .code_lines li:nth-child(n+10)::before {
+        margin-right: 12px;
+      }
+
+      .ddoc .graybox {
+        border: 1px solid rgba(233, 233, 233, 1);
+        border-collapse: collapse;
+        border-spacing: 0;
+        empty-cells: hide;
+        margin: 20px 0 36px;
+        text-align: left;
+      }
+
+      .ddoc .graybox p {
+        margin: 0;
+        min-width: 50px;
+      }
+
+      .ddoc th {
+        margin: 0;
+        max-width: 260px;
+        padding: 5px 10px 5px 10px;
+        vertical-align: bottom;
+      }
+
+      .ddoc td {
+        border: 1px solid rgba(233, 233, 233, 1);
+        margin: 0;
+        max-width: 260px;
+        padding: 5px 10px 5px 10px;
+        vertical-align: middle;
+      }
+
+      .punctuation {
+        color: rgba(0, 0, 0, 1);
+      }
+
+      .comment {
+        color: rgba(0, 131, 18, 1);
+      }
+
+      .operator {
+        color: #000;
+      }
+
+      .keyword {
+        color: rgba(170, 13, 145, 1);
+      }
+
+      .keyword_type {
+        color: rgba(170, 51, 145, 1);
+      }
+
+      .string_literal {
+        color: rgba(196, 26, 22, 1);
+      }
+
+      .ddoc_psuper_symbol {
+        color: rgba(92, 38, 153, 1);
+      }
+
+      .param {
+        color: rgba(0, 0, 0, 1);
+      }
+
+      .psymbol {
+        color: rgba(0, 0, 0, 1);
+      }
+
+      .ddoc_member_header .ddoc_header_anchor .code {
+        font-size: 1em;
+      }
+    </style>
+  </head>
+  <body id="ddoc_main" class="ddoc dlang">
+    <div class="content_wrapper">
+      <article class="module">
+        <h1 class="module_name">s2.s2predicates</h1>
+        <section id="module_content">
+<section class="section ddoc_module_members_section">
+  <div class="ddoc_module_members">
+    <ul class="ddoc_members">
+  <li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#compareEdgeDistance" id="compareEdgeDistance"><code class="code">compareEdgeDistance</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="compareEdgeDistance"></span>int <code class="code">compareEdgeDistance</code>(in S2Point <code class="code">x</code>, in S2Point <code class="code">a0</code>, in S2Point <code class="code">a1</code>, in S1ChordAngle <code class="code">r</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Returns -1, 0, or +1 according to whether the distance from the point X to
+ the edge A is less than, equal to, or greater than "<code class="code">r</code>" respectively.
+ Distances are measured with respect the positions of all points as though
+ they were projected to lie exactly on the surface of the unit sphere.
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+A0 and A1 do not project to antipodal points (e.g., A0 == -A1).
+           This requires that (A0 != C * A1) for any constant C &lt; 0.
+<br><br>
+ NOTE(ericv): All of the predicates defined here could be extended to handle
+ edges consisting of antipodal points by implementing additional symbolic
+ perturbation logic (similar to Sign) in order to rigorously define the
+ direction of such edges.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#compareEdgeDirections" id="compareEdgeDirections"><code class="code">compareEdgeDirections</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="compareEdgeDirections"></span>int <code class="code">compareEdgeDirections</code>(in S2Point <code class="code">a0</code>, in S2Point <code class="code">a1</code>, in S2Point <code class="code">b0</code>, in S2Point <code class="code">b1</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Returns -1, 0, or +1 according to whether the normal of edge A has
+ negative, zero, or positive dot product with the normal of edge B.  This
+ essentially measures whether the edges A and B are closer to proceeding in
+ the same direction or in opposite directions around the sphere.
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    This method returns an exact result, i.e. the result is zero if and only if
+ the two edges are exactly perpendicular or at least one edge is degenerate.
+ (i.e., both edge endpoints project to the same point on the sphere).
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">CAVEAT:</span>
+This method does not use symbolic perturbations.  Therefore it can
+ return zero even when A0 != A1 and B0 != B1, e.g. if (A0 == C * A1) exactly
+ for some constant C &gt; 0 (which is possible even when both points are
+ considered "normalized").
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+Neither edge can consist of antipodal points (e.g., A0 == -A1)
+           (see comments in CompareEdgeDistance).
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#unperturbedSign" id="unperturbedSign"><code class="code">unperturbedSign</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="unperturbedSign"></span>int <code class="code">unperturbedSign</code>(in S2Point <code class="code">a</code>, in S2Point <code class="code">b</code>, in S2Point <code class="code">c</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Like Sign, except this method does not use symbolic perturbations when
+ the input points are exactly coplanar with the origin (i.e., linearly
+ dependent).  Clients should never use this method, but it is useful here in
+ order to implement the combined pedestal/axis-aligned perturbation scheme
+ used by some methods (such as EdgeCircumcenterSign).
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#symbolicEdgeCircumcenterSign" id="symbolicEdgeCircumcenterSign"><code class="code">symbolicEdgeCircumcenterSign</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="symbolicEdgeCircumcenterSign"></span>int <code class="code">symbolicEdgeCircumcenterSign</code>(in S2Point <code class="code">x0</code>, in S2Point <code class="code">x1</code>, in S2Point <code class="code">a_arg</code>, in S2Point <code class="code">b_arg</code>, in S2Point <code class="code">c_arg</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Given arguments such that ExactEdgeCircumcenterSign(<code class="code">x0</code>, <code class="code">x1</code>, a, b, c) == 0,
+ returns the value of Sign(X0, X1, Z) (where Z is the circumcenter of
+ triangle ABC) after symbolic perturbations are taken into account.  The
+ result is zero only if X0 == X1, A == B, B == C, or C == A.  (It is nonzero
+ if these pairs are exactly proportional to each other but not equal.)
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#getVoronoiSiteExclusion" id="getVoronoiSiteExclusion"><code class="code">getVoronoiSiteExclusion</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="getVoronoiSiteExclusion"></span>Excluded <code class="code">getVoronoiSiteExclusion</code>(in S2Point <code class="code">a</code>, in S2Point <code class="code">b</code>, in S2Point <code class="code">x0</code>, in S2Point <code class="code">x1</code>, S1ChordAngle <code class="code">r</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    This is <code class="code">a</code> specialized method that is used to compute the intersection of an
+ edge X with the Voronoi diagram of <code class="code">a</code> set of points, where each Voronoi
+ region is intersected with <code class="code">a</code> disc of fixed radius "<code class="code">r</code>".
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    Given two sites A and B and an edge (X0, X1) such that d(A,X0) &lt; d(B,X0)
+ and both sites are within the given distance "<code class="code">r</code>" of edge X, this method
+ intersects the Voronoi region of each site with <code class="code">a</code> disc of radius <code class="code">r</code> and
+ determines whether either region has an empty intersection with edge X.  It
+ returns FIRST if site A has an empty intersection, SECOND if site B has an
+ empty intersection, NEITHER if neither site has an empty intersection, or
+ UNCERTAIN if A == B exactly.  Note that it is not possible for both
+ intersections to be empty because of the requirement that both sites are
+ within distance <code class="code">r</code> of edge X.  (For example, the only reason that Voronoi
+ region A can have an empty intersection with X is that site B is closer to
+ all points on X that are within radius <code class="code">r</code> of site A.)
+<br><br>
+ The result is determined with respect to the positions of all points as
+ though they were projected to lie exactly on the surface of the unit
+ sphere.  Furthermore this method uses symbolic perturbations to compute <code class="code">a</code>
+ consistent non-zero result even when A and B lie on opposite sides of X
+ such that the Voronoi edge between them exactly coincides with edge X, or
+ when A and B are distinct but project to the same point on the sphere
+ (i.e., they are linearly dependent).
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+<code class="code">r</code> &lt; S1ChordAngle::Right() (90 degrees)
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+s2pred::CompareDistances(<code class="code">x0</code>, <code class="code">a</code>, <code class="code">b</code>) &lt; 0
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+s2pred::CompareEdgeDistance(<code class="code">a</code>, <code class="code">x0</code>, <code class="code">x1</code>, <code class="code">r</code>) &lt;= 0
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+s2pred::CompareEdgeDistance(<code class="code">b</code>, <code class="code">x0</code>, <code class="code">x1</code>, <code class="code">r</code>) &lt;= 0
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+X0 and X1 do not project to antipodal points (e.g., X0 == -X1)
+           (see comments in CompareEdgeDistance).
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#edgeCircumcenterSign" id="edgeCircumcenterSign"><code class="code">edgeCircumcenterSign</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="edgeCircumcenterSign"></span>int <code class="code">edgeCircumcenterSign</code>(in S2Point <code class="code">x0</code>, in S2Point <code class="code">x1</code>, in S2Point <code class="code">a</code>, in S2Point <code class="code">b</code>, in S2Point <code class="code">c</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Returns Sign(X0, X1, Z) where Z is the circumcenter of triangle ABC.
+ The return value is -1 if Z is to the left of edge X, and +1 if Z is to the
+ right of edge X.  The return value is zero if A == B, B == C, or C == A
+ (exactly), and also if X0 and X1 project to identical points on the sphere
+ (e.g., X0 == X1).
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    The result is determined with respect to the positions of all points as
+ though they were projected to lie exactly on the surface of the unit
+ sphere.  Furthermore this method uses symbolic perturbations to compute <code class="code">a</code>
+ consistent non-zero result even when Z lies exactly on edge X.
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+X0 and X1 do not project to antipodal points (e.g., X0 == -X1)
+           (see comments in CompareEdgeDistance).
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#sign" id="sign"><code class="code">sign</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="sign"></span>int <code class="code">sign</code>(in S2Point <code class="code">a</code>, in S2Point <code class="code">b</code>, in S2Point <code class="code">c</code>, in Vector3_d <code class="code">a_cross_b</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Low-Level Methods ////////////////////////////
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    A more efficient version of Sign that allows the precomputed
+ cross-product of A and B to be specified.  (Unlike the 3 argument
+ version this method is also inlined.)
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#triageSign" id="triageSign"><code class="code">triageSign</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="triageSign"></span>int <code class="code">triageSign</code>(in S2Point <code class="code">a</code>, in S2Point <code class="code">b</code>, in S2Point <code class="code">c</code>, in Vector3_d <code class="code">a_cross_b</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    This version of Sign returns +1 if the points are definitely CCW, -1 if
+ they are definitely CW, and 0 if two points are identical or the result
+ is uncertain.  Uncertain cases can be resolved, if desired, by calling
+ ExpensiveSign.
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    The purpose of this method is to allow additional cheap tests to be done,
+ where possible, in order to avoid calling ExpensiveSign unnecessarily.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#expensiveSign" id="expensiveSign"><code class="code">expensiveSign</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="expensiveSign"></span>int <code class="code">expensiveSign</code>(in S2Point <code class="code">a</code>, in S2Point <code class="code">b</code>, in S2Point <code class="code">c</code>, bool <code class="code">perturb</code> = true);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    This function is invoked by Sign() if the sign of the determinant is
+ uncertain.  It always returns <code class="code">a</code> non-zero result unless two of the input
+ points are the same.  It uses <code class="code">a</code> combination of multiple-precision
+ arithmetic and symbolic perturbations to ensure that its results are
+ always self-consistent (cf. Simulation of Simplicity, Edelsbrunner and
+ Muecke).  The basic idea is to assign an infinitesimal symbolic
+ perturbation to every possible S2Point such that no three S2Points are
+ collinear and no four S2Points are coplanar.  These perturbations are so
+ small that they do not affect the sign of any determinant that was
+ non-zero before the perturbations.  If "<code class="code">perturb</code>" is <code class="code">false</code>, then instead
+ the exact sign of the unperturbed input points is returned, which can be
+ zero even when all three points are distinct.
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    Unlike Sign(), this method does not require the input points to be
+ normalized.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#exactSign" id="exactSign"><code class="code">exactSign</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="exactSign"></span>package int <code class="code">exactSign</code>(in S2Point <code class="code">a</code>, in S2Point <code class="code">b</code>, in S2Point <code class="code">c</code>, bool <code class="code">perturb</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  
+
+</div>
+
+</li>
+</ul>
+  </div>
+</section>
+</section>
+      </article>
+    </div>
+  </body>
+</html>

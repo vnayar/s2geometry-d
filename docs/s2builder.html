@@ -1,0 +1,2450 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>s2.s2builder</title>
+    <style type="text/css" media="screen">
+      html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p,
+      blockquote, pre, a, abbr, address, cite, code, del, dfn, em, figure,
+      img, ins, kbd, q, s, samp, small, strong, sub, sup, var, b, u, i, dl,
+      dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption,
+      tbody, tfoot, thead, tr, th, td {
+        background: transparent none repeat scroll 0 0;
+        border: 0 none;
+        font-size: 100%;
+        margin: 0;
+        outline: 0 none;
+        padding: 0;
+        vertical-align: baseline;
+      }
+
+      h1 { font-size: 200%; }
+      h2 { font-size: 160%; }
+      h3 { font-size: 120%; }
+      h4 { font-size: 100%; }
+      h5 { font-size: 80%; }
+      h6 { font-size: 80%; font-weight: normal; }
+
+      ul, ol {
+        margin: 1.4em 0;
+      }
+      ul ul, ol ol, ul ol, ol ul {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      ul, ol {
+        margin-left: 2.8em;
+      }
+
+      ol {
+        list-style: decimal;
+      }
+      ol ol {
+        list-style: lower-alpha;
+      }
+      ol ol ol {
+        list-style: lower-roman;
+      }
+      ol ol ol ol {
+        list-style: decimal;
+      }
+
+      blockquote {
+        margin: 0.1em;
+        margin-left: 1em;
+        border-left: 2px solid #cccccc;
+        padding-left: 0.7em;
+      }
+
+      .color_red { color: #dc322f; }
+      .color_blue { color: #268bd2; }
+      .color_green { color: #859901; }
+      .color_yellow { color: #b58901; }
+      .color_black { color: black; }
+      .color_white { color: white; }
+
+      .font_big {
+        font-size: 1.2em;
+      }
+
+      .ddoc_section_h {
+        font-weight: bold;
+        font-size: 13px;
+        line-height: 19.5px;
+        margin-top: 11px;
+        display: block;
+      }
+
+      body.dlang .dlang {
+        display: inline-block;
+      }
+
+      body.dlang .declaration .dlang {
+          display: block;
+      }
+
+      body.dlang .ddoc_header_anchor a.dlang {
+        display: block;
+        color: rgba(0, 136, 204, 1);
+        text-decoration: none;
+      }
+
+      body.dlang .ddoc_header_anchor .code {
+        color: rgba(0, 136, 204, 1);
+      }
+
+      #ddoc_main .module {
+          border-color: currentColor rgba(233, 233, 233, 1) rgba(233, 233, 233, 1);
+          border-style: none solid solid;
+          border-width: 0 1px 1px;
+          overflow-x: hidden;
+          padding: 15px;
+      }
+
+      #ddoc_main .section .section {
+        margin-top: 0;
+      }
+
+      #ddoc_main .ddoc_module_members_section {
+          padding: 1px 0 0;
+          transition: transform 0.3s ease 0s;
+      }
+
+      #ddoc_main .ddoc_member, #ddoc_main .ddoc_module_members section.intro {
+          background: #fff none repeat scroll 0 0;
+          list-style-type: none;
+          width: 100%;
+      }
+
+      #ddoc_main .ddoc_header_anchor {
+          font-size: 1.4em;
+          transition: transform 0.3s ease 0s;
+      }
+
+      #ddoc_main .ddoc_header_anchor > .code {
+          display: inline-block;
+
+      }
+
+      #ddoc_main .ddoc_decl {
+        background-color: transparent;
+        height: 100%;
+        left: 0;
+        top: 0;
+        padding: 0;
+        padding-left: 15px;
+      }
+
+      #ddoc_main .ddoc_decl .section, #ddoc_main .section.ddoc_sections {
+        background: white none repeat scroll 0 0;
+        margin: 0;
+        padding: 5px;
+        position: relative;
+        border-radius: 5px;
+      }
+
+      #ddoc_main .ddoc_decl .section h4:first-of-type, #ddoc_main .section.ddoc_sections h4:first-of-type {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-top: 21px;
+      }
+
+      #ddoc_main .section .declaration {
+          margin-top: 21px;
+      }
+
+      #ddoc_main .section .declaration .code {
+          color: rgba(0, 0, 0, 1);
+          margin-bottom: 15px;
+          padding-bottom: 6px;
+      }
+
+      #ddoc_main .declaration div .para {
+          margin-bottom: 0;
+      }
+
+      #ddoc_main .ddoc_params .graybox tr td:first-of-type {
+        padding: 7px;
+        text-align: right;
+        vertical-align: top;
+        word-break: normal;
+        white-space: nowrap;
+      }
+
+      #ddoc_main .ddoc_params .graybox {
+        border: 0 none;
+      }
+
+      #ddoc_main .ddoc_params .graybox td {
+        border-color: rgba(214, 214, 214, 1);
+      }
+
+      #ddoc_main .ddoc_params .graybox tr:first-child > td {
+        border-top: 0 none;
+      }
+
+      #ddoc_main .ddoc_params .graybox tr:last-child > td {
+        border-bottom: 0 none;
+      }
+
+      #ddoc_main .ddoc_params .graybox tr > td:first-child {
+        border-left: 0 none;
+      }
+
+      #ddoc_main .ddoc_params .graybox tr > td:last-child {
+        border-right: 0 none;
+        width: 100%;
+      }
+
+      #ddoc_main em.term, #ddoc_main em.term .code {
+        color: rgba(65, 65, 65, 1);
+        font-size: 12px;
+        font-style: italic;
+        line-height: 1.5;
+      }
+
+      #ddoc_main .see-also {
+        cursor: pointer;
+        font-family: Menlo,monospace;
+      }
+
+      #ddoc_main .ddoc_decl .section > div:last-of-type {
+        margin-bottom: 15px;
+      }
+
+      #ddoc_main .ddoc_member, #ddoc_main .ddoc_module_members {
+          transition: transform 0.3s ease 0s;
+      }
+
+      #ddoc_main .code_sample {
+        background: inherit;
+      }
+
+      #ddoc_main .declaration .code-line {
+          display: block;
+          font: 1em Menlo,monospace;
+      }
+
+      #ddoc_main a[name] {
+        margin: -112px 0 0;
+        padding-top: 112px;
+      }
+
+      #ddoc_main .ddoc_decl td {
+        max-width: inherit;
+      }
+
+      #ddoc_main .declaration a {
+        color: inherit;
+      }
+
+      #ddoc_main .declaration a:hover {
+          color: rgba(0, 136, 204, 1);
+          text-decoration: underline;
+      }
+
+      body.ddoc {
+        background-color: transparent;
+        color: rgba(0, 0, 0, 1);
+        font-family: Helvetica,Arial,sans-serif;
+        font-size: 62.5%;
+        margin: 0;
+        border: 0;
+        left: 0;
+        top: 0;
+        padding: 0;
+      }
+
+      .ddoc a[name] {
+        display: block;
+        height: 0;
+        margin: -85px 0 0;
+        padding-top: 85px;
+        width: 0;
+      }
+
+      .ddoc .module {
+          border-color: transparent;
+          background-color: rgba(255, 255, 255, 1);
+          border-color: currentColor rgba(233, 233, 233, 1) rgba(233, 233, 233, 1);
+          border-image: none;
+          border-style: none solid solid;
+          border-width: 0 1px 1px;
+          box-shadow: 0 0 1px rgba(0, 0, 0, 0.07);
+          display: block;
+          margin-left: 0;
+          min-height: calc(100% - 173px);
+          overflow: auto;
+          padding-bottom: 100px;
+      }
+
+      .ddoc .content_wrapper {
+          background-color: rgba(242, 242, 242, 1);
+          margin: 0 auto;
+          max-width: 980px;
+      }
+
+      .ddoc .section {
+        padding: 15px 25px 30px;
+      }
+
+      .ddoc .section .section {
+        margin: 30px 0 0;
+        padding: 0;
+      }
+
+      .ddoc .para {
+        color: rgba(65, 65, 65, 1);
+        font-size: 1.4em;
+        line-height: 145%;
+        margin-bottom: 15px;
+      }
+
+      .ddoc .ddoc_examples .para {
+        margin-bottom: 0;
+      }
+
+      .ddoc .module_name {
+          color: rgba(0, 0, 0, 1);
+          display: block;
+          font-family: Helvetica;
+          font-size: 2.8em;
+          font-weight: 100;
+          margin-bottom: 0;
+          padding: 15px 0;
+      }
+
+      .ddoc .module a {
+          color: rgba(0, 136, 204, 1);
+          text-decoration: none;
+      }
+
+      .ddoc .code {
+        color: rgba(128, 128, 128, 1);
+        font-family: Menlo,monospace;
+        font-size: 0.85em;
+        word-wrap: break-word;
+      }
+
+      .ddoc .code i {
+        font-style: normal;
+      }
+
+      .ddoc .code .code {
+        font-size: 1em;
+      }
+
+      .ddoc .code_sample {
+        background-clip: padding-box;
+        margin: 1px 0;
+        text-align: left;
+      }
+
+      .ddoc .code_sample {
+        display: block;
+        font-size: 1.4em;
+        margin-left: 21px;
+      }
+
+      .ddoc ol .code_sample {
+        font-size: 1em;
+      }
+
+      .ddoc .code_lines {
+        counter-reset: li;
+        line-height: 1.6em;
+        list-style: outside none none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .ddoc .code_listing .code_sample div {
+        margin-left: 13px;
+        width: 93%;
+      }
+
+      .ddoc .code_listing .code_sample div .code_lines li {
+        list-style-type: none;
+        margin: 0;
+        padding-right: 10px;
+      }
+
+      .ddoc .code_sample div .code_lines li::before {
+        margin-left: -33px;
+        margin-right: 25px;
+      }
+
+      .ddoc .code_sample div .code_lines li:nth-child(n+10)::before {
+        margin-left: -39px;
+        margin-right: 25px;
+      }
+
+      .ddoc .code_sample div .code_lines li:nth-child(n+100)::before {
+        margin-left: -46px;
+        margin-right: 25px;
+      }
+
+      .ddoc .code_sample .code_lines .code {
+        color: #000;
+      }
+
+      .ddoc div.dlang {
+        margin: 10px 0 21px;
+        padding: 4px 0 2px 10px;
+      }
+
+      .ddoc div.dlang {
+          margin: 10px 0 21px;
+          padding: 4px 0 2px 10px;
+      }
+
+      .ddoc div.dlang {
+        border-left: 5px solid rgba(0, 155, 51, 0.2);
+      }
+
+      .ddoc .code_lines li::before {
+        color: rgba(128, 128, 128, 1);
+        content: counter(li, decimal);
+        counter-increment: li;
+        font-family: Menlo,monospace;
+        font-size: 0.9em;
+        margin-right: 16px;
+      }
+
+      .ddoc .code_lines li {
+        padding-left: 0;
+        white-space: pre-wrap;
+      }
+
+      .ddoc .code_lines li:only-of-type::before {
+        color: rgba(255, 255, 255, 1);
+        content: " ";
+      }
+
+      .ddoc .code_lines li:only-of-type {
+        color: rgba(255, 255, 255, 1);
+        content: " ";
+      }
+
+      .ddoc .code_lines li:nth-child(n+10) {
+        text-indent: -17px;
+      }
+
+      .ddoc .code_lines li:nth-child(n+10)::before {
+        margin-right: 12px;
+      }
+
+      .ddoc .graybox {
+        border: 1px solid rgba(233, 233, 233, 1);
+        border-collapse: collapse;
+        border-spacing: 0;
+        empty-cells: hide;
+        margin: 20px 0 36px;
+        text-align: left;
+      }
+
+      .ddoc .graybox p {
+        margin: 0;
+        min-width: 50px;
+      }
+
+      .ddoc th {
+        margin: 0;
+        max-width: 260px;
+        padding: 5px 10px 5px 10px;
+        vertical-align: bottom;
+      }
+
+      .ddoc td {
+        border: 1px solid rgba(233, 233, 233, 1);
+        margin: 0;
+        max-width: 260px;
+        padding: 5px 10px 5px 10px;
+        vertical-align: middle;
+      }
+
+      .punctuation {
+        color: rgba(0, 0, 0, 1);
+      }
+
+      .comment {
+        color: rgba(0, 131, 18, 1);
+      }
+
+      .operator {
+        color: #000;
+      }
+
+      .keyword {
+        color: rgba(170, 13, 145, 1);
+      }
+
+      .keyword_type {
+        color: rgba(170, 51, 145, 1);
+      }
+
+      .string_literal {
+        color: rgba(196, 26, 22, 1);
+      }
+
+      .ddoc_psuper_symbol {
+        color: rgba(92, 38, 153, 1);
+      }
+
+      .param {
+        color: rgba(0, 0, 0, 1);
+      }
+
+      .psymbol {
+        color: rgba(0, 0, 0, 1);
+      }
+
+      .ddoc_member_header .ddoc_header_anchor .code {
+        font-size: 1em;
+      }
+    </style>
+  </head>
+  <body id="ddoc_main" class="ddoc dlang">
+    <div class="content_wrapper">
+      <article class="module">
+        <h1 class="module_name">s2.s2builder</h1>
+        <section id="module_content">
+<section class="section ddoc_module_members_section">
+  <div class="ddoc_module_members">
+    <ul class="ddoc_members">
+  <li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#s2builderVerbose" id="s2builderVerbose"><code class="code">s2builderVerbose</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="s2builderVerbose"></span>bool <code class="code">s2builderVerbose</code>;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Internal flag intended to be set from within a debugger.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder" id="S2Builder"><code class="code">S2Builder</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder"></span>class <code class="code">S2Builder</code>;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    <code class="code">S2Builder</code> is a tool for assembling polygonal geometry from edges.  Here are
+ some of the things it is designed for:
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+     1. Building polygons, polylines, and polygon meshes from unsorted
+    collections of edges.
+<br><br>
+ 2. Snapping geometry to discrete representations (such as S2CellId centers
+    or E7 lat/lng coordinates) while preserving the input topology and with
+    guaranteed error bounds.
+<br><br>
+ 3. Simplifying geometry (e.g. for indexing, display, or storage).
+<br><br>
+ 4. Importing geometry from other formats, including repairing geometry
+    that has errors.
+<br><br>
+ 5. As a tool for implementing more complex operations such as polygon
+    intersections and unions.
+<br><br>
+ The implementation is based on the framework of "snap rounding".  Unlike
+ most snap rounding implementations, <code class="code">S2Builder</code> defines edges as geodesics on
+ the sphere (straight lines) and uses the topology of the sphere (i.e.,
+ there are no "seams" at the poles or 180th meridian).  The algorithm is
+ designed to be 100% robust for arbitrary input geometry.  It offers the
+ following properties:
+<br><br>
+   - Guaranteed bounds on how far input vertices and edges can move during
+     the snapping process (i.e., at most the given "snap_radius").
+<br><br>
+   - Guaranteed minimum separation between edges and vertices other than
+     their endpoints (similar to the goals of Iterated Snap Rounding).  In
+     other words, edges that do not intersect in the output are guaranteed
+     to have a minimum separation between them.
+<br><br>
+   - Idempotency (similar to the goals of Stable Snap Rounding), i.e. if the
+     input already meets the output criteria then it will not be modified.
+<br><br>
+   - Preservation of the input topology (up to the creation of
+     degeneracies).  This means that there exists a continuous deformation
+     from the input to the output such that no vertex crosses an edge.  In
+     other words, self-intersections won't be created, loops won't change
+     orientation, etc.
+<br><br>
+   - The ability to snap to arbitrary discrete point sets (such as S2CellId
+     centers, E7 lat/lng points on the sphere, or simply a subset of the
+     input vertices), rather than being limited to an integer grid.
+<br><br>
+ Here are some of its other features:
+<br><br>
+  - It can handle both directed and undirected edges.  Undirected edges can
+    be useful for importing data from other formats, e.g. where loops have
+    unspecified orientations.
+<br><br>
+  - It can eliminate self-intersections by finding all edge pairs that cross
+    and adding a new vertex at each intersection point.
+<br><br>
+  - It can simplify polygons to within a specified tolerance.  For example,
+    if two vertices are close enough they will be merged, and if an edge
+    passes nearby a vertex then it will be rerouted through that vertex.
+    Optionally, it can also detect nearly straight chains of short edges and
+    replace them with a single long edge, while maintaining the same
+    accuracy, separation, and topology guarantees ("simplify_edge_chains").
+<br><br>
+  - It supports many different output types through the concept of "layers"
+    (polylines, polygons, polygon meshes, etc).  You can build multiple
+    layers at once in order to ensure that snapping does not create
+    intersections between different objects (for example, you can simplify a
+    set of contour lines without the risk of having them cross each other).
+<br><br>
+  - It supports edge labels, which allow you to attach arbitrary information
+    to edges and have it preserved during the snapping process.  (This can
+    also be achieved using layers, at a coarser level of granularity.)
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">Caveats:</span>
+<br><br>
+<br><br>
+  - Because <code class="code">S2Builder</code> only works with edges, it cannot distinguish between
+    the empty and full polygons.  If your application can generate both the
+    empty and full polygons, you must implement logic outside of this class.
+<br><br>
+ Example showing how to snap a polygon to E7 coordinates:
+<br><br>
+  using s2builderutil::IntLatLngSnapFunction;
+  <code class="code">S2Builder</code> builder(<code class="code">S2Builder</code>::Options(IntLatLngSnapFunction(7)));
+  S2Polygon output;
+  builder.StartLayer(absl::make_unique<s2builderutil::S2PolygonLayer>(&output));
+  builder.AddPolygon(input);
+  S2Error error;
+  if (!builder.Build(&error)) {
+    LOG(ERROR) &lt;&lt; error;
+    ...
+  }
+  </p>
+</div>
+
+</section>
+<ul class="ddoc_members">
+  <li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.EdgeType" id="S2Builder.EdgeType"><code class="code">EdgeType</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.EdgeType"></span>enum <code class="code">EdgeType</code>: int;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Indicates whether the input edges are undirected.  Typically this is
+ specified for each output layer (e.g., s2builderutil::S2PolygonLayer).
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    Directed edges are preferred, since otherwise the output is ambiguous.
+ For example, output polygons may be the *inverse* of the intended result
+ (e.g., a polygon intended to represent the world's oceans may instead
+ represent the world's land masses).  Directed edges are also somewhat
+ more efficient.
+<br><br>
+ However even with undirected edges, most S2Builder layer types try to
+ preserve the input edge direction whenever possible.  Generally, edges
+ are reversed only when it would yield a simpler output.  For example,
+ S2PolygonLayer assumes that polygons created from undirected edges should
+ cover at most half of the sphere.  Similarly, S2PolylineVectorLayer
+ assembles edges into as few polylines as possible, even if this means
+ reversing some of the "undirected" input edges.
+<br><br>
+ For shapes with interiors, directed edges should be oriented so that the
+ interior is to the left of all edges.  This means that for a polygon with
+ holes, the outer loops ("shells") should be directed counter-clockwise
+ while the inner loops ("holes") should be directed clockwise.  Note that
+ S2Builder::AddPolygon() follows this convention automatically.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.SnapFunction" id="S2Builder.SnapFunction"><code class="code">SnapFunction</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.SnapFunction"></span>abstract class <code class="code">SnapFunction</code>;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    A <code class="code">SnapFunction</code> restricts the locations of the output vertices.  For
+ example, there are predefined snap functions that require vertices to be
+ located at S2CellId centers or at E5/E6/E7 coordinates.  The <code class="code">SnapFunction</code>
+ can also specify a minimum spacing between vertices (the "snap radius").
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    A <code class="code">SnapFunction</code> defines the following methods:
+<br><br>
+ 1. The SnapPoint() method, which snaps a point P to a nearby point (the
+    "candidate snap site").  Any point may be returned, including P
+    itself (this is the "identity snap function").
+<br><br>
+ 2. "snap_radius", the maximum distance that vertices can move when
+    snapped.  The snap_radius must be at least as large as the maximum
+    distance between P and SnapPoint(P) for any point P.
+<br><br>
+ 3. "max_edge_deviation", the maximum distance that edges can move when
+    snapped.  It is slightly larger than "snap_radius" because when a
+    geodesic edge is snapped, the center of the edge moves further than
+    its endpoints.  This value is computed automatically by S2Builder.
+<br><br>
+ 4. "min_vertex_separation", the guaranteed minimum distance between
+    vertices in the output.  This is generally a fraction of
+    "snap_radius" where the fraction depends on the snap function.
+<br><br>
+ 5. A "min_edge_vertex_separation", the guaranteed minimum distance
+    between edges and non-incident vertices in the output.  This is
+    generally a fraction of "snap_radius" where the fraction depends on
+    the snap function.
+<br><br>
+ It is important to note that SnapPoint() does not define the actual
+ mapping from input vertices to output vertices, since the points it
+ returns (the candidate snap sites) are further filtered to ensure that
+ they are separated by at least the snap radius.  For example, if you
+ specify E7 coordinates (2cm resolution) and a snap radius of 10m, then a
+ subset of points returned by SnapPoint will be chosen (the "snap sites"),
+ and each input vertex will be mapped to the closest site.  Therefore you
+ cannot assume that P is necessarily snapped to SnapPoint(P).
+<br><br>
+ S2Builder makes the following guarantees:
+<br><br>
+ 1. Every vertex is at a location returned by SnapPoint().
+<br><br>
+ 2. Vertices are within "snap_radius" of the corresponding input vertex.
+<br><br>
+ 3. Edges are within "max_edge_deviation" of the corresponding input edge
+    (a distance slightly larger than "snap_radius").
+<br><br>
+ 4. Vertices are separated by at least "min_vertex_separation"
+    (a fraction of "snap_radius" that depends on the snap function).
+<br><br>
+ 5. Edges and non-incident vertices are separated by at least
+    "min_edge_vertex_separation" (a fraction of "snap_radius").
+<br><br>
+ 6. Vertex and edge locations do not change unless one of the conditions
+    above is not already met (idempotency / stability).
+<br><br>
+ 7. The topology of the input geometry is preserved (up to the creation
+    of degeneracies).  This means that there exists a continuous
+    deformation from the input to the output such that no vertex
+    crosses an edge.
+  </p>
+</div>
+
+</section>
+<ul class="ddoc_members">
+  <li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.SnapFunction.snapRadius" id="S2Builder.SnapFunction.snapRadius"><code class="code">snapRadius</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.SnapFunction.snapRadius"></span>abstract const S1Angle <code class="code">snapRadius</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    The maximum distance that vertices can move when snapped.
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    If the snap radius is zero, then vertices are snapped together only if
+ they are identical.  Edges will not be snapped to any vertices other
+ than their endpoints, even if there are vertices whose distance to the
+ edge is zero, unless split_crossing_edges() is <code class="code">true</code>.
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+snap_radius() &lt;= kMaxSnapRadius
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.SnapFunction.kMaxSnapRadius" id="S2Builder.SnapFunction.kMaxSnapRadius"><code class="code">kMaxSnapRadius</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.SnapFunction.kMaxSnapRadius"></span>static S1Angle <code class="code">kMaxSnapRadius</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    The maximum snap radius is just large enough to support snapping to
+ S2CellId level 0.  It is equivalent to 7800km on the Earth's surface.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.SnapFunction.maxEdgeDeviation" id="S2Builder.SnapFunction.maxEdgeDeviation"><code class="code">maxEdgeDeviation</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.SnapFunction.maxEdgeDeviation"></span>const S1Angle <code class="code">maxEdgeDeviation</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    The maximum distance that the center of an edge can move when snapped.
+ This is slightly larger than "snap_radius" because when a geodesic edge
+ is snapped, the center of the edge moves further than its endpoints.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.SnapFunction.minVertexSeparation" id="S2Builder.SnapFunction.minVertexSeparation"><code class="code">minVertexSeparation</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.SnapFunction.minVertexSeparation"></span>abstract const S1Angle <code class="code">minVertexSeparation</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    The guaranteed minimum distance between vertices in the output.
+ This is generally some fraction of "snap_radius".
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.SnapFunction.minEdgeVertexSeparation" id="S2Builder.SnapFunction.minEdgeVertexSeparation"><code class="code">minEdgeVertexSeparation</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.SnapFunction.minEdgeVertexSeparation"></span>abstract const S1Angle <code class="code">minEdgeVertexSeparation</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    The guaranteed minimum spacing between edges and non-incident vertices
+ in the output.  This is generally some fraction of "snap_radius".
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.SnapFunction.snapPoint" id="S2Builder.SnapFunction.snapPoint"><code class="code">snapPoint</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.SnapFunction.snapPoint"></span>abstract const S2Point <code class="code">snapPoint</code>(in S2Point <code class="code">point</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Returns a candidate snap site for the given <code class="code">point</code>.  The final vertex
+ locations are a subset of the snap sites returned by this function
+ (spaced at least "min_vertex_separation" apart).
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    The only requirement is that SnapPoint(x) must return a <code class="code">point</code> whose
+ distance from "x" is no greater than "snap_radius".
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li>
+</ul>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.IsFullPolygonPredicate" id="S2Builder.IsFullPolygonPredicate"><code class="code">IsFullPolygonPredicate</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.IsFullPolygonPredicate"></span>alias <code class="code">IsFullPolygonPredicate</code> = bool function(const(Graph) g, ref S2Error error);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    For output layers that represent polygons, there is an ambiguity inherent
+ in spherical geometry that does not exist in planar geometry.  Namely, if
+ a polygon has no edges, does it represent the empty polygon (containing
+ no points) or the full polygon (containing all points)?  This ambiguity
+ also occurs for polygons that consist only of degeneracies, e.g. a
+ degenerate loop with only two edges could be either a degenerate shell in
+ the empty polygon or a degenerate hole in the full polygon.
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    To resolve this ambiguity, an <code class="code">IsFullPolygonPredicate</code> may be specified for
+ each input layer (see AddIsFullPolygonPredicate below).  If the layer
+ consists only of polygon degeneracies, the layer implementation may call
+ this method to determine whether the polygon is empty or full except for
+ the given degeneracies.  (Note that under the semi-open boundary model,
+ degeneracies do not affect point containment.)
+<br><br>
+ This predicate is only required for layers that will be assembled into
+ polygons.  It is not used by other layer types.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.this" id="S2Builder.this"><code class="code">this</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.this"></span>this();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Default constructor; requires Init() to be called.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.this" id="S2Builder.this"><code class="code">this</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.this.2"></span>this(Options <code class="code">options</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Convenience constructor that calls Init().  Note that to use the default
+ <code class="code">options</code>, C++ syntax requires an extra layer of parentheses:
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    S2Builder builder((S2Builder::Options()));
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.initialize" id="S2Builder.initialize"><code class="code">initialize</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.initialize"></span>void <code class="code">initialize</code>(Options <code class="code">options</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Initializes an S2Builder with the given <code class="code">options</code>.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.startLayer" id="S2Builder.startLayer"><code class="code">startLayer</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.startLayer"></span>void <code class="code">startLayer</code>(Layer <code class="code">layer</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Starts a new output <code class="code">layer</code>.  This method must be called before adding any
+ edges to the S2Builder.  You may call this method multiple times to build
+ multiple geometric objects that are snapped to the same set of sites.
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+     For example, if you have a set of contour lines, then you could put each
+ contour line in a separate <code class="code">layer</code>.  This keeps the contour lines separate
+ from each other, while also ensuring that no crossing edges are created
+ when they are snapped and/or simplified.  \(This is not <code class="code">true</code> if the
+ contour lines are snapped or simplified independently.\)
+<br><br>
+ Similarly, if you have a set of polygons that share common boundaries
+ \(e.g., countries\), you can snap and/or simplify them at the same time by
+ putting them in different layers, while ensuring that their boundaries
+ remain consistent \(i.e., no crossing edges or T-vertices are introduced\).
+<br><br>
+ Ownership of the <code class="code">layer</code> is transferred to the S2Builder.  Example usage:
+<br><br>
+ ```
+ S2Polyline line1, line2;
+ builder.StartLayer(make_unique<s2builderutil::S2PolylineLayer>(&line1))
+  </p>
+</div>
+;
+ ... Add edges using builder.AddEdge(), etc ...
+ builder.StartLayer(make_unique<s2builderutil::S2PolylineLayer>(&line2))
+</section>
+;
+ ... Add edges using builder.AddEdge(), etc ...
+ S2Error error;
+ CHECK(builder.Build(&error)) &lt;&lt; error;  // Builds "line1" &amp; "line2"
+ ```
+</div>
+</li>
+</ul>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.addPoint" id="S2Builder.addPoint"><code class="code">addPoint</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.addPoint"></span>void <code class="code">addPoint</code>(in S2Point <code class="code">v</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Adds a degenerate edge (representing a point) to the current layer.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.addEdge" id="S2Builder.addEdge"><code class="code">addEdge</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.addEdge"></span>void <code class="code">addEdge</code>(in S2Point <code class="code">v0</code>, in S2Point <code class="code">v1</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Adds the given edge to the current layer.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.addPolyline" id="S2Builder.addPolyline"><code class="code">addPolyline</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.addPolyline"></span>void <code class="code">addPolyline</code>(in S2Polyline <code class="code">polyline</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Adds the edges in the given <code class="code">polyline</code>.  (Note that if the <code class="code">polyline</code>
+ consists of 0 or 1 vertices, this method does nothing.)
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.addLoop" id="S2Builder.addLoop"><code class="code">addLoop</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.addLoop"></span>void <code class="code">addLoop</code>(in S2Loop <code class="code">loop</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Adds the edges in the given <code class="code">loop</code>.  If the sign() of the <code class="code">loop</code> is negative
+ (i.e. this <code class="code">loop</code> represents a hole within a polygon), the edge directions
+ are automatically reversed to ensure that the polygon interior is always
+ to the left of every edge.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.addPolygon" id="S2Builder.addPolygon"><code class="code">addPolygon</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.addPolygon"></span>void <code class="code">addPolygon</code>(in S2Polygon <code class="code">polygon</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Adds the loops in the given <code class="code">polygon</code>.  Loops representing holes have their
+ edge directions automatically reversed as described for AddLoop().  Note
+ that this method does not distinguish between the empty and full polygons,
+ i.e. adding a full <code class="code">polygon</code> has the same effect as adding an empty one.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.addShape" id="S2Builder.addShape"><code class="code">addShape</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.addShape"></span>void <code class="code">addShape</code>(in S2Shape <code class="code">shape</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Adds the edges of the given <code class="code">shape</code> to the current layer.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.addIsFullPolygonPredicate" id="S2Builder.addIsFullPolygonPredicate"><code class="code">addIsFullPolygonPredicate</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.addIsFullPolygonPredicate"></span>void <code class="code">addIsFullPolygonPredicate</code>(IsFullPolygonPredicate <code class="code">predicate</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    For layers that will be assembled into polygons, this method specifies a
+ <code class="code">predicate</code> that will be called to determine whether the polygon is empty
+ or full except for the given degeneracies.  (See IsFullPolygonPredicate
+ above.)
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    This method should be called at most once per layer; additional calls
+ simply overwrite the previous value for the current layer.
+<br><br>
+ The default implementation sets an appropriate error and returns <code class="code">false</code>
+ (i.e., degenerate polygons are assumed to be empty).
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.forceVertex" id="S2Builder.forceVertex"><code class="code">forceVertex</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.forceVertex"></span>void <code class="code">forceVertex</code>(in S2Point <code class="code">vertex</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Forces a <code class="code">vertex</code> to be located at the given position.  This can be used to
+ prevent certain input vertices from moving.  However if you are trying to
+ preserve part of the input boundary, be aware that this option does not
+ prevent edges from being split by new vertices.
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    Forced vertices are never snapped; if this is desired then you need to
+ call options().snap_function().SnapPoint() explicitly.  Forced vertices
+ are also never simplified away (if simplify_edge_chains() is used).
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">Caveat:</span>
+Since this method can place vertices arbitrarily close together,
+ S2Builder makes no minimum separation guaranteees with forced vertices.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.Label" id="S2Builder.Label"><code class="code">Label</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.Label"></span>alias <code class="code">Label</code> = int;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Every edge can have a set of non-negative integer labels attached to it.
+ When used with an appropriate layer type, you can then retrieve the
+ labels associated with each output edge.  This can be useful when merging
+ or combining data from several sources.  (Note that in many cases it is
+ easier to use separate output layers rather than labels.)
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    Labels are 32-bit non-negative integers.  To support other label types,
+ you can use ValueLexicon to store the set of unique labels seen so far:
+<br><br>
+   ValueLexicon<MyLabel> my_label_lexicon;
+   builder.set_label(my_label_lexicon.Add(label));
+<br><br>
+ The current set of labels is represented as a stack.  This makes it easy
+ to add and remove labels hierarchically (e.g., polygon 5, loop 2).  Use
+ set_label() and clear_labels() if you need at most one label per edge.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.clearLabels" id="S2Builder.clearLabels"><code class="code">clearLabels</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.clearLabels"></span>void <code class="code">clearLabels</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Clear the stack of labels.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.pushLabel" id="S2Builder.pushLabel"><code class="code">pushLabel</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.pushLabel"></span>void <code class="code">pushLabel</code>(Label <code class="code">label</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Add a <code class="code">label</code> to the stack.
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+<code class="code">label</code> &gt;= 0.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.popLabel" id="S2Builder.popLabel"><code class="code">popLabel</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.popLabel"></span>void <code class="code">popLabel</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Remove a label from the stack.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.setLabel" id="S2Builder.setLabel"><code class="code">setLabel</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.setLabel"></span>void <code class="code">setLabel</code>(Label <code class="code">label</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Convenience function that clears the stack and adds a single <code class="code">label</code>.
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRES:</span>
+<code class="code">label</code> &gt;= 0.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.build" id="S2Builder.build"><code class="code">build</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.build"></span>bool <code class="code">build</code>(ref S2Error <code class="code">error</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Performs the requested edge splitting, snapping, simplification, etc, and
+ then assembles the resulting edges into the requested output layers.
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    Returns <code class="code">true</code> if all edges were assembled; otherwise sets "<code class="code">error</code>"
+ appropriately.  Depending on the <code class="code">error</code>, some or all output layers may
+ have been created.  Automatically resets the S2Builder state so that it
+ can be reused.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.reset" id="S2Builder.reset"><code class="code">reset</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.reset"></span>void <code class="code">reset</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Clears all input data and resets the builder state.  Any options
+ specified are preserved.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.InputVertexId" id="S2Builder.InputVertexId"><code class="code">InputVertexId</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.InputVertexId"></span>alias <code class="code">InputVertexId</code> = int;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Identifies an input vertex.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.InputEdgeId" id="S2Builder.InputEdgeId"><code class="code">InputEdgeId</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.InputEdgeId"></span>alias <code class="code">InputEdgeId</code> = int;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Identifies an input edge.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#S2Builder.InputEdgeIdSetId" id="S2Builder.InputEdgeIdSetId"><code class="code">InputEdgeIdSetId</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="S2Builder.InputEdgeIdSetId"></span>alias <code class="code">InputEdgeIdSetId</code> = int;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Identifies the set of input edge ids that were snapped to a given edge.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li>
+</ul>
+  </div>
+</section>
+)
+)<li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#GraphOptions" id="GraphOptions"><code class="code">GraphOptions</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="GraphOptions"></span>class <code class="code">GraphOptions</code>;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    This class is only needed by S2Builder::Layer implementations.  A layer is
+ responsible for assembling an S2Builder::Graph of snapped edges into the
+ desired output format (e.g., an S2Polygon).  The <code class="code">GraphOptions</code> class allows
+ each Layer type to specify requirements on its input graph: for example, if
+ DegenerateEdges::DISCARD is specified, then S2Builder will ensure that all
+ degenerate edges are removed before passing the graph to the S2Layer::Build
+ method.
+  </p>
+</div>
+
+</section>
+<ul class="ddoc_members">
+  <li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#GraphOptions.this" id="GraphOptions.this"><code class="code">this</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="GraphOptions.this"></span>this(EdgeType <code class="code">edge_type</code>, DegenerateEdges <code class="code">degenerate_edges</code>, DuplicateEdges <code class="code">duplicate_edges</code>, SiblingPairs <code class="code">sibling_pairs</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    All S2Builder::Layer subtypes should specify GraphOptions explicitly
+ using this constructor, rather than relying on default values.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#GraphOptions.this" id="GraphOptions.this"><code class="code">this</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="GraphOptions.this.2"></span>this();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    The default options specify that all edges should be kept, since this
+ produces the least surprising output and makes it easier to diagnose the
+ problem when an option is left unspecified.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#GraphOptions.edgeType" id="GraphOptions.edgeType"><code class="code">edgeType</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="GraphOptions.edgeType"></span>const EdgeType <code class="code">edgeType</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Specifies whether the S2Builder input edges should be treated as
+ undirected.  If <code class="code">true</code>, then all input edges are duplicated into pairs
+ consisting of an edge and a sibling (reverse) edge.  The layer
+ implementation is responsible for ensuring that exactly one edge from
+ each pair is used in the output, i.e. *only half* of the graph edges will
+ be used.  (Note that some values of the sibling_pairs() option
+ automatically take care of this issue by removing half of the edges and
+ changing edge_type() to DIRECTED.)
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#GraphOptions.DegenerateEdges" id="GraphOptions.DegenerateEdges"><code class="code">DegenerateEdges</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="GraphOptions.DegenerateEdges"></span>enum <code class="code">DegenerateEdges</code>: int;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Controls how degenerate edges (i.e., an edge from a vertex to itself) are
+ handled.  Such edges may be present in the input, or they may be created
+ when both endpoints of an edge are snapped to the same output vertex.
+ The options available are:
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">DISCARD:</span>
+Discards all degenerate edges.  This is useful for layers that
+          do not support degeneracies, such as S2PolygonLayer.
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">DISCARD EXCESS:</span>
+Discards all degenerate edges that are connected to
+                 non-degenerate edges.  (Any remaining duplicate edges can
+                 be merged using DuplicateEdges::MERGE.)  This is useful
+                 for simplifying polygons while ensuring that loops that
+                 collapse to a single point do not disappear.
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">KEEP:</span>
+Keeps all degenerate edges.  Be aware that this may create many
+       redundant edges when simplifying geometry (e.g., a polyline of the
+       form AABBBBBCCCCCCDDDD).  <code class="code">DegenerateEdges</code>::KEEP is mainly useful
+       for algorithms that require an output edge for every input edge.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#GraphOptions.DuplicateEdges" id="GraphOptions.DuplicateEdges"><code class="code">DuplicateEdges</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="GraphOptions.DuplicateEdges"></span>enum <code class="code">DuplicateEdges</code>: int;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Controls how duplicate edges (i.e., edges that are present multiple
+ times) are handled.  Such edges may be present in the input, or they can
+ be created when vertices are snapped together.  When several edges are
+ merged, the result is a single edge labelled with all of the original
+ input edge ids.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#GraphOptions.SiblingPairs" id="GraphOptions.SiblingPairs"><code class="code">SiblingPairs</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="GraphOptions.SiblingPairs"></span>enum <code class="code">SiblingPairs</code>: int;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Controls how sibling edge pairs (i.e., pairs consisting of an edge and
+ its reverse edge) are handled.  Layer types that define an interior
+ (e.g., polygons) normally discard such edge pairs since they do not
+ affect the result (i.e., they define a "loop" with no interior).  The
+ various options include:
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">DISCARD:</span>
+Discards all sibling edge pairs.
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">DISCARD EXCESS:</span>
+Like DISCARD, except that a single sibling pair is kept
+                 if the result would otherwise be empty.  This is useful
+                 for polygons with degeneracies (S2LaxPolygonShape), and
+                 for simplifying polylines while ensuring that they are
+                 not split into multiple disconnected pieces.
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">KEEP:</span>
+Keeps sibling pairs.  This can be used to create polylines that
+       double back on themselves, or degenerate loops (with a layer type
+       such as S2LaxPolygonShape).
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">REQUIRE:</span>
+Requires that all edges have a sibling (and returns an error
+          otherwise).  This is useful with layer types that create a
+          collection of adjacent polygons (a polygon mesh).
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">CREATE:</span>
+Ensures that all edges have a sibling edge by creating them if
+         necessary.  This is useful with polygon meshes where the input
+         polygons do not cover the entire sphere.  Such edges always
+         have an empty set of labels.
+<br><br>
+ If edge_type() is EdgeType::UNDIRECTED, a sibling edge pair is considered
+ to consist of four edges (two duplicate edges and their siblings), since
+ only two of these four edges will be used in the final output.
+<br><br>
+ Furthermore, since the options REQUIRE and CREATE guarantee that all
+ edges will have siblings, S2Builder implements these options for
+ undirected edges by discarding half of the edges in each direction and
+ changing the edge_type() to EdgeType::DIRECTED.  For example, two
+ undirected input edges between vertices A and B would first be converted
+ into two directed edges in each direction, and then one edge of each pair
+ would be discarded leaving only one edge in each direction.
+<br><br>
+ Degenerate edges are considered not to have siblings.  If such edges are
+ present, they are passed through unchanged by <code class="code">SiblingPairs</code>::DISCARD.  For
+ <code class="code">SiblingPairs</code>::REQUIRE or <code class="code">SiblingPairs</code>::CREATE with undirected edges, the
+ number of copies of each degenerate edge is reduced by a factor of two.
+<br><br>
+ Any of the options that discard edges (DISCARD, DISCARD_EXCESS, and
+ REQUIRE/CREATE in the case of undirected edges) have the side effect that
+ when duplicate edges are present, all of the corresponding edge labels
+ are merged together and assigned to the remaining edges.  (This avoids
+ the problem of having to decide which edges are discarded.)  Note that
+ this merging takes place even when all copies of an edge are kept, and
+ that even labels attached to duplicate degenerate edges are merged.  For
+ example, consider the graph {AB1, AB2, BA3, CD4, CD5} (where XYn denotes
+ an edge from X to Y with label "n").  With <code class="code">SiblingPairs</code>::DISCARD, we need
+ to discard one of the copies of AB.  But which one?  Rather than choosing
+ arbitrarily, instead we merge the labels of all duplicate edges (even
+ ones where no sibling pairs were discarded), yielding {AB12, CD45, CD45}
+ (assuming that duplicate edges are being kept).
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#GraphOptions.allowVertexFiltering" id="GraphOptions.allowVertexFiltering"><code class="code">allowVertexFiltering</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="GraphOptions.allowVertexFiltering"></span>const bool <code class="code">allowVertexFiltering</code>();
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    This is a specialized option that is only needed by clients want to work
+ with the graphs for multiple layers at the same time (e.g., in order to
+ check whether the same edge is present in two different graphs).  [Note
+ that if you need to do this, usually it is easier just to build a single
+ graph with suitable edge labels.]
+
+  </p>
+</div>
+<div class="ddoc_description">
+  <h4>Discussion</h4>
+  <p class="para">
+    When there are a large number of layers, then by default S2Builder builds
+ a minimal subgraph for each layer containing only the vertices needed by
+ the edges in that layer.  This ensures that layer types that iterate over
+ the vertices run in time proportional to the size of that layer rather
+ than the size of all layers combined.  (For example, if there are a
+ million layers with one edge each, then each layer would be passed a
+ graph with 2 vertices rather than 2 million vertices.)
+<br><br>
+ If this option is set to <code class="code">false</code>, this optimization is disabled.  Instead
+ the graph passed to this layer will contain the full set of vertices.
+ (This is not recommended when the number of layers could be large.)
+
+
+  </p>
+</div>
+<div class="ddoc_section">
+  <p class="para">
+    <span class="ddoc_section_h">DEFAULT:</span>
+<code class="code">true</code>
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li>
+</ul>
+
+</div>
+
+</li><li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#VertexIdEdgeVectorShape" id="VertexIdEdgeVectorShape"><code class="code">VertexIdEdgeVectorShape</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="VertexIdEdgeVectorShape"></span>class <code class="code">VertexIdEdgeVectorShape</code>: <span class="ddoc_psuper_symbol">s2.s2shape.S2Shape</span>;
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    An S2Shape used to represent the entire collection of S2Builder input edges.
+ Vertices are specified as indices into a vertex vector to save space.
+  </p>
+</div>
+
+</section>
+<ul class="ddoc_members">
+  <li class="ddoc_member">
+  <div class="ddoc_member_header">
+  <div class="ddoc_header_anchor">
+  <a href="#VertexIdEdgeVectorShape.this" id="VertexIdEdgeVectorShape.this"><code class="code">this</code></a>
+</div>
+</div><div class="ddoc_decl">
+  <section class="section">
+    <div class="declaration">
+      <h4>Declaration</h4>
+      <div class="dlang">
+        <p class="para">
+          <code class="code">
+            <span class="ddoc_anchor" id="VertexIdEdgeVectorShape.this"></span>this(in int[2][] <code class="code">edges</code>, in S2Point[] <code class="code">vertices</code>);
+
+          </code>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="ddoc_decl">
+  <section class="section ddoc_sections">
+  <div class="ddoc_summary">
+  <p class="para">
+    Requires that "<code class="code">edges</code>" is constant for the lifetime of this object.
+  </p>
+</div>
+
+</section>
+
+</div>
+
+</li>
+</ul>
+
+</div>
+
+</li>)</section>
+      </article>
+    </div>
+  </body>
+</html>
