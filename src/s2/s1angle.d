@@ -1,20 +1,23 @@
-// Copyright 2005 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+   S1Angle represents a one-dimensional angle (as opposed to a two-dimensional solid angle).
 
-// Original author: ericv@google.com (Eric Veach)
-// Converted to D:  madric@gmail.com (Vijay Nayar)
+   Copyright: 2005 Google Inc. All Rights Reserved.
 
+   License:
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   $(LINK http://www.apache.org/licenses/LICENSE-2.0)
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   Authors: ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+*/
 module s2.s1angle;
 
 import s2.s2point;
@@ -36,20 +39,20 @@ import format = std.format;
  * from E6(3100000) or E7(310000000).  However, the following properties are
  * guaranteed for any integer "n", provided that "n" is in the input range of
  * both functions:
- *
+ * ---
  *     Degrees(n) == E6(1000000 * n)
  *     Degrees(n) == E7(10000000 * n)
  *          E6(n) == E7(10 * n)
- *
+ * ---
  * The corresponding properties are *not* true for E5, so if you use E5 then
  * don't test for exact equality when comparing to other formats such as
  * Degrees or E7.
  *
  * The following conversions between degrees and radians are exact:
- *
+ * ---
  *          Degrees(180) == Radians(M_PI)
  *       Degrees(45 * k) == Radians(k * M_PI / 4)  for k == 0..8
- *
+ * ---
  * These identities also hold when the arguments are scaled up or down by any
  * power of 2.  Some similar identities are also true, for example,
  * Degrees(60) == Radians(M_PI / 3), but be aware that this type of identity
@@ -58,13 +61,13 @@ import format = std.format;
  * Similarly, the conversion to radians means that Angle::Degrees(x).degrees()
  * does not always equal "x".  For example,
  *
- *         S1Angle::Degrees(45 * k).degrees() == 45 * k      for k == 0..8
- *   but       S1Angle::Degrees(60).degrees() != 60.
+ *         `S1Angle.degrees(45 * k).degrees() == 45 * k`      for k == 0..8
+ *   but       `S1Angle.degrees(60).degrees() != 60`.
  *
  * This means that when testing for equality, you should allow for numerical
  * errors (EXPECT_DOUBLE_EQ) or convert to discrete E5/E6/E7 values first.
  *
- * CAVEAT: All of the above properties depend on "double" being the usual
+ * Caveat: All of the above properties depend on "double" being the usual
  * 64-bit IEEE 754 type (which is true on almost all modern platforms).
  *
  * This class is intended to be copied by value as desired.  It uses
@@ -119,23 +122,27 @@ public:
     return S1Angle(double.infinity);
   }
 
-  // A explicit shorthand for the default constructor.
+  /// A explicit shorthand for the default constructor.
   static S1Angle zero() {
     return S1Angle(0);
   }
 
-  // Return the angle between two points, which is also equal to the distance
-  // between these points on the unit sphere.  The points do not need to be
-  // normalized.  This function has a maximum error of 3.25 * DBL_EPSILON (or
-  // 2.5 * DBL_EPSILON for angles up to 1 radian).
+  /**
+     Return the angle between two points, which is also equal to the distance
+     between these points on the unit sphere.  The points do not need to be
+     normalized.  This function has a maximum error of 3.25 * DBL_EPSILON (or
+     2.5 * double.epsilon for angles up to 1 radian).
+  */
   this(in S2Point x, in S2Point y) {
     _radians = x.angle(y);
   }
 
-  // Like the constructor above, but return the angle (i.e., distance) between
-  // two S2LatLng points.  This function has about 15 digits of accuracy for
-  // small distances but only about 8 digits of accuracy as the distance
-  // approaches 180 degrees (i.e., nearly-antipodal points).
+  /**
+     Like the constructor above, but return the angle (i.e., distance) between
+     two S2LatLng points.  This function has about 15 digits of accuracy for
+     small distances but only about 8 digits of accuracy as the distance
+     approaches 180 degrees (i.e., nearly-antipodal points).
+  */
   this(in S2LatLng x, in S2LatLng y) {
     _radians = x.getDistance(y).radians();
   }
@@ -165,13 +172,13 @@ public:
     return cast(int) math.lround(1e7 * degrees());
   }
 
-  // Return the absolute value of an angle.
+  /// Returns the absolute value of an angle.
   S1Angle abs() const {
     return S1Angle(math.fabs(_radians));
   }
 
 
-  // Comparison operators.
+  /// Comparison operators.
   bool opEquals(in S1Angle y) const {
     return radians() == y.radians();
   }
@@ -183,13 +190,13 @@ public:
     return radians() > y.radians() ? 1 : -1;
   }
 
-  // Implement negation.
+  /// Implement negation.
   S1Angle opUnary(string op)() const
   if (op == "-") {
     return S1Angle(-radians());
   }
 
-  // Simple arithmetic operators for manipulating S1Angles.
+  /// Simple arithmetic operators for manipulating S1Angles.
   S1Angle opOpAssign(string op)(in S1Angle v) {
     mixin("_radians " ~ op ~ "= v.radians();");
     return this;
@@ -212,14 +219,14 @@ public:
     return mixin("S1Angle(v " ~ op ~ " radians())");
   }
 
-  // Return the angle normalized to the range (-180, 180] degrees.
+  /// Returns the angle normalized to the range \(-180, 180] degrees.
   S1Angle normalized() const {
     auto a = S1Angle(_radians);
     a.normalize();
     return a;
   }
 
-  // Normalize this angle to the range (-180, 180] degrees.
+  /// Normalizes this angle to the range \(-180, 180] degrees.
   void normalize() {
     _radians = math.remainder(_radians, 2.0 * M_PI);
     if (_radians <= -M_PI) {
@@ -232,7 +239,7 @@ public:
   }
 }
 
-// Trigonmetric functions (not necessary but slightly more convenient).
+/// Trigonmetric functions (not necessary but slightly more convenient).
 double sin(in S1Angle a) {
   return math.sin(a.radians());
 }

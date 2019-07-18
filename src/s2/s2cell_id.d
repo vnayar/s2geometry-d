@@ -1,20 +1,23 @@
-// Copyright 2005 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+   A 64-bit unsigned integer that uniquely identifies a cell in S2 cell decomposition.
 
-// Original author: ericv@google.com (Eric Veach)
-// Converted to D:  madric@gmail.com (Vijay Nayar)
+   Copyright: 2005 Google Inc. All Rights Reserved.
 
+   License:
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   $(LINK http://www.apache.org/licenses/LICENSE-2.0)
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   Authors: ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+*/
 module s2.s2cell_id;
 
 import s2.r1interval;
@@ -36,7 +39,9 @@ import range = std.range;
 
 /**
  * An S2CellId is a 64-bit unsigned integer that uniquely identifies a
- * cell in the S2 cell decomposition.  It has the following format:
+ * cell in the S2 cell decomposition.
+ *
+ * It has the following format:
  *
  *   id = [face][face_pos]
  *
@@ -119,7 +124,6 @@ public:
   static S2CellId none() {
     return S2CellId();
   }
-
 
   /**
    * Returns an invalid cell id guaranteed to be larger than any
@@ -252,12 +256,14 @@ public:
         R1Interval(expandEndpoint(v0, max_u, -sin_dist), expandEndpoint(v1, max_u, sin_dist)));
   }
 
-  // This is a helper function for expandedByDistanceUV().
-  //
-  // Given an edge of the form (u,v0)-(u,v1), let max_v = max(abs(v0), abs(v1)).
-  // This method returns a new u-coordinate u' such that the distance from the
-  // line u=u' to the given edge (u,v0)-(u,v1) is exactly the given distance
-  // (which is specified as the sine of the angle corresponding to the distance).
+  /**
+   * This is a helper function for expandedByDistanceUV().
+   *
+   * Given an edge of the form (u,v0)-(u,v1), let max_v = max(abs(v0), abs(v1)).
+   * This method returns a new u-coordinate u' such that the distance from the
+   * line u=u' to the given edge (u,v0)-(u,v1) is exactly the given distance
+   * (which is specified as the sine of the angle corresponding to the distance).
+   */
   private static double expandEndpoint(double u, double max_v, double sinDist) {
     // This is based on solving a spherical right triangle, similar to the
     // calculation in S2Cap::GetRectBound.
@@ -399,22 +405,23 @@ public:
 
   /**
    * These methods return the range of cell ids that are contained within this
-   * cell \(including itself\).  The range is *inclusive* \(i.e. test using >=
-   * and <=\) and the return values of both methods are valid leaf cell ids.
-   * In other words, `a.contains(b)` if and only if
-   * ```
+   * cell \(including itself\).
+   *
+   * The range is *inclusive* \(i.e. test using >= and <=\) and the return values of both methods
+   * are valid leaf cell ids.  In other words, `a.contains(b)` if and only if
+   * ---
    *     (b >= a.range_min() && b <= a.range_max())
-   * ```
+   * ---
    * If you want to iterate through all the descendants of this cell at a
    * particular level, use `childBegin(level)` and `childEnd(level)` instead.
    * Also see `maximumTile()`, which can be used to iterate through a range of
    * cells using S2CellIds at different levels that are as large as possible.
    *
-   * If you need to convert the range to a semi-open interval [min, limit\)
+   * If you need to convert the range to a semi-open interval \[min, limit\)
    * \(e.g., in order to use a key-value store that only supports semi-open
    * range queries\), do not attempt to define "limit" as `range_max.next()`.
    * The problem is that leaf S2CellIds are 2 units apart, so the semi-open
-   * interval [min, limit\) includes an additional value `(range_max.id() + 1)`
+   * interval \[min, limit\) includes an additional value `(range_max.id() + 1)`
    * which is happens to be a valid S2CellId about one-third of the time and
    * is *never* contained by this cell.  \(It always correpsonds to a cell that
    * is larger than this one.\)  You can define "limit" as `(range_max.id() + 1)`
@@ -650,14 +657,15 @@ public:
 
   /**
    * Returns the largest cell with the same `range_min()` and such that
-   * `range_max() < limit.range_min()`.  Returns "limit" if no such cell exists.
-   * This method can be used to generate a small set of S2CellIds that covers
-   * a given range \(a "tiling"\).  This example shows how to generate a tiling
-   * for a semi-open range of leaf cells [start, limit\):
-   * ```
+   * `range_max() < limit.range_min()`.
+   *
+   * Returns "limit" if no such cell exists. This method can be used to generate a small set
+   * of S2CellIds that covers a given range \(a "tiling"\).  This example shows how to
+   * generate a tiling for a semi-open range of leaf cells \[start, limit\):
+   * ---
    *   for (S2CellId id = start.maximum_tile(limit);
    *        id != limit; id = id.next().maximum_tile(limit)) { ... }
-   * ```
+   * ---
    * Note that in general the cells in the tiling will be of different sizes;
    * they gradually get larger \(near the middle of the range\) and then
    * gradually get smaller \(as "limit" is approached\).

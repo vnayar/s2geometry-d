@@ -1,20 +1,23 @@
-// Copyright 2005 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+   An S2Cell is an S2Region object that represents a cell.
 
-// Original author: ericv@google.com (Eric Veach)
-// Converted to D:  madric@gmail.com (Vijay Nayar)
+   Copyright: 2005 Google Inc. All Rights Reserved.
 
+   License:
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   $(LINK http://www.apache.org/licenses/LICENSE-2.0)
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   Authors: ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+*/
 module s2.s2cell;
 
 import algorithm = std.algorithm;
@@ -40,21 +43,24 @@ import s2metrics = s2.s2metrics;
 
 import std.exception;
 
-// An S2Cell is an S2Region object that represents a cell.  Unlike S2CellIds,
-// it supports efficient containment and intersection tests.  However, it is
-// also a more expensive representation (currently 48 bytes rather than 8).
+/**
+ * An S2Cell is an S2Region object that represents a cell.
 
-// This class is intended to be copied by value as desired.  It uses
-// the default copy constructor and assignment operator, however it is
-// not a "plain old datatype" (POD) because it has virtual functions.
+ * Unlike S2CellIds, it supports efficient containment and intersection tests.  However, it is also
+ * a more expensive representation (currently 48 bytes rather than 8).
+ *
+ * This class is intended to be copied by value as desired.  It uses the default copy constructor
+ * and assignment operator, however it is not a "plain old datatype" (POD) because it has virtual
+ * functions.
+ */
 class S2Cell : S2Region {
 public:
-  // The default constructor is required in order to use freelists.
-  // Cells should otherwise always be constructed explicitly.
+  /// The default constructor is required in order to use freelists.
+  /// Cells should otherwise always be constructed explicitly.
   this() {}
 
-  // An S2Cell always corresponds to a particular S2CellId.  The other
-  // constructors are just convenience methods.
+  /// An S2Cell always corresponds to a particular S2CellId.  The other
+  /// constructors are just convenience methods.
   this(in S2CellId id) {
     initFromS2CellId(id);
   }
@@ -67,7 +73,7 @@ public:
     _uv = cell._uv;
   }
 
-  // Convenience constructors.  The S2LatLng must be normalized.
+  /// Convenience constructors.  The S2LatLng must be normalized.
   this(in S2Point p) {
     this(S2CellId(p));
   }
@@ -76,17 +82,19 @@ public:
     this(S2CellId(ll));
   }
 
-  // Returns the cell corresponding to the given S2 cube face.
+  /// Returns the cell corresponding to the given S2 cube face.
   static S2Cell fromFace(int face) {
     return new S2Cell(S2CellId.fromFace(face));
   }
 
-  // Returns a cell given its face (range 0..5), Hilbert curve position within
-  // that face (an unsigned integer with S2CellId::kPosBits bits), and level
-  // (range 0..kMaxLevel).  The given position will be modified to correspond
-  // to the Hilbert curve position at the center of the returned cell.  This
-  // is a static function rather than a constructor in order to indicate what
-  // the arguments represent.
+  /**
+   * Returns a cell given its face (range 0..5), Hilbert curve position within
+   * that face (an unsigned integer with S2CellId::kPosBits bits), and level
+   * (range 0..kMaxLevel).  The given position will be modified to correspond
+   * to the Hilbert curve position at the center of the returned cell.  This
+   * is a static function rather than a constructor in order to indicate what
+   * the arguments represent.
+   */
   static S2Cell fromFacePosLevel(int face, ulong pos, int level) {
     return new S2Cell(S2CellId.fromFacePosLevel(face, pos, level));
   }
@@ -121,8 +129,8 @@ public:
     return _level == S2CellId.MAX_LEVEL;
   }
 
-  // These are equivalent to the S2CellId methods, but have a more efficient
-  // implementation since the level has been precomputed.
+  /// These are equivalent to the S2CellId methods, but have a more efficient
+  /// implementation since the level has been precomputed.
   int getSizeIJ() const {
     return S2CellId.getSizeIJ(level());
   }
@@ -131,10 +139,12 @@ public:
     return S2CellId.getSizeST(level());
   }
 
-  // Returns the k-th vertex of the cell (k = 0,1,2,3).  Vertices are returned
-  // in CCW order (lower left, lower right, upper right, upper left in the UV
-  // plane).  The points returned by GetVertexRaw are not normalized.
-  // For convenience, the argument is reduced modulo 4 to the range [0..3].
+  /**
+   * Returns the k-th vertex of the cell (k = 0,1,2,3).  Vertices are returned
+   * in CCW order (lower left, lower right, upper right, upper left in the UV
+   * plane).  The points returned by GetVertexRaw are not normalized.
+   * For convenience, the argument is reduced modulo 4 to the range [0..3].
+   */
   S2Point getVertex(int k) const {
     return getVertexRaw(k).normalize();
   }
@@ -143,10 +153,12 @@ public:
     return s2coords.FaceUVtoXYZ(_face, _uv.getVertex(k));
   }
 
-  // Returns the inward-facing normal of the great circle passing through the
-  // edge from vertex k to vertex k+1 (mod 4).  The normals returned by
-  // GetEdgeRaw are not necessarily unit length.  For convenience, the
-  // argument is reduced modulo 4 to the range [0..3].
+  /**
+   * Returns the inward-facing normal of the great circle passing through the
+   * edge from vertex k to vertex k+1 (mod 4).  The normals returned by
+   * GetEdgeRaw are not necessarily unit length.  For convenience, the
+   * argument is reduced modulo 4 to the range [0..3].
+   */
   S2Point getEdge(int k) const {
     return getEdgeRaw(k).normalize();
   }
@@ -160,14 +172,18 @@ public:
     }
   }
 
-  // If this is not a leaf cell, sets children[0..3] to the four children of
-  // this cell (in traversal order) and return true.  Otherwise returns false.
-  // This method is equivalent to the following:
-  //
-  // for (pos=0, id=child_begin(); id != child_end(); id = id.next(), ++pos)
-  //   children[pos] = S2Cell(id);
-  //
-  // except that it is more than two times faster.
+  /**
+   * Divides the S2Cell into its four children.
+   *
+   * If this is not a leaf cell, sets children[0..3] to the four children of
+   * this cell (in traversal order) and return true.  Otherwise returns false.
+   * This method is equivalent to the following:
+   *
+   * for (pos=0, id=child_begin(); id != child_end(); id = id.next(), ++pos)
+   *   children[pos] = S2Cell(id);
+   *
+   * except that it is more than two times faster.
+   */
   bool subdivide(out S2Cell[4] children) const {
     // This function is equivalent to just iterating over the child cell ids
     // and calling the S2Cell constructor, but it is about 2.5 times faster.
@@ -202,11 +218,13 @@ public:
     return true;
   }
 
-  // Returns the direction vector corresponding to the center in (s,t)-space of
-  // the given cell.  This is the point at which the cell is divided into four
-  // subcells; it is not necessarily the centroid of the cell in (u,v)-space
-  // or (x,y,z)-space.  The point returned by GetCenterRaw is not necessarily
-  // unit length.
+  /**
+   * Returns the direction vector corresponding to the center in (s,t)-space of
+   * the given cell.  This is the point at which the cell is divided into four
+   * subcells; it is not necessarily the centroid of the cell in (u,v)-space
+   * or (x,y,z)-space.  The point returned by GetCenterRaw is not necessarily
+   * unit length.
+   */
   S2Point getCenter() const {
     return getCenterRaw().normalize();
   }
@@ -215,22 +233,26 @@ public:
     return _id.toS2PointRaw();
   }
 
-  // Returns the average area for cells at the given level.
+  /// Returns the average area for cells at the given level.
   static double averageArea(int level) {
     return s2metrics.AVG_AREA.getValue(level);
   }
 
-  // Returns the average area of cells at this level in steradians.  This is
-  // accurate to within a factor of 1.7 (for S2_QUADRATIC_PROJECTION) and is
-  // extremely cheap to compute.
+  /**
+   * Returns the average area of cells at this level in steradians.  This is
+   * accurate to within a factor of 1.7 (for S2_QUADRATIC_PROJECTION) and is
+   * extremely cheap to compute.
+   */
   double averageArea() const {
     return averageArea(_level);
   }
 
-  // Returns the approximate area of this cell in steradians.  This method is
-  // accurate to within 3% percent for all cell sizes and accurate to within
-  // 0.1% for cells at level 5 or higher (i.e. squares 350km to a side or
-  // smaller on the Earth's surface).  It is moderately cheap to compute.
+  /**
+   * Returns the approximate area of this cell in steradians.  This method is
+   * accurate to within 3% percent for all cell sizes and accurate to within
+   * 0.1% for cells at level 5 or higher (i.e. squares 350km to a side or
+   * smaller on the Earth's surface).  It is moderately cheap to compute.
+   */
   double approxArea() const {
     // All cells at the first two levels have the same area.
     if (_level < 2) {
@@ -252,9 +274,11 @@ public:
     return flat_area * 2 / (1 + math.sqrt(1.0 - algorithm.min(math.M_1_PI * flat_area, 1.0)));
   }
 
-  // Returns the area of this cell as accurately as possible.  This method is
-  // more expensive but it is accurate to 6 digits of precision even for leaf
-  // cells (whose area is approximately 1e-18).
+  /**
+   * Returns the area of this cell as accurately as possible.  This method is
+   * more expensive but it is accurate to 6 digits of precision even for leaf
+   * cells (whose area is approximately 1e-18).
+   */
   double exactArea() const {
     // There is a straightforward mathematical formula for the exact surface
     // area (based on 4 calls to asin), but as the cell size gets small this
@@ -267,24 +291,23 @@ public:
     return s2measures.area(v0, v1, v2) + s2measures.area(v0, v2, v3);
   }
 
-  // Returns the bounds of this cell in (u,v)-space.
+  /// Returns the bounds of this cell in (u,v)-space.
   R2Rect getBoundUV() const {
     return _uv;
   }
 
-  // Returns the distance from the cell to the given point.  Returns zero if
-  // the point is inside the cell.
+  /// Returns the distance from the cell to the given point.  Returns zero if
+  /// the point is inside the cell.
   S1ChordAngle getDistance(in S2Point target) const {
     return getDistanceInternal(target, true /*to_interior*/);
   }
 
-  // Return the distance from the cell boundary to the given point.
+  /// Returns the distance from the cell boundary to the given point.
   S1ChordAngle getBoundaryDistance(in S2Point target) const {
     return getDistanceInternal(target, false /*to_interior*/);
   }
 
-  // Returns the maximum distance from the cell (including its interior) to the
-  // given point.
+  /// Returns the maximum distance from the cell (including its interior) to the given point.
   S1ChordAngle getMaxDistance(in S2Point target) const {
     // First check the 4 cell vertices.  If all are within the hemisphere
     // centered around target, the max distance will be to one of these vertices.
@@ -303,8 +326,8 @@ public:
   }
 
 
-  // Returns the minimum distance from the cell to the given edge AB.  Returns
-  // zero if the edge intersects the cell interior.
+  /// Returns the minimum distance from the cell to the given edge AB.  Returns
+  /// zero if the edge intersects the cell interior.
   S1ChordAngle getDistance(in S2Point a, in S2Point b) const {
     // Possible optimizations:
     //  - Currently the (cell vertex, edge endpoint) distances are computed
@@ -349,8 +372,8 @@ public:
   }
 
 
-  // Returns the maximum distance from the cell (including its interior) to the
-  // given edge AB.
+  /// Returns the maximum distance from the cell (including its interior) to the
+  /// given edge AB.
   S1ChordAngle getMaxDistance(in S2Point a, in S2Point b) const {
     // If the maximum distance from both endpoints to the cell is less than Pi/2
     // then the maximum distance from the edge to the cell is the maximum of the
@@ -363,8 +386,8 @@ public:
     return S1ChordAngle.straight() - getDistance(-a, -b);
   }
 
-  // Returns the distance from the cell to the given cell.  Returns zero if
-  // one cell contains the other.
+  /// Returns the distance from the cell to the given cell.  Returns zero if
+  /// one cell contains the other.
   S1ChordAngle getDistance(in S2Cell target) const {
     // If the cells intersect, the distance is zero.  We use the (u,v) ranges
     // rather S2CellId::intersects() so that cells that share a partial edge or
@@ -395,8 +418,7 @@ public:
     return min_dist;
   }
 
-  // Returns the maximum distance from the cell (including its interior) to the
-  // given target cell.
+  /// Returns the maximum distance from the cell (including its interior) to the given target cell.
   S1ChordAngle getMaxDistance(in S2Cell target) const {
     // Need to check the antipodal target for intersection with the cell. If it
     // intersects, the distance is S1ChordAngle::Straight().
@@ -576,16 +598,18 @@ public:
     return _id.intersects(cell._id);
   }
 
-  // Returns true if the cell contains the given point "p".  Note that unlike
-  // S2Loop/S2Polygon, S2Cells are considered to be closed sets.  This means
-  // that points along an S2Cell edge (or at a vertex) belong to the adjacent
-  // cell(s) as well.
-  //
-  // If instead you want every point to be contained by exactly one S2Cell,
-  // you will need to convert the S2Cells to S2Loops (which implement point
-  // containment this way).
-  //
-  // The point "p" does not need to be normalized.
+  /**
+   * Returns true if the cell contains the given point "p".  Note that unlike
+   * S2Loop/S2Polygon, S2Cells are considered to be closed sets.  This means
+   * that points along an S2Cell edge (or at a vertex) belong to the adjacent
+   * cell(s) as well.
+   *
+   * If instead you want every point to be contained by exactly one S2Cell,
+   * you will need to convert the S2Cells to S2Loops (which implement point
+   * containment this way).
+   *
+   * The point "p" does not need to be normalized.
+   */
   override
   bool contains(in S2Point p) const {
     // We can't just call XYZtoFaceUV, because for points that lie on the
@@ -674,8 +698,8 @@ public:
     return p.dotProd(dir0) > 0 && p.dotProd(dir1) < 0;
   }
 
-  // Returns the distance from the given point to the interior of the cell if
-  // "to_interior" is true, and to the boundary of the cell otherwise.
+  /// Returns the distance from the given point to the interior of the cell if
+  /// "to_interior" is true, and to the boundary of the cell otherwise.
   S1ChordAngle getDistanceInternal(in S2Point target_xyz, bool to_interior) const {
     // All calculations are done in the (u,v,w) coordinates of this cell's face.
     S2Point target = s2coords.FaceXYZtoUVW(_face, target_xyz);
@@ -733,8 +757,8 @@ public:
             vertexChordDist(target, 1, 1)));
   }
 
-  // Given the dot product of a point P with the normal of a u- or v-edge at the
-  // given coordinate value, return the distance from P to that edge.
+  /// Given the dot product of a point P with the normal of a u- or v-edge at the
+  /// given coordinate value, return the distance from P to that edge.
   static S1ChordAngle edgeDistance(double dirIJ, double uv) {
     // Let P by the target point and let R be the closest point on the given
     // edge AB.  The desired distance PR can be expressed as PR^2 = PQ^2 + QR^2
@@ -755,8 +779,7 @@ public:
     return face >= 3 ? face - 3 : face + 3;
   }
 
-  // The antipodal UV is the transpose of the original UV, interpreted within
-  // the opposite face.
+  /// The antipodal UV is the transpose of the original UV, interpreted within the opposite face.
   static R2Rect oppositeUV(in R2Rect uv) {
     return R2Rect(uv[1], uv[0]);
   }

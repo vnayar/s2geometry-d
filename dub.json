@@ -32,5 +32,4 @@
       }
     }
   ],
-  "-ddoxFilterArgs": ["--min-protection=Protected"]
 }

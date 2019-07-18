@@ -1,20 +1,23 @@
-// Copyright 2005 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Original author: ericv@google.com (Eric Veach)
-// Converted to D:  madric@gmail.com (Vijay Nayar)
+/**
+   An S2Loop represents a simple spherical polygon.
 
+   Copyright: 2005 Google Inc. All Rights Reserved.
+
+   License:
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   $(LINK http://www.apache.org/licenses/LICENSE-2.0)
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   Authors: ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+*/
 module s2.s2loop;
 
 import s2.logger;
@@ -101,8 +104,8 @@ enum bool LAZY_INDEXING = true;
  */
 class S2Loop : S2Region {
 public:
-  // Default constructor.  The loop must be initialized by calling Init() or
-  // Decode() before it is used.
+  /// Default constructor.  The loop must be initialized by calling Init() or
+  /// Decode() before it is used.
   this() {
     _bound = new S2LatLngRect();
     _subregionBound = new S2LatLngRect();
@@ -113,17 +116,19 @@ public:
     this(vertices, S2Debug.ALLOW);
   }
 
-  // Convenience constructor that calls Init() with the given vertices.
+  /// Convenience constructor that calls Init() with the given vertices.
   this(in S2Point[] vertices, S2Debug s2DebugOverride) {
     this();
     _s2DebugOverride = s2DebugOverride;
     initialize(vertices);
   }
 
-  // Initialize a loop with given vertices.  The last vertex is implicitly
-  // connected to the first.  All points should be unit length.  Loops must
-  // have at least 3 vertices (except for the "empty" and "full" loops, see
-  // kEmpty and kFull).  This method may be called multiple times.
+  /**
+     Initialize a loop with given vertices.  The last vertex is implicitly
+     connected to the first.  All points should be unit length.  Loops must
+     have at least 3 vertices (except for the "empty" and "full" loops, see
+     kEmpty and kFull).  This method may be called multiple times.
+  */
   void initialize(RangeT)(RangeT vertexRange)
   if (isInputRange!RangeT /*&& is(ElementType!RangeT == Vector!(double, 3))*/) {
     clearIndex();
@@ -133,33 +138,37 @@ public:
     initOriginAndBound();
   }
 
-  // A special vertex chain of length 1 that creates an empty loop (i.e., a
-  // loop with no edges that contains no points).  Example usage:
-  //
-  //    S2Loop emptyLoop = new S2Loop(S2Loop.empty());
-  //
-  // The loop may be safely encoded lossily (e.g. by snapping it to an S2Cell
-  // center) as long as its position does not move by 90 degrees or more.
+  /**
+     A special vertex chain of length 1 that creates an empty loop (i.e., a
+     loop with no edges that contains no points).  Example usage:
+
+        S2Loop emptyLoop = new S2Loop(S2Loop.empty());
+
+     The loop may be safely encoded lossily (e.g. by snapping it to an S2Cell
+     center) as long as its position does not move by 90 degrees or more.
+  */
   static S2Point[] empty() {
     return [S2Loop.emptyVertex()];
   }
 
-  // A special vertex chain of length 1 that creates a full loop (i.e., a loop
-  // with no edges that contains all points).  See kEmpty() for details.
+  /// A special vertex chain of length 1 that creates a full loop (i.e., a loop
+  /// with no edges that contains all points).  See kEmpty() for details.
   static S2Point[] full() {
     return [S2Loop.fullVertex()];
   }
 
-  // Construct a loop corresponding to the given cell.
-  //
-  // Note that the loop and cell *do not* contain exactly the same set of
-  // points, because S2Loop and S2Cell have slightly different definitions of
-  // point containment.  For example, an S2Cell vertex is contained by all
-  // four neighboring S2Cells, but it is contained by exactly one of four
-  // S2Loops constructed from those cells.  As another example, the S2Cell
-  // coverings of "cell" and "S2Loop(cell)" will be different, because the
-  // loop contains points on its boundary that actually belong to other cells
-  // (i.e., the covering will include a layer of neighboring cells).
+  /**
+     Construct a loop corresponding to the given cell.
+
+     Note that the loop and cell *do not* contain exactly the same set of
+     points, because S2Loop and S2Cell have slightly different definitions of
+     point containment.  For example, an S2Cell vertex is contained by all
+     four neighboring S2Cells, but it is contained by exactly one of four
+     S2Loops constructed from those cells.  As another example, the S2Cell
+     coverings of "cell" and "S2Loop(cell)" will be different, because the
+     loop contains points on its boundary that actually belong to other cells
+     (i.e., the covering will include a layer of neighboring cells).
+  */
   this(in S2Cell cell) {
     this();
     _depth = 0;
@@ -174,20 +183,22 @@ public:
     initOriginAndBound();
   }
 
-  // Allows overriding the automatic validity checks controlled by the
-  // --s2debug flag.  If this flag is true, then loops are automatically
-  // checked for validity as they are initialized.  The main reason to disable
-  // this flag is if you intend to call IsValid() explicitly, like this:
-  //
-  //   S2Loop loop;
-  //   loop.set_s2debug_override(S2Debug::DISABLE);
-  //   loop.Init(...);
-  //   if (!loop.IsValid()) { ... }
-  //
-  // Without the call to set_s2debug_override(), invalid data would cause a
-  // fatal error in Init() whenever the --s2debug flag is enabled.
-  //
-  // This setting is preserved across calls to Init() and Decode().
+  /**
+     Allows overriding the automatic validity checks controlled by the
+     --s2debug flag.  If this flag is true, then loops are automatically
+     checked for validity as they are initialized.  The main reason to disable
+     this flag is if you intend to call IsValid() explicitly, like this:
+     ---
+       S2Loop loop;
+       loop.set_s2debug_override(S2Debug::DISABLE);
+       loop.Init(...);
+       if (!loop.IsValid()) { ... }
+     ---
+     Without the call to set_s2debug_override(), invalid data would cause a
+     fatal error in Init() whenever the --s2debug flag is enabled.
+
+     This setting is preserved across calls to Init() and Decode().
+  */
   @property
   void s2DebugOverride(S2Debug s2DebugOverride) {
     _s2DebugOverride = s2DebugOverride;
@@ -198,9 +209,11 @@ public:
     return _s2DebugOverride;
   }
 
-  // Returns true if this is a valid loop.  Note that validity is checked
-  // automatically during initialization when --s2debug is enabled (true by
-  // default in debug binaries).
+  /**
+     Returns true if this is a valid loop.  Note that validity is checked
+     automatically during initialization when --s2debug is enabled (true by
+     default in debug binaries).
+  */
   bool isValid() {
     S2Error error;
     if (findValidationError(error)) {
@@ -210,16 +223,20 @@ public:
     return true;
   }
 
-  // Returns true if this is *not* a valid loop and sets "error"
-  // appropriately.  Otherwise returns false and leaves "error" unchanged.
+  /**
+     Returns true if this is *not* a valid loop and sets "error"
+     appropriately.  Otherwise returns false and leaves "error" unchanged.
+  */
   bool findValidationError(ref S2Error error) {
     return (findValidationErrorNoIndex(error) || findSelfIntersection(_index, error));
   }
 
-  // Like FindValidationError(), but skips any checks that would require
-  // building the S2ShapeIndex (i.e., self-intersection tests).  This is used
-  // by the S2Polygon implementation, which uses its own index to check for
-  // loop self-intersections.
+  /**
+     Like FindValidationError(), but skips any checks that would require
+     building the S2ShapeIndex (i.e., self-intersection tests).  This is used
+     by the S2Polygon implementation, which uses its own index to check for
+     loop self-intersections.
+  */
   bool findValidationErrorNoIndex(ref S2Error error) const
   in {
     // subregion_bound_ must be at least as large as bound_.  (This is an
@@ -271,10 +288,12 @@ public:
     return cast(int) _vertices.length;
   }
 
-  // For convenience, we make two entire copies of the vertex list available:
-  // vertex(n..2*n-1) is mapped to vertex(0..n-1), where n == num_vertices().
-  //
-  // REQUIRES: 0 <= i < 2 * num_vertices()
+  /**
+     For convenience, we make two entire copies of the vertex list available:
+     vertex(n..2*n-1) is mapped to vertex(0..n-1), where n == num_vertices().
+
+     REQUIRES: 0 <= i < 2 * num_vertices()
+  */
   S2Point vertex(int i) const
   in {
     assert(i >= 0);
@@ -288,13 +307,15 @@ public:
     return _vertices;
   }
 
-  // Like vertex(), but this method returns vertices in reverse order if the
-  // loop represents a polygon hole.  For example, arguments 0, 1, 2 are
-  // mapped to vertices n-1, n-2, n-3, where n == num_vertices().  This
-  // ensures that the interior of the polygon is always to the left of the
-  // vertex chain.
-  //
-  // REQUIRES: 0 <= i < 2 * num_vertices()
+  /**
+     Like vertex(), but this method returns vertices in reverse order if the
+     loop represents a polygon hole.  For example, arguments 0, 1, 2 are
+     mapped to vertices n-1, n-2, n-3, where n == num_vertices().  This
+     ensures that the interior of the polygon is always to the left of the
+     vertex chain.
+
+     REQUIRES: 0 <= i < 2 * num_vertices()
+  */
   S2Point orientedVertex(int i) const
   in {
     assert(i >= 0);
@@ -306,25 +327,27 @@ public:
     return _vertices[j];
   }
 
-  // Return true if this is the special "empty" loop that contains no points.
+  /// Returns true if this is the special "empty" loop that contains no points.
   bool isEmpty() const {
     return isEmptyOrFull() && !containsOrigin();
   }
 
-  // Return true if this is the special "full" loop that contains all points.
+  /// Returns true if this is the special "full" loop that contains all points.
   bool isFull() const {
     return isEmptyOrFull() && containsOrigin();
   }
 
-  // Return true if this loop is either "empty" or "full".
+  /// Returns true if this loop is either "empty" or "full".
   bool isEmptyOrFull() const {
     return numVertices() == 1;
   }
 
-  // The depth of a loop is defined as its nesting level within its containing
-  // polygon.  "Outer shell" loops have depth 0, holes within those loops have
-  // depth 1, shells within those holes have depth 2, etc.  This field is only
-  // used by the S2Polygon implementation.
+  /**
+     The depth of a loop is defined as its nesting level within its containing
+     polygon.  "Outer shell" loops have depth 0, holes within those loops have
+     depth 1, shells within those holes have depth 2, etc.  This field is only
+     used by the S2Polygon implementation.
+  */
   int depth() const {
     return _depth;
   }
@@ -333,21 +356,25 @@ public:
     _depth = depth;
   }
 
-  // Return true if this loop represents a hole in its containing polygon.
+  /// Returns true if this loop represents a hole in its containing polygon.
   bool isHole() const {
     return (_depth & 1) != 0;
   }
 
-  // The sign of a loop is -1 if the loop represents a hole in its containing
-  // polygon, and +1 otherwise.
+  /**
+     The sign of a loop is -1 if the loop represents a hole in its containing
+     polygon, and +1 otherwise.
+  */
   int sign() const {
     return isHole() ? -1 : 1;
   }
 
-  // Return true if the loop area is at most 2*Pi.  Degenerate loops are
-  // handled consistently with s2pred::Sign(), i.e., if a loop can be
-  // expressed as the union of degenerate or nearly-degenerate CCW triangles,
-  // then it will always be considered normalized.
+  /**
+     Return true if the loop area is at most 2*Pi.  Degenerate loops are
+     handled consistently with s2pred::Sign(), i.e., if a loop can be
+     expressed as the union of degenerate or nearly-degenerate CCW triangles,
+     then it will always be considered normalized.
+  */
   bool isNormalized() const {
     // Optimization: if the longitude span is less than 180 degrees, then the
     // loop covers less than half the sphere and is therefore normalized.
@@ -360,8 +387,7 @@ public:
     return getTurningAngle() >= -getTurningAngleMaxError();
   }
 
-  // Invert the loop if necessary so that the area enclosed by the loop is at
-  // most 2*Pi.
+  /// Invert the loop if necessary so that the area enclosed by the loop is at most 2*Pi.
   void normalize()
   out {
     assert(isNormalized());
@@ -369,11 +395,13 @@ public:
     if (!isNormalized()) invert();
   }
 
-  // Reverse the order of the loop vertices, effectively complementing the
-  // region represented by the loop.  For example, the loop ABCD (with edges
-  // AB, BC, CD, DA) becomes the loop DCBA (with edges DC, CB, BA, AD).
-  // Notice that the last edge is the same in both cases except that its
-  // direction has been reversed.
+  /**
+     Reverse the order of the loop vertices, effectively complementing the
+     region represented by the loop.  For example, the loop ABCD (with edges
+     AB, BC, CD, DA) becomes the loop DCBA (with edges DC, CB, BA, AD).
+     Notice that the last edge is the same in both cases except that its
+     direction has been reversed.
+  */
   void invert() {
     clearIndex();
     if (isEmptyOrFull()) {
@@ -392,9 +420,11 @@ public:
     initIndex();
   }
 
-  // Return the area of the loop interior, i.e. the region on the left side of
-  // the loop.  The return value is between 0 and 4*Pi.  (Note that the return
-  // value is not affected by whether this loop is a "hole" or a "shell".)
+  /**
+     Return the area of the loop interior, i.e. the region on the left side of
+     the loop.  The return value is between 0 and 4*Pi.  (Note that the return
+     value is not affected by whether this loop is a "hole" or a "shell".)
+  */
   double getArea() const {
     // It is suprisingly difficult to compute the area of a loop robustly.  The
     // main issues are (1) whether degenerate loops are considered to be CCW or
@@ -495,18 +525,20 @@ public:
 
   }
 
-  // Return the true centroid of the loop multiplied by the area of the loop
-  // (see s2centroids.h for details on centroids).  The result is not unit
-  // length, so you may want to normalize it.  Also note that in general, the
-  // centroid may not be contained by the loop.
-  //
-  // We prescale by the loop area for two reasons: (1) it is cheaper to
-  // compute this way, and (2) it makes it easier to compute the centroid of
-  // more complicated shapes (by splitting them into disjoint regions and
-  // adding their centroids).
-  //
-  // Note that the return value is not affected by whether this loop is a
-  // "hole" or a "shell".
+  /**
+     Returns the true centroid of the loop multiplied by the area of the loop
+     (see s2centroids.h for details on centroids).  The result is not unit
+     length, so you may want to normalize it.  Also note that in general, the
+     centroid may not be contained by the loop.
+
+     We prescale by the loop area for two reasons: (1) it is cheaper to
+     compute this way, and (2) it makes it easier to compute the centroid of
+     more complicated shapes (by splitting them into disjoint regions and
+     adding their centroids).
+
+     Note that the return value is not affected by whether this loop is a
+     "hole" or a "shell".
+  */
   S2Point getCentroid() const {
     // GetSurfaceIntegral() returns either the integral of position over loop
     // interior, or the negative of the integral of position over the loop
@@ -515,14 +547,16 @@ public:
     return getSurfaceIntegral(&trueCentroid);
   }
 
-  // Return the sum of the turning angles at each vertex.  The return value is
-  // positive if the loop is counter-clockwise, negative if the loop is
-  // clockwise, and zero if the loop is a great circle.  Degenerate and
-  // nearly-degenerate loops are handled consistently with s2pred::Sign().
-  // So for example, if a loop has zero area (i.e., it is a very small CCW
-  // loop) then the turning angle will always be negative.
-  //
-  // This quantity is also called the "geodesic curvature" of the loop.
+  /**
+     Returns the sum of the turning angles at each vertex.  The return value is
+     positive if the loop is counter-clockwise, negative if the loop is
+     clockwise, and zero if the loop is a great circle.  Degenerate and
+     nearly-degenerate loops are handled consistently with s2pred::Sign().
+     So for example, if a loop has zero area (i.e., it is a very small CCW
+     loop) then the turning angle will always be negative.
+
+     This quantity is also called the "geodesic curvature" of the loop.
+  */
   double getTurningAngle() const {
     // For empty and full loops, we return the limit value as the loop area
     // approaches 0 or 4*Pi respectively.
@@ -559,8 +593,10 @@ public:
     return dir * (sum + compensation);
   }
 
-  // Return the maximum error in GetTurningAngle().  The return value is not
-  // constant; it depends on the loop.
+  /**
+     Return the maximum error in GetTurningAngle().  The return value is not
+     constant; it depends on the loop.
+  */
   double getTurningAngleMaxError() const {
     // The maximum error can be bounded as follows:
     //   2.24 * DBL_EPSILON    for RobustCrossProd(b, a)
@@ -573,8 +609,10 @@ public:
     return kMaxErrorPerVertex * numVertices();
   }
 
-  // Return the distance from the given point to the loop interior.  If the
-  // loop is empty, return S1Angle::Infinity().  "x" should be unit length.
+  /**
+     Returns the distance from the given point to the loop interior.  If the
+     loop is empty, return S1Angle::Infinity().  "x" should be unit length.
+  */
   S1Angle getDistance(in S2Point x) {
     // Note that S2Loop::Contains(S2Point) is slightly more efficient than the
     // generic version used by S2ClosestEdgeQuery.
@@ -582,9 +620,11 @@ public:
     return getDistanceToBoundary(x);
   }
 
-  // Return the distance from the given point to the loop boundary.  If the
-  // loop is empty or full, return S1Angle::Infinity() (since the loop has no
-  // boundary).  "x" should be unit length.
+  /**
+     Returns the distance from the given point to the loop boundary.  If the
+     loop is empty or full, return S1Angle::Infinity() (since the loop has no
+     boundary).  "x" should be unit length.
+  */
   S1Angle getDistanceToBoundary(in S2Point x) {
     auto options = new S2ClosestEdgeQuery.Options();
     options.setIncludeInteriors(false);
@@ -592,18 +632,22 @@ public:
     return new S2ClosestEdgeQuery(_index, options).getDistance(t).toS1Angle();
   }
 
-  // If the given point is contained by the loop, return it.  Otherwise return
-  // the closest point on the loop boundary.  If the loop is empty, return the
-  // input argument.  Note that the result may or may not be contained by the
-  // loop.  "x" should be unit length.
+  /**
+     If the given point is contained by the loop, return it.  Otherwise return
+     the closest point on the loop boundary.  If the loop is empty, return the
+     input argument.  Note that the result may or may not be contained by the
+     loop.  "x" should be unit length.
+  */
   S2Point project(in S2Point x) {
     if (contains(x)) return x;
     return projectToBoundary(x);
   }
 
-  // Return the closest point on the loop boundary to the given point.  If the
-  // loop is empty or full, return the input argument (since the loop has no
-  // boundary).  "x" should be unit length.
+  /**
+     Return the closest point on the loop boundary to the given point.  If the
+     loop is empty or full, return the input argument (since the loop has no
+     boundary).  "x" should be unit length.
+  */
   S2Point projectToBoundary(in S2Point x) {
     auto options = new S2ClosestEdgeQuery.Options();
     options.setIncludeInteriors(false);
@@ -613,8 +657,10 @@ public:
     return q.project(x, edge);
   }
 
-  // Return true if the region contained by this loop is a superset of the
-  // region contained by the given other loop.
+  /**
+     Returns true if the region contained by this loop is a superset of the
+     region contained by the given other loop.
+  */
   bool contains(S2Loop b) {
     // For this loop A to contains the given loop B, all of the following must
     // be true:
@@ -661,8 +707,10 @@ public:
     return true;
   }
 
-  // Return true if the region contained by this loop intersects the region
-  // contained by the given other loop.
+  /**
+     Returns true if the region contained by this loop intersects the region
+     contained by the given other loop.
+  */
   bool intersects(S2Loop b) {
     // a->Intersects(b) if and only if !a->Complement()->Contains(b).
     // This code is similar to Contains(), but is optimized for the case
@@ -693,8 +741,10 @@ public:
     return false;
   }
 
-  // Return true if two loops have the same vertices in the same linear order
-  // (i.e., cyclic rotations are not allowed).
+  /**
+     Returns true if two loops have the same vertices in the same linear order
+     (i.e., cyclic rotations are not allowed).
+  */
   bool equals(in S2Loop b) const {
     if (numVertices() != b.numVertices()) return false;
     for (int i = 0; i < numVertices(); ++i) {
@@ -703,10 +753,12 @@ public:
     return true;
   }
 
-  // Return true if two loops have the same boundary.  This is true if and
-  // only if the loops have the same vertices in the same cyclic order (i.e.,
-  // the vertices may be cyclically rotated).  The empty and full loops are
-  // considered to have different boundaries.
+  /**
+     Returns true if two loops have the same boundary.  This is true if and
+     only if the loops have the same vertices in the same cyclic order (i.e.,
+     the vertices may be cyclically rotated).  The empty and full loops are
+     considered to have different boundaries.
+  */
   bool boundaryEquals(in S2Loop b) const {
     if (numVertices() != b.numVertices()) return false;
 
@@ -726,10 +778,12 @@ public:
     return false;
   }
 
-  // Return true if two loops have the same boundary except for vertex
-  // perturbations.  More precisely, the vertices in the two loops must be in
-  // the same cyclic order, and corresponding vertex pairs must be separated
-  // by no more than "max_error".
+  /**
+     Returns true if two loops have the same boundary except for vertex
+     perturbations.  More precisely, the vertices in the two loops must be in
+     the same cyclic order, and corresponding vertex pairs must be separated
+     by no more than "max_error".
+  */
   bool boundaryApproxEquals(in S2Loop b, S1Angle max_error = S1Angle.fromRadians(1e-15)) const {
     if (numVertices() != b.numVertices()) return false;
 
@@ -754,14 +808,16 @@ public:
     return false;
   }
 
-  // Return true if the two loop boundaries are within "max_error" of each
-  // other along their entire lengths.  The two loops may have different
-  // numbers of vertices.  More precisely, this method returns true if the two
-  // loops have parameterizations a:[0,1] -> S^2, b:[0,1] -> S^2 such that
-  // distance(a(t), b(t)) <= max_error for all t.  You can think of this as
-  // testing whether it is possible to drive two cars all the way around the
-  // two loops such that no car ever goes backward and the cars are always
-  // within "max_error" of each other.
+  /**
+     Returns true if the two loop boundaries are within "max_error" of each
+     other along their entire lengths.  The two loops may have different
+     numbers of vertices.  More precisely, this method returns true if the two
+     loops have parameterizations a:[0,1] -> S^2, b:[0,1] -> S^2 such that
+     distance(a(t), b(t)) <= max_error for all t.  You can think of this as
+     testing whether it is possible to drive two cars all the way around the
+     two loops such that no car ever goes backward and the cars are always
+     within "max_error" of each other.
+  */
   bool boundaryNear(in S2Loop b, S1Angle max_error = S1Angle.fromRadians(1e-15)) const {
     // Special case to handle empty or full loops.
     if (isEmptyOrFull() || b.isEmptyOrFull()) {
@@ -774,30 +830,32 @@ public:
     return false;
   }
 
-  // This method computes the oriented surface integral of some quantity f(x)
-  // over the loop interior, given a function f_tri(A,B,C) that returns the
-  // corresponding integral over the spherical triangle ABC.  Here "oriented
-  // surface integral" means:
-  //
-  // (1) f_tri(A,B,C) must be the integral of f if ABC is counterclockwise,
-  //     and the integral of -f if ABC is clockwise.
-  //
-  // (2) The result of this function is *either* the integral of f over the
-  //     loop interior, or the integral of (-f) over the loop exterior.
-  //
-  // Note that there are at least two common situations where it easy to work
-  // around property (2) above:
-  //
-  //  - If the integral of f over the entire sphere is zero, then it doesn't
-  //    matter which case is returned because they are always equal.
-  //
-  //  - If f is non-negative, then it is easy to detect when the integral over
-  //    the loop exterior has been returned, and the integral over the loop
-  //    interior can be obtained by adding the integral of f over the entire
-  //    unit sphere (a constant) to the result.
-  //
-  // Also requires that the default constructor for T must initialize the
-  // value to zero.  (This is true for built-in types such as "double".)
+  /**
+     This method computes the oriented surface integral of some quantity f(x)
+     over the loop interior, given a function f_tri(A,B,C) that returns the
+     corresponding integral over the spherical triangle ABC.  Here "oriented
+     surface integral" means:
+
+     (1) f_tri(A,B,C) must be the integral of f if ABC is counterclockwise,
+         and the integral of -f if ABC is clockwise.
+
+     (2) The result of this function is *either* the integral of f over the
+         loop interior, or the integral of (-f) over the loop exterior.
+
+     Note that there are at least two common situations where it easy to work
+     around property (2) above:
+
+      - If the integral of f over the entire sphere is zero, then it doesn't
+        matter which case is returned because they are always equal.
+
+      - If f is non-negative, then it is easy to detect when the integral over
+        the loop exterior has been returned, and the integral over the loop
+        interior can be obtained by adding the integral of f over the entire
+        unit sphere (a constant) to the result.
+
+     Also requires that the default constructor for T must initialize the
+     value to zero.  (This is true for built-in types such as "double".)
+  */
   T getSurfaceIntegral(T)(
       T function(in Vector!(double, 3), in Vector!(double, 3), in Vector!(double, 3)) fTri) const {
     // We sum "f_tri" over a collection T of oriented triangles, possibly
@@ -886,19 +944,23 @@ public:
     return sum;
   }
 
-  // Constructs a regular polygon with the given number of vertices, all
-  // located on a circle of the specified radius around "center".  The radius
-  // is the actual distance from "center" to each vertex.
+  /**
+     Constructs a regular polygon with the given number of vertices, all
+     located on a circle of the specified radius around "center".  The radius
+     is the actual distance from "center" to each vertex.
+  */
   static S2Loop makeRegularLoop(in S2Point center, S1Angle radius, int num_vertices) {
     Matrix3x3_d m;
     getFrame(center, m);  // TODO(ericv): Return by value
     return makeRegularLoop(m, radius, num_vertices);
   }
 
-  // Like the function above, but this version constructs a loop centered
-  // around the z-axis of the given coordinate frame, with the first vertex in
-  // the direction of the positive x-axis.  (This allows the loop to be
-  // rotated for testing purposes.)
+  /**
+     Like the function above, but this version constructs a loop centered
+     around the z-axis of the given coordinate frame, with the first vertex in
+     the direction of the positive x-axis.  (This allows the loop to be
+     rotated for testing purposes.)
+  */
   static S2Loop makeRegularLoop(in Matrix3x3_d frame, S1Angle radius, int num_vertices) {
     // We construct the loop in the given frame coordinates, with the center at
     // (0, 0, 1).  For a loop of radius "r", the loop vertices have the form
@@ -916,7 +978,7 @@ public:
     return new S2Loop(vertices);
   }
 
-  // Returns the total number of bytes used by the loop.
+  /// Returns the total number of bytes used by the loop.
   size_t spaceUsed() const {
     size_t size = this.classinfo.m_init.sizeof;
     size += numVertices() * S2Point.sizeof;
@@ -933,9 +995,11 @@ public:
     return new S2Loop(this);
   }
 
-  // GetRectBound() returns essentially tight results, while GetCapBound()
-  // might have a lot of extra padding.  Both bounds are conservative in that
-  // if the loop contains a point P, then the bound contains P also.
+  /**
+     GetRectBound() returns essentially tight results, while GetCapBound()
+     might have a lot of extra padding.  Both bounds are conservative in that
+     if the loop contains a point P, then the bound contains P also.
+  */
   override
   S2Cap getCapBound() const {
     return _bound.getCapBound();
@@ -1037,15 +1101,15 @@ public:
   }
 
   /**
-   * Appends a serialized representation of the S2Loop to "encoder".
-   *
-   * Generally clients should not use S2Loop::Encode().  Instead they should
-   * encode an S2Polygon, which unlike this method supports (lossless)
-   * compression.
-   *
-   * REQUIRES: "encoder" uses the default constructor, so that its buffer
-   *           can be enlarged as necessary by calling Ensure(int).
-   */
+     Appends a serialized representation of the S2Loop to "encoder".
+
+     Generally clients should not use S2Loop::Encode().  Instead they should
+     encode an S2Polygon, which unlike this method supports (lossless)
+     compression.
+
+     REQUIRES: "encoder" uses the default constructor, so that its buffer
+               can be enlarged as necessary by calling Ensure(int).
+  */
   void encode(ORangeT)(Encoder!ORangeT encoder) const
   out (; encoder.avail >= 0) {
     encoder.ensure(numVertices() * S2Point.sizeof + 20);  // sufficient
@@ -1060,12 +1124,12 @@ public:
   }
 
   /**
-   * Decodes a loop encoded with Encode() or the private method
-   * EncodeCompressed() (used by the S2Polygon encoder).  Returns true on
-   * success.
-   *
-   * This method may be called with loops that have already been initialized.
-   */
+     Decodes a loop encoded with Encode() or the private method
+     EncodeCompressed() (used by the S2Polygon encoder).  Returns true on
+     success.
+
+     This method may be called with loops that have already been initialized.
+  */
   bool decode(IRangeT)(Decoder!IRangeT decoder) {
     if (decoder.avail() < ubyte.sizeof) return false;
     ubyte versionNum = decoder.get8();
@@ -1086,11 +1150,13 @@ public:
   ////////////////////////////////////////////////////////////////////////
   // Methods intended primarily for use by the S2Polygon implementation:
 
-  // Given two loops of a polygon, return true if A contains B.  This version
-  // of Contains() is cheap because it does not test for edge intersections.
-  // The loops must meet all the S2Polygon requirements; for example this
-  // implies that their boundaries may not cross or have any shared edges
-  // (although they may have shared vertices).
+  /**
+     Given two loops of a polygon, return true if A contains B.  This version
+     of Contains() is cheap because it does not test for edge intersections.
+     The loops must meet all the S2Polygon requirements; for example this
+     implies that their boundaries may not cross or have any shared edges
+     (although they may have shared vertices).
+  */
   bool containsNested(S2Loop b) {
     if (!_subregionBound.contains(b._bound)) return false;
 
@@ -1114,21 +1180,23 @@ public:
     return wedgeContains(vertex(m-1), vertex(m), vertex(m+1), b.vertex(0), b.vertex(2));
   }
 
-  // Return +1 if A contains the boundary of B, -1 if A excludes the boundary
-  // of B, and 0 if the boundaries of A and B cross.  Shared edges are handled
-  // as follows: If XY is a shared edge, define Reversed(XY) to be true if XY
-  // appears in opposite directions in A and B.  Then A contains XY if and
-  // only if Reversed(XY) == B->is_hole().  (Intuitively, this checks whether
-  // A contains a vanishingly small region extending from the boundary of B
-  // toward the interior of the polygon to which loop B belongs.)
-  //
-  // This method is used for testing containment and intersection of
-  // multi-loop polygons.  Note that this method is not symmetric, since the
-  // result depends on the direction of loop A but not on the direction of
-  // loop B (in the absence of shared edges).
-  //
-  // REQUIRES: neither loop is empty.
-  // REQUIRES: if b->is_full(), then !b->is_hole().
+  /**
+     Return +1 if A contains the boundary of B, -1 if A excludes the boundary
+     of B, and 0 if the boundaries of A and B cross.  Shared edges are handled
+     as follows: If XY is a shared edge, define Reversed(XY) to be true if XY
+     appears in opposite directions in A and B.  Then A contains XY if and
+     only if Reversed(XY) == B->is_hole().  (Intuitively, this checks whether
+     A contains a vanishingly small region extending from the boundary of B
+     toward the interior of the polygon to which loop B belongs.)
+
+     This method is used for testing containment and intersection of
+     multi-loop polygons.  Note that this method is not symmetric, since the
+     result depends on the direction of loop A but not on the direction of
+     loop B (in the absence of shared edges).
+
+     REQUIRES: neither loop is empty.
+     REQUIRES: if b->is_full(), then !b->is_hole().
+  */
   int compareBoundary(S2Loop b)
   in {
     assert(!isEmpty() && !b.isEmpty());
@@ -1154,14 +1222,16 @@ public:
     return contains(b.vertex(0)) ? 1 : -1;
   }
 
-  // Given two loops whose boundaries do not cross (see CompareBoundary),
-  // return true if A contains the boundary of B.  If "reverse_b" is true, the
-  // boundary of B is reversed first (which only affects the result when there
-  // are shared edges).  This method is cheaper than CompareBoundary() because
-  // it does not test for edge intersections.
-  //
-  // REQUIRES: neither loop is empty.
-  // REQUIRES: if b->is_full(), then reverse_b == false.
+  /**
+     Given two loops whose boundaries do not cross (see CompareBoundary),
+     return true if A contains the boundary of B.  If "reverse_b" is true, the
+     boundary of B is reversed first (which only affects the result when there
+     are shared edges).  This method is cheaper than CompareBoundary() because
+     it does not test for edge intersections.
+
+     REQUIRES: neither loop is empty.
+     REQUIRES: if b->is_full(), then reverse_b == false.
+  */
   package bool containsNonCrossingBoundary(in S2Loop b, bool reverse_b)
   in {
     assert(!isEmpty() && !b.isEmpty());
@@ -1183,20 +1253,22 @@ public:
     return wedgeContainsSemiwedge(vertex(m-1), vertex(m), vertex(m+1), b.vertex(1), reverse_b);
   }
 
-  // Wrapper class for indexing a loop (see S2ShapeIndex).  Once this object
-  // is inserted into an S2ShapeIndex it is owned by that index, and will be
-  // automatically deleted when no longer needed by the index.  Note that this
-  // class does not take ownership of the loop itself (see OwningShape below).
-  // You can also subtype this class to store additional data (see S2Shape for
-  // details).
+  /**
+     Wrapper class for indexing a loop (see S2ShapeIndex).  Once this object
+     is inserted into an S2ShapeIndex it is owned by that index, and will be
+     automatically deleted when no longer needed by the index.  Note that this
+     class does not take ownership of the loop itself (see OwningShape below).
+     You can also subtype this class to store additional data (see S2Shape for
+     details).
+  */
   static class Shape : S2Shape {
   public:
-    // Must call Init().
+    /// Must call Init().
     this() {
       _loop = null;
     }
 
-    // Initialize the shape.  Does not take ownership of "loop".
+    /// Initialize the shape.  Does not take ownership of "loop".
     this(S2Loop loop) {
       initialize(loop);
     }
@@ -1273,14 +1345,13 @@ public:
   }
 
 package:
-  // Return true if this loop contains S2::Origin().
+  /// Returns true if this loop contains S2.origin().
   bool containsOrigin() const {
     return _originInside;
   }
 
 package:
-  // Internal copy constructor used only by Clone() that makes a deep copy of
-  // its argument.
+  /// Internal copy constructor used only by Clone() that makes a deep copy of its argument.
   this(in S2Loop src) {
     this();
     _depth = src._depth;
@@ -1298,12 +1369,12 @@ private:
   // full loop, depending on whether the vertex is in the northern or southern
   // hemisphere respectively.
 
-  // The single vertex in the "empty loop" vertex chain.
+  /// The single vertex in the "empty loop" vertex chain.
   static S2Point emptyVertex() {
     return S2Point(0, 0, 1);
   }
 
-  // The single vertex in the "full loop" vertex chain.
+  /// The single vertex in the "full loop" vertex chain.
   static S2Point fullVertex() {
     return S2Point(0, 0, -1);
   }
@@ -1426,12 +1497,12 @@ private:
   }
 
   /**
-   * Internal implementation of the Decode and DecodeWithinScope methods above.
-   * If within_scope is true, memory is allocated for vertices_ and data
-   * is copied from the decoder using std::copy. If it is false, vertices_
-   * will point to the memory area inside the decoder, and the field
-   * owns_vertices_ is set to false.
-   */
+     Internal implementation of the Decode and DecodeWithinScope methods above.
+     If within_scope is true, memory is allocated for vertices_ and data
+     is copied from the decoder using std::copy. If it is false, vertices_
+     will point to the memory area inside the decoder, and the field
+     owns_vertices_ is set to false.
+  */
   bool decodeInternal(IRangeT)(Decoder!IRangeT decoder) {
     // Perform all checks before modifying vertex state. Empty loops are
     // explicitly allowed here: a newly created loop has zero vertices
@@ -1496,8 +1567,10 @@ private:
   // origin_inside and whether the bound was encoded.
   // std::bitset<2> GetCompressedEncodingProperties() const;
 
-  // Given an iterator that is already positioned at the S2ShapeIndexCell
-  // containing "p", returns Contains(p).
+  /**
+     Given an iterator that is already positioned at the S2ShapeIndexCell
+     containing "p", returns Contains(p).
+  */
   bool contains(in MutableS2ShapeIndex.Iterator it, in S2Point p) const {
     // Test containment by drawing a line segment from the cell center to the
     // given point and counting edge crossings.
@@ -1518,12 +1591,14 @@ private:
     return inside;
   }
 
-  // Return true if the loop boundary intersects "target".  It may also
-  // return true when the loop boundary does not intersect "target" but
-  // some edge comes within the worst-case error tolerance.
-  //
-  // REQUIRES: it.id().contains(target.id())
-  // [This condition is true whenever it.Locate(target) returns INDEXED.]
+  /**
+     Returns true if the loop boundary intersects "target".  It may also
+     return true when the loop boundary does not intersect "target" but
+     some edge comes within the worst-case error tolerance.
+
+     REQUIRES: it.id().contains(target.id())
+     [This condition is true whenever it.Locate(target) returns INDEXED.]
+  */
   bool boundaryApproxIntersects(in MutableS2ShapeIndex.Iterator it, in S2Cell target) const
   in {
     assert(it.id().contains(target.id()));
@@ -1554,12 +1629,14 @@ private:
     return false;
   }
 
-  // Return an index "first" and a direction "dir" (either +1 or -1) such that
-  // the vertex sequence (first, first+dir, ..., first+(n-1)*dir) does not
-  // change when the loop vertex order is rotated or inverted.  This allows
-  // the loop vertices to be traversed in a canonical order.  The return
-  // values are chosen such that (first, ..., first+n*dir) are in the range
-  // [0, 2*n-1] as expected by the vertex() method.
+  /**
+     Returns an index "first" and a direction "dir" (either +1 or -1) such that
+     the vertex sequence (first, first+dir, ..., first+(n-1)*dir) does not
+     change when the loop vertex order is rotated or inverted.  This allows
+     the loop vertices to be traversed in a canonical order.  The return
+     values are chosen such that (first, ..., first+n*dir) are in the range
+     [0, 2*n-1] as expected by the vertex() method.
+  */
   package int getCanonicalFirstVertex(out int dir) const {
     int first = 0;
     int n = numVertices();
@@ -1577,8 +1654,10 @@ private:
     return first;
   }
 
-  // Return the index of a vertex at point "p", or -1 if not found.
-  // The return value is in the range 1..num_vertices_ if found.
+  /**
+     Returns the index of a vertex at point "p", or -1 if not found.
+     The return value is in the range 1..num_vertices_ if found.
+  */
   int findVertex(in S2Point p) {
     if (numVertices() < 10) {
       // Exhaustive search.  Return value must be in the range [1..N].
@@ -1600,20 +1679,22 @@ private:
     return -1;
   }
 
-  // This method checks all edges of loop A for intersection against all edges
-  // of loop B.  If there is any shared vertex, the wedges centered at this
-  // vertex are sent to "relation".
-  //
-  // If the two loop boundaries cross, this method is guaranteed to return
-  // true.  It also returns true in certain cases if the loop relationship is
-  // equivalent to crossing.  For example, if the relation is Contains() and a
-  // point P is found such that B contains P but A does not contain P, this
-  // method will return true to indicate that the result is the same as though
-  // a pair of crossing edges were found (since Contains() returns false in
-  // both cases).
-  //
-  // See Contains(), Intersects() and CompareBoundary() for the three uses of
-  // this function.
+  /**
+     This method checks all edges of loop A for intersection against all edges
+     of loop B.  If there is any shared vertex, the wedges centered at this
+     vertex are sent to "relation".
+
+     If the two loop boundaries cross, this method is guaranteed to return
+     true.  It also returns true in certain cases if the loop relationship is
+     equivalent to crossing.  For example, if the relation is Contains() and a
+     point P is found such that B contains P but A does not contain P, this
+     method will return true to indicate that the result is the same as though
+     a pair of crossing edges were found (since Contains() returns false in
+     both cases).
+
+     See Contains(), Intersects() and CompareBoundary() for the three uses of
+     this function.
+  */
   static bool hasCrossingRelation(S2Loop a, S2Loop b, LoopRelation relation) {
     // We look for S2CellId ranges where the indexes of A and B overlap, and
     // then test those edges for crossings.
@@ -1658,50 +1739,62 @@ private:
     return false;
   }
 
-  // When the loop is modified (Invert(), or Init() called again) then the
-  // indexing structures need to be cleared since they become invalid.
+  /**
+     When the loop is modified (Invert(), or Init() called again) then the
+     indexing structures need to be cleared since they become invalid.
+  */
   void clearIndex() {
     atomicStore!(MemoryOrder.raw)(_unindexedContainsCalls, 0);
     _index.clear();
   }
 
-  // The nesting depth, if this field belongs to an S2Polygon.  We define it
-  // here to optimize field packing.
+  /**
+     The nesting depth, if this field belongs to an S2Polygon.  We define it
+     here to optimize field packing.
+  */
   int _depth = 0;
 
-  // We store the vertices in an array rather than a vector because we don't
-  // need any STL methods, and computing the number of vertices using size()
-  // would be relatively expensive (due to division by sizeof(S2Point) == 24).
-  // When DecodeWithinScope is used to initialize the loop, we do not
-  // take ownership of the memory for vertices_, and the owns_vertices_ field
-  // is used to prevent deallocation and overwriting.
+  /**
+     We store the vertices in an array rather than a vector because we don't
+     need any STL methods, and computing the number of vertices using size()
+     would be relatively expensive (due to division by sizeof(S2Point) == 24).
+     When DecodeWithinScope is used to initialize the loop, we do not
+     take ownership of the memory for vertices_, and the owns_vertices_ field
+     is used to prevent deallocation and overwriting.
+  */
   S2Point[] _vertices;
 
   S2Debug _s2DebugOverride = S2Debug.ALLOW;
   bool _originInside = false;  // Does the loop contain S2::Origin()?
 
-  // In general we build the index the first time it is needed, but we make an
-  // exception for Contains(S2Point) because this method has a simple brute
-  // force implementation that is also relatively cheap.  For this one method
-  // we keep track of the number of calls made and only build the index once
-  // enough calls have been made that we think an index would be worthwhile.
+  /**
+     In general we build the index the first time it is needed, but we make an
+     exception for Contains(S2Point) because this method has a simple brute
+     force implementation that is also relatively cheap.  For this one method
+     we keep track of the number of calls made and only build the index once
+     enough calls have been made that we think an index would be worthwhile.
+  */
   shared int _unindexedContainsCalls;
 
-  // "bound_" is a conservative bound on all points contained by this loop:
-  // if A.Contains(P), then A.bound_.Contains(S2LatLng(P)).
+  /**
+     "bound_" is a conservative bound on all points contained by this loop:
+     if A.Contains(P), then A.bound_.Contains(S2LatLng(P)).
+  */
   S2LatLngRect _bound;
 
-  // Since "bound_" is not exact, it is possible that a loop A contains
-  // another loop B whose bounds are slightly larger.  "subregion_bound_"
-  // has been expanded sufficiently to account for this error, i.e.
-  // if A.Contains(B), then A.subregion_bound_.Contains(B.bound_).
+  /**
+     Since "bound_" is not exact, it is possible that a loop A contains
+     another loop B whose bounds are slightly larger.  "subregion_bound_"
+     has been expanded sufficiently to account for this error, i.e.
+     if A.Contains(B), then A.subregion_bound_.Contains(B.bound_).
+  */
   S2LatLngRect _subregionBound;
 
-  // Spatial index for this loop.
+  /// Spatial index for this loop.
   MutableS2ShapeIndex _index;
 }
 
-// Loop relation for Contains().
+/// Loop relation for Contains().
 class ContainsRelation : LoopRelation {
 public:
   this() {
@@ -1736,7 +1829,7 @@ private:
   bool _foundSharedVertex;
 }
 
-// Loop relation for Intersects().
+/// Loop relation for Intersects().
 class IntersectsRelation : LoopRelation {
  public:
   this() {
@@ -1846,56 +1939,62 @@ protected:
   bool _excludesEdge;        // True if any edge of B is excluded by A.
 }
 
-// LoopRelation is an abstract class that defines a relationship between two
-// loops (Contains, Intersects, or CompareBoundary).
+/// LoopRelation is an abstract class that defines a relationship between two
+/// loops (Contains, Intersects, or CompareBoundary).
 abstract class LoopRelation {
 public:
   this() {}
 
-  // Optionally, a_target() and b_target() can specify an early-exit condition
-  // for the loop relation.  If any point P is found such that
-  //
-  //   A.Contains(P) == a_crossing_target() &&
-  //   B.Contains(P) == b_crossing_target()
-  //
-  // then the loop relation is assumed to be the same as if a pair of crossing
-  // edges were found.  For example, the Contains() relation has
-  //
-  //   a_crossing_target() == 0
-  //   b_crossing_target() == 1
-  //
-  // because if A.Contains(P) == 0 (false) and B.Contains(P) == 1 (true) for
-  // any point P, then it is equivalent to finding an edge crossing (i.e.,
-  // since Contains() returns false in both cases).
-  //
-  // Loop relations that do not have an early-exit condition of this form
-  // should return -1 for both crossing targets.
+  /**
+     Optionally, a_target() and b_target() can specify an early-exit condition
+     for the loop relation.  If any point P is found such that
+
+       A.Contains(P) == a_crossing_target() &&
+       B.Contains(P) == b_crossing_target()
+
+     then the loop relation is assumed to be the same as if a pair of crossing
+     edges were found.  For example, the Contains() relation has
+
+       a_crossing_target() == 0
+       b_crossing_target() == 1
+
+     because if A.Contains(P) == 0 (false) and B.Contains(P) == 1 (true) for
+     any point P, then it is equivalent to finding an edge crossing (i.e.,
+     since Contains() returns false in both cases).
+
+     Loop relations that do not have an early-exit condition of this form
+     should return -1 for both crossing targets.
+  */
   int aCrossingTarget() const;
   int bCrossingTarget() const;
 
-  // Given a vertex "ab1" that is shared between the two loops, return true if
-  // the two associated wedges (a0, ab1, b2) and (b0, ab1, b2) are equivalent
-  // to an edge crossing.  The loop relation is also allowed to maintain its
-  // own internal state, and can return true if it observes any sequence of
-  // wedges that are equivalent to an edge crossing.
+  /**
+     Given a vertex "ab1" that is shared between the two loops, return true if
+     the two associated wedges (a0, ab1, b2) and (b0, ab1, b2) are equivalent
+     to an edge crossing.  The loop relation is also allowed to maintain its
+     own internal state, and can return true if it observes any sequence of
+     wedges that are equivalent to an edge crossing.
+  */
   bool wedgesCross(
       in S2Point a0, in S2Point ab1,
       in S2Point a2, in S2Point b0,
       in S2Point b2);
 }
 
-// RangeIterator is a wrapper over MutableS2ShapeIndex::Iterator with extra
-// methods that are useful for merging the contents of two or more
-// S2ShapeIndexes.
+/**
+   RangeIterator is a wrapper over MutableS2ShapeIndex::Iterator with extra
+   methods that are useful for merging the contents of two or more
+   S2ShapeIndexes.
+*/
 class RangeIterator {
 public:
-  // Construct a new RangeIterator positioned at the first cell of the index.
+  /// Construct a new RangeIterator positioned at the first cell of the index.
   this(MutableS2ShapeIndex index) {
     _it = new MutableS2ShapeIndex.Iterator(index, S2ShapeIndex.InitialPosition.BEGIN);
     refresh();
   }
 
-  // The current S2CellId and cell contents.
+  /// The current S2CellId and cell contents.
   S2CellId id() const {
     return _it.id();
   }
@@ -1904,8 +2003,8 @@ public:
     return _it.cell();
   }
 
-  // The min and max leaf cell ids covered by the current cell.  If Done() is
-  // true, these methods return a value larger than any valid cell id.
+  /// The min and max leaf cell ids covered by the current cell.  If Done() is
+  /// true, these methods return a value larger than any valid cell id.
   S2CellId rangeMin() const {
     return _rangeMin;
   }
@@ -1914,7 +2013,7 @@ public:
     return _rangeMax;
   }
 
-  // Various other convenience methods for the current cell.
+  /// Various other convenience methods for the current cell.
   const(S2ClippedShape) clipped() const {
     return cell().clipped(0);
   }
@@ -1936,8 +2035,8 @@ public:
     return _it.done();
   }
 
-  // Position the iterator at the first cell that overlaps or follows
-  // "target", i.e. such that range_max() >= target.range_min().
+  /// Positions the iterator at the first cell that overlaps or follows
+  /// "target", i.e. such that range_max() >= target.range_min().
   void seekTo(in RangeIterator target) {
     _it.seek(target.rangeMin());
     // If the current cell does not overlap "target", it is possible that the
@@ -1949,8 +2048,8 @@ public:
     refresh();
   }
 
-  // Position the iterator at the first cell that follows "target", i.e. the
-  // first cell such that range_min() > target.range_max().
+  /// Positions the iterator at the first cell that follows "target", i.e. the
+  /// first cell such that range_min() > target.range_max().
   void seekBeyond(in RangeIterator target) {
     _it.seek(target.rangeMax().next());
     if (!_it.done() && _it.id().rangeMin() <= target.rangeMax()) {
@@ -1960,7 +2059,7 @@ public:
   }
 
 private:
-  // Updates internal state after the iterator has been repositioned.
+  /// Updates internal state after the iterator has been repositioned.
   void refresh() {
     _rangeMin = id().rangeMin();
     _rangeMax = id().rangeMax();
@@ -1971,15 +2070,19 @@ private:
   S2ClippedShape _clipped;
 }
 
-// LoopCrosser is a helper class for determining whether two loops cross.
-// It is instantiated twice for each pair of loops to be tested, once for the
-// pair (A,B) and once for the pair (B,A), in order to be able to process
-// edges in either loop nesting order.
+/**
+   LoopCrosser is a helper class for determining whether two loops cross.
+   It is instantiated twice for each pair of loops to be tested, once for the
+   pair (A,B) and once for the pair (B,A), in order to be able to process
+   edges in either loop nesting order.
+*/
 class LoopCrosser {
 public:
-  // If "swapped" is true, the loops A and B have been swapped.  This affects
-  // how arguments are passed to the given loop relation, since for example
-  // A.Contains(B) is not the same as B.Contains(A).
+  /**
+     If "swapped" is true, the loops A and B have been swapped.  This affects
+     how arguments are passed to the given loop relation, since for example
+     A.Contains(B) is not the same as B.Contains(A).
+  */
   this(S2Loop a, S2Loop b, LoopRelation relation, bool swapped) {
     _a = a;
     _b = b;
@@ -1992,8 +2095,10 @@ public:
     _crosser = new S2CopyingEdgeCrosser();
   }
 
-  // Return the crossing targets for the loop relation, taking into account
-  // whether the loops have been swapped.
+  /**
+     Returns the crossing targets for the loop relation, taking into account
+     whether the loops have been swapped.
+  */
   int aCrossingTarget() const {
     return _aCrossingTarget;
   }
@@ -2002,11 +2107,13 @@ public:
     return _bCrossingTarget;
   }
 
-  // Given two iterators positioned such that ai->id().Contains(bi->id()),
-  // return true if there is a crossing relationship anywhere within ai->id().
-  // Specifically, this method returns true if there is an edge crossing, a
-  // wedge crossing, or a point P that matches both "crossing targets".
-  // Advances both iterators past ai->id().
+  /**
+     Given two iterators positioned such that ai->id().Contains(bi->id()),
+     return true if there is a crossing relationship anywhere within ai->id().
+     Specifically, this method returns true if there is an edge crossing, a
+     wedge crossing, or a point P that matches both "crossing targets".
+     Advances both iterators past ai->id().
+  */
   bool hasCrossingRelation(RangeIterator ai, RangeIterator bi)
   in {
     assert(ai.id().contains(bi.id()));
@@ -2033,8 +2140,10 @@ public:
     return false;
   }
 
-  // Given two index cells, return true if there are any edge crossings or
-  // wedge crossings within those cells.
+  /**
+     Given two index cells, return true if there are any edge crossings or
+     wedge crossings within those cells.
+  */
   bool cellCrossesCell(in S2ClippedShape a_clipped, in S2ClippedShape b_clipped) {
     // Test all edges of "a_clipped" against all edges of "b_clipped".
     int a_num_edges = a_clipped.numEdges();
@@ -2046,9 +2155,11 @@ public:
   }
 
 private:
-  // Given two iterators positioned such that ai->id().Contains(bi->id()),
-  // return true if there is an edge crossing or wedge crosssing anywhere
-  // within ai->id().  Advances "bi" (only) past ai->id().
+  /**
+     Given two iterators positioned such that ai->id().Contains(bi->id()),
+     return true if there is an edge crossing or wedge crosssing anywhere
+     within ai->id().  Advances "bi" (only) past ai->id().
+  */
   bool hasCrossing(RangeIterator ai, RangeIterator bi)
   in {
     assert(ai.id().contains(bi.id()));
@@ -2086,8 +2197,10 @@ private:
     return false;
   }
 
-  // Given an index cell of A, return true if there are any edge or wedge
-  // crossings with any index cell of B contained within "b_id".
+  /**
+     Given an index cell of A, return true if there are any edge or wedge
+     crossings with any index cell of B contained within "b_id".
+  */
   bool cellCrossesAnySubcell(in S2ClippedShape a_clipped, S2CellId b_id) {
     // Test all edges of "a_clipped" against all edges of B.  The relevant B
     // edges are guaranteed to be children of "b_id", which lets us find the
@@ -2108,7 +2221,7 @@ private:
     return false;
   }
 
-  // Prepare to check the given edge of loop A for crossings.
+  /// Prepare to check the given edge of loop A for crossings.
   void startEdge(int aj) {
     // Start testing the given edge of A for crossings.
     _crosser.initialize(_a.vertex(aj), _a.vertex(aj+1));
@@ -2116,8 +2229,10 @@ private:
     _bjPrev = -2;
   }
 
-  // Check the current edge of loop A for crossings with all edges of the
-  // given index cell of loop B.
+  /**
+     Check the current edge of loop A for crossings with all edges of the
+     given index cell of loop B.
+  */
   bool edgeCrossesCell(in S2ClippedShape b_clipped) {
     // Test the current edge of A against all edges of "b_clipped".
     int b_num_edges = b_clipped.numEdges();

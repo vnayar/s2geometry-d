@@ -253,14 +253,14 @@ private:
  * that achieves this zero distance by calling the `visitContainingShapes()`
  * method directly.  For example:
  *
- * ```
+ * ---
  *   auto target = new S2ClosestEdgeQuery.ShapeIndexTarget(target_index);
  *   target.visitContainingShapes(
  *       query_index, (S2Shape containing_shape, const S2Point& target_point) {
  *         ... do something with "target_point" ...
  *         return false;  // Terminate search
  *       });
- * ```
+ * ---
  */
 class S2MinDistanceShapeIndexTarget : S2MinDistanceTarget {
 public:

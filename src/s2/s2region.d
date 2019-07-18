@@ -15,6 +15,7 @@
 // Original author: ericv@google.com (Eric Veach)
 // Converted to D:  madric@gmail.com (Vijay Nayar)
 
+/// A two-dimentional region over the unit sphere.
 module s2.s2region;
 
 import s2.s2cap;

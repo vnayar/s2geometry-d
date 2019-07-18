@@ -1,24 +1,26 @@
-// Copyright 2016 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
+/**
+   S2Builder is a tool for assembling polygonal geometry from edges
 
-// Original Author: ericv@google.com (Eric Veach)
-// Converted to D:  madric@gmail.com (Vijay Nayar)
-//
-// This class is a replacement for S2PolygonBuilder.  Once all clients have
-// been updated to use this class, S2PolygonBuilder will be removed.
+   This class is a replacement for S2PolygonBuilder.  Once all clients have
+   been updated to use this class, S2PolygonBuilder will be removed.
 
+   Copyright: 2016 Google Inc. All Rights Reserved.
+
+   License:
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   $(LINK http://www.apache.org/licenses/LICENSE-2.0)
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   Authors: ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+*/
 module s2.s2builder;
 
 import s2.builder.graph;
@@ -137,17 +139,17 @@ bool s2builderVerbose = false;
  *    empty and full polygons, you must implement logic outside of this class.
  *
  * Example showing how to snap a polygon to E7 coordinates:
- *
- *  using s2builderutil::IntLatLngSnapFunction;
- *  S2Builder builder(S2Builder::Options(IntLatLngSnapFunction(7)));
- *  S2Polygon output;
- *  builder.StartLayer(absl::make_unique<s2builderutil::S2PolygonLayer>(&output));
- *  builder.AddPolygon(input);
+ * ---
+ *  S2Builder builder(S2Builder.Options(new IntLatLngSnapFunction(7)));
+ *  auto output = new S2Polygon();
+ *  builder.startLayer(new S2PolygonLayer(output));
+ *  builder.addPolygon(input);
  *  S2Error error;
- *  if (!builder.Build(&error)) {
- *    LOG(ERROR) << error;
+ *  if (!builder.build(&error)) {
+ *    logger.logError(error);
  *    ...
  *  }
+ * ---
  */
 class S2Builder {
 public:
@@ -643,7 +645,7 @@ public:
    *
    * Ownership of the layer is transferred to the S2Builder.  Example usage:
    *
-   * ```
+   * ---
    * auto line1 = new S2Polyline();
    * auto line2 = new S2Polyline();
    * builder.startLayer(new S2PolylineLayer(line1));
@@ -652,7 +654,7 @@ public:
    * // Add edges using builder.addEdge(), etc ...
    * S2Error error;
    * enforce(builder.build(error), error.toString());  // Builds "line1" & "line2"
-   * ```
+   * ---
    */
   void startLayer(Layer layer) {
     _layerOptions ~= layer.graphOptions();

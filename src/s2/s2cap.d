@@ -1,20 +1,23 @@
-// Copyright 2005 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+   S2Cap represents a disc-shaped region defined by a center and radius.
 
-// Original author: ericv@google.com (Eric Veach)
-// Converted to D:  madric@gmail.com (Vijay Nayar)
+   Copyright: 2005 Google Inc. All Rights Reserved.
 
+   License:
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   $(LINK http://www.apache.org/licenses/LICENSE-2.0)
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   Authors: ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+*/
 module s2.s2cap;
 
 import algorithm = std.algorithm;
@@ -39,27 +42,29 @@ import s2pointutil = s2.s2pointutil;
 
 import std.exception : enforce;
 
-// S2Cap represents a disc-shaped region defined by a center and radius.
-// Technically this shape is called a "spherical cap" (rather than disc)
-// because it is not planar; the cap represents a portion of the sphere that
-// has been cut off by a plane.  The boundary of the cap is the circle defined
-// by the intersection of the sphere and the plane.  For containment purposes,
-// the cap is a closed set, i.e. it contains its boundary.
-//
-// For the most part, you can use a spherical cap wherever you would use a
-// disc in planar geometry.  The radius of the cap is measured along the
-// surface of the sphere (rather than the straight-line distance through the
-// interior).  Thus a cap of radius Pi/2 is a hemisphere, and a cap of radius
-// Pi covers the entire sphere.
-//
-// A cap can also be defined by its center point and height.  The height
-// is simply the distance from the center point to the cutoff plane.  There is
-// also support for "empty" and "full" caps, which contain no points and all
-// points respectively.
-//
-// This class is intended to be copied by value as desired.  It uses the
-// default copy constructor and assignment operator, however it is not a
-// "plain old datatype" (POD) because it has virtual functions.
+/**
+   S2Cap represents a disc-shaped region defined by a center and radius.
+   Technically this shape is called a "spherical cap" (rather than disc)
+   because it is not planar; the cap represents a portion of the sphere that
+   has been cut off by a plane.  The boundary of the cap is the circle defined
+   by the intersection of the sphere and the plane.  For containment purposes,
+   the cap is a closed set, i.e. it contains its boundary.
+
+   For the most part, you can use a spherical cap wherever you would use a
+   disc in planar geometry.  The radius of the cap is measured along the
+   surface of the sphere (rather than the straight-line distance through the
+   interior).  Thus a cap of radius Pi/2 is a hemisphere, and a cap of radius
+   Pi covers the entire sphere.
+
+   A cap can also be defined by its center point and height.  The height
+   is simply the distance from the center point to the cutoff plane.  There is
+   also support for "empty" and "full" caps, which contain no points and all
+   points respectively.
+
+   This class is intended to be copied by value as desired.  It uses the
+   default copy constructor and assignment operator, however it is not a
+   "plain old datatype" (POD) because it has virtual functions.
+*/
 class S2Cap : S2Region {
 private:
   // Here are some useful relationships between the cap height (h), the cap
@@ -71,8 +76,8 @@ private:
   //   d^2 = 2 * h
   //       = a^2 + h^2
 
-  // Return true if the cap intersects "cell", given that the cap does contain
-  // any of the cell vertices (supplied in "vertices", an array of length 4).
+  /// Returns true if the cap intersects "cell", given that the cap does contain
+  /// any of the cell vertices (supplied in "vertices", an array of length 4).
   bool intersects(in S2Cell cell, in S2Point[] vertices) const {
     // Return true if this cap intersects any point of 'cell' excluding its
     // vertices (which are assumed to already have been checked).
@@ -128,7 +133,7 @@ private:
   S1ChordAngle _radius;
 
 public:
-  // The default constructor returns an empty S2Cap.
+  /// The default constructor returns an empty S2Cap.
   this() {
     _center = S2Point(1, 0, 0);
     _radius = S1ChordAngle.negative();
@@ -139,9 +144,11 @@ public:
     _radius = o._radius;
   }
 
-  // Constructs a cap with the given center and radius.  A negative radius
-  // yields an empty cap; a radius of 180 degrees or more yields a full cap
-  // (containing the entire sphere).  "center" should be unit length.
+  /**
+     Constructs a cap with the given center and radius.  A negative radius
+     yields an empty cap; a radius of 180 degrees or more yields a full cap
+     (containing the entire sphere).  "center" should be unit length.
+  */
   this(in S2Point center, S1Angle radius)
   out {
     assert(isValid());
@@ -151,8 +158,8 @@ public:
     _radius = algorithm.min(radius, S1Angle.fromRadians(M_PI));
   }
 
-  // Constructs a cap where the angle is expressed as an S1ChordAngle.  This
-  // constructor is more efficient than the one above.
+  /// Constructs a cap where the angle is expressed as an S1ChordAngle.  This
+  /// constructor is more efficient than the one above.
   this(in S2Point center, S1ChordAngle radius)
   out {
     assert(isValid());
@@ -163,33 +170,37 @@ public:
 
   ~this() {}
 
-  // Convenience function that creates a cap containing a single point.  This
-  // method is more efficient that the S2Cap(center, radius) constructor.
+  /// Convenience function that creates a cap containing a single point.  This
+  /// method is more efficient that the S2Cap(center, radius) constructor.
   static S2Cap fromPoint(in S2Point center) {
     return new S2Cap(center, S1ChordAngle.zero());
   }
 
-  // Returns a cap with the given center and height (see comments above).  A
-  // negative height yields an empty cap; a height of 2 or more yields a full
-  // cap.  "center" should be unit length.
+  /**
+     Returns a cap with the given center and height (see comments above).  A
+     negative height yields an empty cap; a height of 2 or more yields a full
+     cap.  "center" should be unit length.
+  */
   static S2Cap fromCenterHeight(in S2Point center, double height) {
     return new S2Cap(center, S1ChordAngle.fromLength2(2 * height));
   }
 
-  // Return a cap with the given center and surface area.  Note that the area
-  // can also be interpreted as the solid angle subtended by the cap (because
-  // the sphere has unit radius).  A negative area yields an empty cap; an
-  // area of 4*Pi or more yields a full cap.  "center" should be unit length.
+  /**
+     Returns a cap with the given center and surface area.  Note that the area
+     can also be interpreted as the solid angle subtended by the cap (because
+     the sphere has unit radius).  A negative area yields an empty cap; an
+     area of 4*Pi or more yields a full cap.  "center" should be unit length.
+  */
   static S2Cap fromCenterArea(in S2Point center, double area) {
     return new S2Cap(center, S1ChordAngle.fromLength2(area / M_PI));
   }
 
-  // Return an empty cap, i.e. a cap that contains no points.
+  /// Returns an empty cap, i.e. a cap that contains no points.
   static S2Cap empty() {
     return new S2Cap();
   }
 
-  // Return a full cap, i.e. a cap that contains all points.
+  /// Returns a full cap, i.e. a cap that contains all points.
   static S2Cap full() {
     return new S2Cap(S2Point(1, 0, 0), S1ChordAngle.straight());
   }
@@ -205,38 +216,41 @@ public:
     return _radius;
   }
 
-  // Returns the height of the cap, i.e. the distance from the center point to
-  // the cutoff plane.
+  /// Returns the height of the cap, i.e. the distance from the center point to the cutoff plane.
   double height() const {
     return 0.5 * _radius.length2();
   }
 
-  // Return the cap radius as an S1Angle.  (Note that the cap angle is stored
-  // internally as an S1ChordAngle, so this method requires a trigonometric
-  // operation and may yield a slightly different result than the value passed
-  // to the (S2Point, S1Angle) constructor.)
+  /**
+     Returns the cap radius as an S1Angle.  (Note that the cap angle is stored
+     internally as an S1ChordAngle, so this method requires a trigonometric
+     operation and may yield a slightly different result than the value passed
+     to the (S2Point, S1Angle) constructor.)
+  */
   S1Angle getRadius() const {
     return _radius.toS1Angle();
   }
 
-  // Return the area of the cap.
+  /// Returns the area of the cap.
   double getArea() const {
     return 2 * M_PI * algorithm.max(0.0, height());
   }
 
-  // Return the true centroid of the cap multiplied by its surface area (see
-  // s2centroids.h for details on centroids). The result lies on the ray from
-  // the origin through the cap's center, but it is not unit length. Note that
-  // if you just want the "surface centroid", i.e. the normalized result, then
-  // it is much simpler just to call center().
-  //
-  // The reason for multiplying the result by the cap area is to make it
-  // easier to compute the centroid of more complicated shapes.  The centroid
-  // of a union of disjoint regions can be computed simply by adding their
-  // GetCentroid() results. Caveat: for caps that contain a single point
-  // (i.e., zero radius), this method always returns the origin (0, 0, 0).
-  // This is because shapes with no area don't affect the centroid of a
-  // union whose total area is positive.
+  /**
+     Returns the true centroid of the cap multiplied by its surface area (see
+     s2centroids.h for details on centroids). The result lies on the ray from
+     the origin through the cap's center, but it is not unit length. Note that
+     if you just want the "surface centroid", i.e. the normalized result, then
+     it is much simpler just to call center().
+
+     The reason for multiplying the result by the cap area is to make it
+     easier to compute the centroid of more complicated shapes.  The centroid
+     of a union of disjoint regions can be computed simply by adding their
+     GetCentroid() results. Caveat: for caps that contain a single point
+     (i.e., zero radius), this method always returns the origin (0, 0, 0).
+     This is because shapes with no area don't affect the centroid of a
+     union whose total area is positive.
+  */
   S2Point getCentroid() const {
     // From symmetry, the centroid of the cap must be somewhere on the line
     // from the origin to the center of the cap on the surface of the sphere.
@@ -253,27 +267,31 @@ public:
   }
 
 
-  // We allow negative heights (to represent empty caps) but heights are
-  // normalized so that they do not exceed 2.
+  /**
+     We allow negative heights (to represent empty caps) but heights are
+     normalized so that they do not exceed 2.
+  */
   bool isValid() const {
     return s2pointutil.isUnitLength(_center) && _radius.length2() <= 4;
   }
 
-  // Return true if the cap is empty, i.e. it contains no points.
+  /// Returns true if the cap is empty, i.e. it contains no points.
   bool isEmpty() const {
     return _radius.isNegative();
   }
 
-  // Return true if the cap is full, i.e. it contains all points.
+  /// Returns true if the cap is full, i.e. it contains all points.
   bool isFull() const {
     return _radius.length2() == 4;
   }
 
-  // Return the complement of the interior of the cap.  A cap and its
-  // complement have the same boundary but do not share any interior points.
-  // The complement operator is not a bijection because the complement of a
-  // singleton cap (containing a single point) is the same as the complement
-  // of an empty cap.
+  /**
+     Returns the complement of the interior of the cap.  A cap and its
+     complement have the same boundary but do not share any interior points.
+     The complement operator is not a bijection because the complement of a
+     singleton cap (containing a single point) is the same as the complement
+     of an empty cap.
+  */
   S2Cap complement() const {
     // The complement of a full cap is an empty cap, not a singleton.
     // Also make sure that the complement of an empty cap is full.
@@ -286,8 +304,8 @@ public:
     return new S2Cap(-_center, S1ChordAngle.fromLength2(4 - _radius.length2()));
   }
 
-  // Return true if and only if this cap contains the given other cap
-  // (in a set containment sense, e.g. every cap contains the empty cap).
+  /// Returns true if and only if this cap contains the given other cap
+  /// (in a set containment sense, e.g. every cap contains the empty cap).
   bool contains(in S2Cap other) const {
     if (isFull() || other.isEmpty()) {
       return true;
@@ -295,8 +313,8 @@ public:
     return _radius >= S1ChordAngle(_center, other._center) + other._radius;
   }
 
-  // Return true if and only if this cap intersects the given other cap,
-  // i.e. whether they have any points in common.
+  /// Returns true if and only if this cap intersects the given other cap,
+  /// i.e. whether they have any points in common.
   bool intersects(in S2Cap other) const {
     if (isEmpty() || other.isEmpty()) {
       return false;
@@ -304,9 +322,11 @@ public:
     return _radius + other._radius >= S1ChordAngle(_center, other._center);
   }
 
-  // Return true if and only if the interior of this cap intersects the
-  // given other cap.  (This relationship is not symmetric, since only
-  // the interior of this cap is used.)
+  /**
+     Returns true if and only if the interior of this cap intersects the
+     given other cap.  (This relationship is not symmetric, since only
+     the interior of this cap is used.)
+  */
   bool interiorIntersects(in S2Cap other) const {
     // Make sure this cap has an interior and the other cap is non-empty.
     if (_radius.length2() <= 0 || other.isEmpty()) {
@@ -315,9 +335,11 @@ public:
     return _radius + other._radius > S1ChordAngle(_center, other._center);
   }
 
-  // Return true if and only if the given point is contained in the interior
-  // of the cap (i.e. the cap excluding its boundary).  "p" should be be a
-  // unit-length vector.
+  /**
+     Returns true if and only if the given point is contained in the interior
+     of the cap (i.e. the cap excluding its boundary).  "p" should be be a
+     unit-length vector.
+  */
   bool interiorContains(in S2Point p) const
   in {
     assert(s2pointutil.isUnitLength(p));
@@ -325,9 +347,11 @@ public:
     return isFull() || S1ChordAngle(_center, p) < _radius;
   }
 
-  // Increase the cap height if necessary to include the given point.  If the
-  // cap is empty then the center is set to the given point, but otherwise the
-  // center is not changed.  "p" should be a unit-length vector.
+  /**
+     Increase the cap height if necessary to include the given point.  If the
+     cap is empty then the center is set to the given point, but otherwise the
+     center is not changed.  "p" should be a unit-length vector.
+  */
   void addPoint(in S2Point p)
   in {
     // Compute the squared chord length, then convert it into a height.
@@ -344,8 +368,8 @@ public:
     }
   }
 
-  // Increase the cap height if necessary to include "other".  If the current
-  // cap is empty it is set to the given other cap.
+  /// Increases the cap height if necessary to include "other".  If the current
+  /// cap is empty it is set to the given other cap.
   void addCap(in S2Cap other) {
     if (isEmpty()) {
       _center = other._center;
@@ -358,8 +382,8 @@ public:
     }
   }
 
-  // Return a cap that contains all points within a given distance of this
-  // cap.  Note that any expansion of the empty cap is still empty.
+  /// Returns a cap that contains all points within a given distance of this
+  /// cap.  Note that any expansion of the empty cap is still empty.
   S2Cap expanded(S1Angle distance) const
   in {
     assert(distance.radians() >= 0);
@@ -458,9 +482,11 @@ public:
     return new S2LatLngRect(R1Interval(lat[0], lat[1]), S1Interval(lng[0], lng[1]));
   }
 
-  // Computes a covering of the S2Cap.  In general the covering consists of at
-  // most 4 cells except for very large caps, which may need up to 6 cells.
-  // The output is not sorted.
+  /**
+     Computes a covering of the S2Cap.  In general the covering consists of at
+     most 4 cells except for very large caps, which may need up to 6 cells.
+     The output is not sorted.
+  */
   override
   void getCellUnionBound(out S2CellId[] cell_ids) {
     // TODO(ericv): The covering could be made quite a bit tighter by mapping
@@ -513,7 +539,7 @@ public:
   }
 
 
-  // The point "p" should be a unit-length vector.
+  /// The point "p" should be a unit-length vector.
   override
   bool contains(in S2Point p) const
   in {
@@ -523,11 +549,11 @@ public:
   }
 
   /**
-   * Appends a serialized representation of the S2Cap to "encoder".
-   *
-   * REQUIRES: "encoder" uses the default constructor, so that its buffer
-   *           can be enlarged as necessary by calling Ensure(int).
-   */
+     Appends a serialized representation of the S2Cap to "encoder".
+
+     REQUIRES: "encoder" uses the default constructor, so that its buffer
+     can be enlarged as necessary by calling Ensure(int).
+  */
   void encode(ORangeT)(Encoder!ORangeT encoder) const
   out (; encoder.avail() >= 0) {
     encoder.ensure(4 * double.sizeof);
@@ -558,7 +584,7 @@ public:
   // The following static methods are convenience functions for assertions
   // and testing purposes only.
 
-  // Return true if two caps are identical.
+  /// Returns true if two caps are identical.
   override
   bool opEquals(in Object o) const {
     S2Cap other = cast(S2Cap) o;
@@ -570,8 +596,8 @@ public:
     return false;
   }
 
-  // Return true if the cap center and height differ by at most "max_error"
-  // from the given cap "other".
+  /// Returns true if the cap center and height differ by at most "max_error"
+  /// from the given cap "other".
   bool approxEquals(in S2Cap other, S1Angle max_error_angle = S1Angle.fromRadians(1e-14)) const {
     const double max_error = max_error_angle.radians();
     const double r2 = _radius.length2();
