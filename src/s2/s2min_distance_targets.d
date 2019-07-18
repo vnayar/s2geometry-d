@@ -227,19 +227,19 @@ private:
 
 /**
  * An S2DistanceTarget subtype for computing the minimum distance to an
- * S2ShapeIndex (a collection of points, polylines, and/or polygons).
+ * S2ShapeIndex \(a collection of points, polylines, and/or polygons\).
  *
  * Note that ShapeIndexTarget has its own options:
  *
  *   include_interiors()
  *     - specifies that distances are measured to the boundary and interior
- *       of polygons in the S2ShapeIndex.  (If set to false, distance is
- *       measured to the polygon boundary only.)
+ *       of polygons in the S2ShapeIndex.  \(If set to false, distance is
+ *       measured to the polygon boundary only.\)
  *       DEFAULT: true.
  *
  *   brute_force()
  *     - specifies that the distances should be computed by examining every
- *       edge in the S2ShapeIndex (for testing and debugging purposes).
+ *       edge in the S2ShapeIndex \(for testing and debugging purposes\).
  *       DEFAULT: false.
  *
  * These options are specified independently of the corresponding
@@ -253,6 +253,7 @@ private:
  * that achieves this zero distance by calling the VisitContainingShapes()
  * method directly.  For example:
  *
+ * ```
  *   S2ClosestEdgeQuery::ShapeIndexTarget target(&target_index);
  *   target.VisitContainingShapes(
  *       query_index, [](S2Shape* containing_shape,
@@ -260,6 +261,7 @@ private:
  *         ... do something with "target_point" ...
  *         return false;  // Terminate search
  *       }));
+ * ```
  */
 class S2MinDistanceShapeIndexTarget : S2MinDistanceTarget {
 public:

@@ -633,16 +633,17 @@ public:
    * For example, if you have a set of contour lines, then you could put each
    * contour line in a separate layer.  This keeps the contour lines separate
    * from each other, while also ensuring that no crossing edges are created
-   * when they are snapped and/or simplified.  (This is not true if the
-   * contour lines are snapped or simplified independently.)
+   * when they are snapped and/or simplified.  \(This is not true if the
+   * contour lines are snapped or simplified independently.\)
    *
    * Similarly, if you have a set of polygons that share common boundaries
-   * (e.g., countries), you can snap and/or simplify them at the same time by
+   * \(e.g., countries\), you can snap and/or simplify them at the same time by
    * putting them in different layers, while ensuring that their boundaries
-   * remain consistent (i.e., no crossing edges or T-vertices are introduced).
+   * remain consistent \(i.e., no crossing edges or T-vertices are introduced\).
    *
    * Ownership of the layer is transferred to the S2Builder.  Example usage:
    *
+   * ```
    * S2Polyline line1, line2;
    * builder.StartLayer(make_unique<s2builderutil::S2PolylineLayer>(&line1)));
    * ... Add edges using builder.AddEdge(), etc ...
@@ -650,6 +651,7 @@ public:
    * ... Add edges using builder.AddEdge(), etc ...
    * S2Error error;
    * CHECK(builder.Build(&error)) << error;  // Builds "line1" & "line2"
+   * ```
    */
   void startLayer(Layer layer) {
     _layerOptions ~= layer.graphOptions();

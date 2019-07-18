@@ -575,28 +575,28 @@ public:
 
   /**
    * Returns a map "m" that maps each edge e=(v0,v1) to the following outgoing
-   * edge around "v1" in clockwise order.  (This corresponds to making a "left
-   * turn" at the vertex.)  By starting at a given edge and making only left
+   * edge around "v1" in clockwise order.  \(This corresponds to making a "left
+   * turn" at the vertex.\)  By starting at a given edge and making only left
    * turns, you can construct a loop whose interior does not contain any edges
    * in the same connected component.
    *
    * If the incoming and outgoing edges around a vertex do not alternate
-   * perfectly (e.g., there are two incoming edges in a row), then adjacent
-   * (incoming, outgoing) pairs are repeatedly matched and removed.  This is
-   * similar to finding matching parentheses in a string such as "(()())()".
+   * perfectly \(e.g., there are two incoming edges in a row\), then adjacent
+   * \(incoming, outgoing\) pairs are repeatedly matched and removed.  This is
+   * similar to finding matching parentheses in a string such as "\(\(\)\(\)\)\(\)".
    *
    * For sibling edge pairs, the incoming edge is assumed to immediately
    * follow the outgoing edge in clockwise order.  Thus a left turn is made
    * from an edge to its sibling only if there are no other outgoing edges.
-   * With respect to the parentheses analogy, a sibling pair is ")(".
+   * With respect to the parentheses analogy, a sibling pair is "\(\)".
    * Similarly, if there are multiple copies of a sibling edge pair then the
    * duplicate incoming and outgoing edges are sorted in alternating order
-   * (e.g., ")()(").
+   * \(e.g., "\)\(\)\("\).
    *
-   * Degenerate edges (edges from a vertex to itself) are treated as loops
+   * Degenerate edges \(edges from a vertex to itself\) are treated as loops
    * consisting of a single edge.  This avoids the problem of deciding the
    * connectivity and ordering of such edges when they share a vertex with
-   * other edges (possibly including other degenerate edges).
+   * other edges \(possibly including other degenerate edges\).
    *
    * If it is not possible to make a left turn from every input edge, this
    * method returns false and sets "error" appropriately.  In this situation

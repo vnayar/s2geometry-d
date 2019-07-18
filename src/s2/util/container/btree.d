@@ -26,7 +26,7 @@ import std.format : format;
  * storage in the BTree itself.
  *
  * Params:
- *   T = The element type to be organized by the BTree.
+ *   ValueT = The element type to be organized by the BTree.
  *   NodeSizeV = The size in bytes of a node in the BinaryTree. Values are chosen to optimize
  *     performance depending on usage. For example, a value of 4096 bytes may be useful when
  *     retrieving items from disk, or the value 256 bytes to assure good use of CPU caches.
@@ -491,26 +491,16 @@ public:
       }
     }
 
-    static if (MIN_DEGREE < 16) {
-      // If degree is small, use a simple linear search.
-      size_t findFirstGEIndex(ValueT v) const {
+    size_t findFirstGEIndex(ValueT v) const {
+      static if (MIN_DEGREE < 16) {
+        // If degree is small, use a simple linear search.
         size_t i = 0;
         while (i < _numValues && _isValueLess(_values[i], v)) {
           i++;
         }
         return i;
-      }
-
-      size_t findFirstGTIndex(ValueT v) const {
-        size_t i = 0;
-        while (i < _numValues && !_isValueLess(v, _values[i])) {
-          i++;
-        }
-        return i;
-      }
-    } else {
-      // If degree is higher, use a binary search.
-      size_t findFirstGEIndex(ValueT v) const {
+      } else {
+        // If degree is higher, use a binary search.
         size_t i = 0;
         size_t j = _numValues;
         while (i < j) {
@@ -526,8 +516,18 @@ public:
         }
         return _numValues;
       }
+    }
 
-      size_t findFirstGTIndex(ValueT v) const {
+    size_t findFirstGTIndex(ValueT v) const {
+      static if (MIN_DEGREE < 16) {
+        // If degree is small, use a simple linear search.
+        size_t i = 0;
+        while (i < _numValues && !_isValueLess(v, _values[i])) {
+          i++;
+        }
+        return i;
+      } else {
+        // If degree is higher, use a binary search.
         size_t i = 0;
         size_t j = _numValues;
         while (i < j) {

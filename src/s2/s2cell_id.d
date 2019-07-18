@@ -1062,7 +1062,7 @@ public:
   static immutable ushort[LOOKUP_ARRAY_SIZE] LOOKUP_POS;
   static immutable ushort[LOOKUP_ARRAY_SIZE] LOOKUP_IJ;
 
-  static this() {
+  shared static this() {
     ushort[LOOKUP_ARRAY_SIZE] lookupPos;
     ushort[LOOKUP_ARRAY_SIZE] lookupIJ;
     initLookupCell(lookupPos, lookupIJ, 0, 0, 0, 0, 0, 0);
