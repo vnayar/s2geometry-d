@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class S2Polygon</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">builder
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polygon_layer.html">s2polygon_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polyline_layer.html">s2polyline_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polyline_vector_layer.html">s2polyline_vector_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/snap_functions.html">snap_functions</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/graph.html">graph</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/layer.html">layer</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">shapeutil
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/contains_brute_force.html">contains_brute_force</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/count_edges.html">count_edges</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/edge_iterator.html">edge_iterator</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/get_reference_point.html">get_reference_point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/range_iterator.html">range_iterator</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/shape_edge.html">shape_edge</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/shape_edge_id.html">shape_edge_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/visit_crossing_edge_pairs.html">visit_crossing_edge_pairs</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">strings
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/strings/serialize.html">serialize</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">coding
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/coding/coder.html">coder</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree_map.html">btree_map</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/rbtree_map.html">rbtree_map</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">hash
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/hash/mix.html">mix</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">log
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/log/logger.html">logger</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">math
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/exactfloat.html">exactfloat</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/mathutil.html">mathutil</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/matrix3x3.html">matrix3x3</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/s2const.html">s2const</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/vector.html">vector</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/id_set_lexicon.html">id_set_lexicon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/logger.html">logger</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/mutable_s2shape_index.html">mutable_s2shape_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r2point.html">r2point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r2rect.html">r2rect</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1chord_angle.html">s1chord_angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1interval.html">s1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2boolean_operation.html">s2boolean_operation</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_union.html">s2cell_union</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2centroids.html">s2centroids</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_edge_query.html">s2closest_edge_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_edge_query_base.html">s2closest_edge_query_base</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_point_query.html">s2closest_point_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_point_query_base.html">s2closest_point_query_base</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2contains_point_query.html">s2contains_point_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2contains_vertex_query.html">s2contains_vertex_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2coords.html">s2coords</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2crossing_edge_query.html">s2crossing_edge_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2debug.html">s2debug</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2distance_target.html">s2distance_target</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_clipping.html">s2edge_clipping</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_crosser.html">s2edge_crosser</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_crossings.html">s2edge_crossings</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_distances.html">s2edge_distances</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_vector_shape.html">s2edge_vector_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2error.html">s2error</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng.html">s2latlng</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng_rect.html">s2latlng_rect</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng_rect_bounder.html">s2latlng_rect_bounder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_loop_shape.html">s2lax_loop_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_polygon_shape.html">s2lax_polygon_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_polyline_shape.html">s2lax_polyline_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2measures.html">s2measures</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2metrics.html">s2metrics</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2min_distance_targets.html">s2min_distance_targets</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2padded_cell.html">s2padded_cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point.html">s2point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_compression.html">s2point_compression</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_index.html">s2point_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_vector_shape.html">s2point_vector_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2pointutil.html">s2pointutil</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polyline.html">s2polyline</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polyline_simplifier.html">s2polyline_simplifier</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2predicates.html">s2predicates</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape_index.html">s2shape_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape_index_region.html">s2shape_index_region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2text_format.html">s2text_format</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2wedge_relations.html">s2wedge_relations</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/sequence_lexicon.html">sequence_lexicon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/value_lexicon.html">value_lexicon</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class S2Polygon</h1><p>An S2Polygon is an S2Region object that represents a polygon.  A polygon is
+ defined by zero or more loops; recall that the interior of a loop is
+ defined to be its left-hand side (see S2Loop).  There are two different
+ conventions for creating an S2Polygon:
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">S2Polygon</span>
+			<br>&nbsp;&nbsp;: <a href="../../s2/s2region/S2Region.html"><span class="typ">S2Region</span></a>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>- InitNested() expects the input loops to be nested hierarchically.  The
+     polygon interior then consists of the set of points contained by an odd
+     number of loops.  So for example, a circular region with a hole in it
+     would be defined as two CCW loops, with one loop containing the other.
+     The loops can be provided in any order.
+</p>
+
+<p>     When the orientation of the input loops is unknown, the nesting
+     requirement is typically met by calling S2Loop::Normalize() on each
+     loop (which inverts the loop if necessary so that it encloses at most
+     half the sphere).  But in fact any set of loops can be used as long as
+     (1) there is no pair of loops that cross, and (2) there is no pair of
+     loops whose union is the entire sphere.
+</p>
+
+<p>   - InitOriented() expects the input loops to be oriented such that the
+     polygon interior is on the left-hand side of every loop.  So for
+     example, a circular region with a hole in it would be defined using a
+     CCW outer loop and a CW inner loop.  The loop orientations must all be
+     consistent; for example, it is not valid to have one CCW loop nested
+     inside another CCW loop, because the region between the two loops is on
+     the left-hand side of one loop and the right-hand side of the other.
+</p>
+
+<p> Most clients will not call these methods directly; instead they should use
+ S2Builder, which has better support for dealing with imperfect data.
+</p>
+
+<p> When the polygon is initialized, the given loops are automatically
+ converted into a canonical form consisting of "shells" and "holes".  Shells
+ and holes are both oriented CCW, and are nested hierarchically.  The loops
+ are reordered to correspond to a preorder traversal of the nesting
+ hierarchy; InitOriented may also invert some loops. The set of input S2Loop
+ pointers is always preserved; the caller can use this to determine how the
+ loops were reordered if desired.
+</p>
+
+<p> Polygons may represent any region of the sphere with a polygonal boundary,
+ including the entire sphere (known as the "full" polygon).  The full
+ polygon consists of a single full loop (see S2Loop), whereas the empty
+ polygon has no loops at all.
+</p>
+
+<p> Polygons have the following restrictions:
+</p>
+
+<p>  - Loops may not cross, i.e. the boundary of a loop may not intersect
+    both the interior and exterior of any other loop.
+</p>
+
+<p>  - Loops may not share edges, i.e. if a loop contains an edge AB, then
+    no other loop may contain AB or BA.
+</p>
+
+<p>  - Loops may share vertices, however no vertex may appear twice in a
+    single loop (see S2Loop).
+</p>
+
+<p>  - No loop may be empty.  The full loop may appear only in the full polygon.
+</p>
+</section>
+
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>The default constructor creates an empty polygon.  It can be made
+ non-empty by calling Init(), Decode(), etc.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Convenience constructor that calls InitNested() with the given loops.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Convenience constructor that creates a polygon with a single loop
+ corresponding to the given cell.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Convenience constructor that calls Init(S2Loop*).  Note that this method
+ automatically converts the special empty loop (see S2Loop) into an empty
+ polygon, unlike the vector-of-loops constructor which does not allow
+ empty loops at all.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.approxContains.html" class="public">
+								<code>approxContains</code>
+							</a>
+						</td>
+						<td>Returns true if this polgyon (A) approximately contains the given other
+ polygon (B). This is true if it is possible to move the vertices of B
+ no further than "tolerance" such that A contains the modified B.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.approxContains.html" class="public">
+								<code>approxContains</code>
+							</a>
+						</td>
+						<td>Returns true if this polgyon approximately contains the given polyline
+ This is true if it is possible to move the polyline vertices no further
+ than "tolerance" such that the polyline is now contained.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.approxDisjoint.html" class="public">
+								<code>approxDisjoint</code>
+							</a>
+						</td>
+						<td>Returns true if this polgyon (A) and the given polygon (B) are
+ approximately disjoint.  This is true if it is possible to ensure that A
+ and B do not intersect by moving their vertices no further than
+ "tolerance".  This implies that in borderline cases where A and B overlap
+ slightly, this method returns true (A and B are approximately disjoint).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.approxDisjoint.html" class="public">
+								<code>approxDisjoint</code>
+							</a>
+						</td>
+						<td>Returns true if this polgyon is approximately disjoint from the given
+ polyline.  This is true if it is possible to avoid intersection by moving
+ their vertices no further than "tolerance".
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.approxEquals.html" class="public">
+								<code>approxEquals</code>
+							</a>
+						</td>
+						<td>Return true if two polygons are approximately equal to within the given
+ tolerance.  This is true if it is possible to move the vertices of the
+ two polygons so that they contain the same set of points.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.approxIntersectWithPolyline.html" class="public">
+								<code>approxIntersectWithPolyline</code>
+							</a>
+						</td>
+						<td>Similar to IntersectWithPolyline(), except that vertices will be
+ dropped as necessary to ensure that all adjacent vertices in the
+ sequence obtained by concatenating the output polylines will be
+ farther than "snap_radius" apart.  Note that this can change
+ the number of output polylines and/or yield single-vertex polylines.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.approxSubtractFromPolyline.html" class="public">
+								<code>approxSubtractFromPolyline</code>
+							</a>
+						</td>
+						<td>Same as ApproxIntersectWithPolyline, but subtracts this polygon
+ from the given polyline.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.boundaryApproxEquals.html" class="public">
+								<code>boundaryApproxEquals</code>
+							</a>
+						</td>
+						<td>Return true if two polygons have the same boundary except for vertex
+ perturbations.  Both polygons must have loops with the same cyclic vertex
+ order and the same nesting hierarchy, but the vertex locations are
+ allowed to differ by up to "max_error".
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.boundaryEquals.html" class="public">
+								<code>boundaryEquals</code>
+							</a>
+						</td>
+						<td>Returns true if two polygons have the same boundary.  More precisely,
+ this method requires that both polygons have loops with the same cyclic
+ vertex order and the same nesting hierarchy.  (This implies that vertices
+ may be cyclically rotated between corresponding loops, and the loop
+ ordering may be different between the two polygons as long as the nesting
+ hierarchy is the same.)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.boundaryNear.html" class="public">
+								<code>boundaryNear</code>
+							</a>
+						</td>
+						<td>Return true if two polygons have boundaries that are within "max_error"
+ of each other along their entire lengths.  More precisely, there must be
+ a bijection between the two sets of loops such that for each pair of
+ loops, "a_loop-&gt;BoundaryNear(b_loop)" is true.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.clone.html" class="public">
+								<code>clone</code>
+							</a>
+						</td>
+						<td>GetRectBound() returns essentially tight results, while GetCapBound()
+ might have a lot of extra padding.  Both bounds are conservative in that
+ if the loop contains a point P, then the bound contains P also.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.contains.html" class="public">
+								<code>contains</code>
+							</a>
+						</td>
+						<td>Return true if this polygon contains the given other polygon, i.e.
+ if polygon A contains all points contained by polygon B.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.contains.html" class="public">
+								<code>contains</code>
+							</a>
+						</td>
+						<td>Return true if this polygon contains the given polyline.  This method
+ returns an exact result, according to the following model:
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.contains.html" class="public">
+								<code>contains</code>
+							</a>
+						</td>
+						<td>Returns true if the region completely contains the given cell, otherwise
+ returns false.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.contains.html" class="public">
+								<code>contains</code>
+							</a>
+						</td>
+						<td>The point 'p' does not need to be normalized.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.copy.html" class="public">
+								<code>copy</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.decode.html" class="public">
+								<code>decode</code>
+							</a>
+						</td>
+						<td>Decodes a polygon encoded with Encode().  Returns true on success.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.destructiveApproxUnion.html" class="public">
+								<code>destructiveApproxUnion</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.destructiveUnion.html" class="public">
+								<code>destructiveUnion</code>
+							</a>
+						</td>
+						<td>Return a polygon which is the union of the given polygons.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.encode.html" class="public">
+								<code>encode</code>
+							</a>
+						</td>
+						<td>Appends a serialized representation of the S2Polygon to "encoder".
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.findValidationError.html" class="public">
+								<code>findValidationError</code>
+							</a>
+						</td>
+						<td>Returns true if this is *not* a valid polygon and sets "error"
+ appropriately.  Otherwise returns false and leaves "error" unchanged.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getArea.html" class="public">
+								<code>getArea</code>
+							</a>
+						</td>
+						<td>Return the area of the polygon interior, i.e. the region on the left side
+ of an odd number of loops.  The return value is between 0 and 4*Pi.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getCapBound.html" class="public">
+								<code>getCapBound</code>
+							</a>
+						</td>
+						<td>Cap surrounding rect bound.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getCellUnionBound.html" class="public">
+								<code>getCellUnionBound</code>
+							</a>
+						</td>
+						<td>Returns a small collection of S2CellIds whose union covers the region.
+ The cells are not sorted, may have redundancies (such as cells that
+ contain other cells), and may cover much more area than necessary.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getCentroid.html" class="public">
+								<code>getCentroid</code>
+							</a>
+						</td>
+						<td>Return the true centroid of the polygon multiplied by the area of the
+ polygon (see s2centroids.h for details on centroids).  The result is not
+ unit length, so you may want to normalize it.  Also note that in general,
+ the centroid may not be contained by the polygon.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getDistance.html" class="public">
+								<code>getDistance</code>
+							</a>
+						</td>
+						<td>Return the distance from the given point to the polygon interior.  If the
+ polygon is empty, return S1Angle::Infinity().  "x" should be unit length.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getDistanceToBoundary.html" class="public">
+								<code>getDistanceToBoundary</code>
+							</a>
+						</td>
+						<td>Return the distance from the given point to the polygon boundary.  If the
+ polygon is empty or full, return S1Angle::Infinity() (since the polygon
+ has no boundary).  "x" should be unit length.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getLastDescendant.html" class="public">
+								<code>getLastDescendant</code>
+							</a>
+						</td>
+						<td>Return the index of the last loop that is contained within loop k.
+ Returns num_loops() - 1 if k &lt; 0.  Note that loops are indexed according
+ to a preorder traversal of the nesting hierarchy, so the immediate
+ children of loop k can be found by iterating over loops
+ (k+1)..GetLastDescendant(k) and selecting those whose depth is equal to
+ (loop(k)-&gt;depth() + 1).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getOverlapFractions.html" class="public">
+								<code>getOverlapFractions</code>
+							</a>
+						</td>
+						<td>Return the overlap fractions between two polygons, i.e. the ratios of the
+ area of intersection to the area of each polygon.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getParent.html" class="public">
+								<code>getParent</code>
+							</a>
+						</td>
+						<td>Return the index of the parent of loop k, or -1 if it has no parent.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getRectBound.html" class="public">
+								<code>getRectBound</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.getSnapLevel.html" class="public">
+								<code>getSnapLevel</code>
+							</a>
+						</td>
+						<td>If all of the polygon's vertices happen to be the centers of S2Cells at
+ some level, then return that level, otherwise return -1.  See also
+ InitToSnapped() and s2builderutil::S2CellIdSnapFunction.
+ Returns -1 if the polygon has no vertices.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.index.html" class="public">
+								<code>index</code>
+							</a>
+						</td>
+						<td>Returns the built-in S2ShapeIndex associated with every S2Polygon.  This
+ can be used in conjunction with the various S2ShapeIndex query classes
+ (S2ClosestEdgeQuery, S2BooleanOperation, etc) to do things beyond what is
+ possible with S2Polygon built-in convenience methods.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initialize.html" class="public">
+								<code>initialize</code>
+							</a>
+						</td>
+						<td>Initialize a polygon from a single loop.  Note that this method
+ automatically converts the special empty loop (see S2Loop) into an empty
+ polygon, unlike the vector-of-loops InitNested() method which does not
+ allow empty loops at all.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeNested.html" class="public">
+								<code>initializeNested</code>
+							</a>
+						</td>
+						<td>Create a polygon from a set of hierarchically nested loops.  The polygon
+ interior consists of the points contained by an odd number of loops.
+ (Recall that a loop contains the set of points on its left-hand side.)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeOriented.html" class="public">
+								<code>initializeOriented</code>
+							</a>
+						</td>
+						<td>Like InitNested(), but expects loops to be oriented such that the polygon
+ interior is on the left-hand side of all loops.  This implies that shells
+ and holes should have opposite orientations in the input to this method.
+ (During initialization, loops representing holes will automatically be
+ inverted.)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToApproxDifference.html" class="public">
+								<code>initializeToApproxDifference</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToApproxIntersection.html" class="public">
+								<code>initializeToApproxIntersection</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToApproxSymmetricDifference.html" class="public">
+								<code>initializeToApproxSymmetricDifference</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToApproxUnion.html" class="public">
+								<code>initializeToApproxUnion</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToCellUnionBorder.html" class="public">
+								<code>initializeToCellUnionBorder</code>
+							</a>
+						</td>
+						<td>Initialize this polygon to the outline of the given cell union.
+ In principle this polygon should exactly contain the cell union and
+ this polygon's inverse should not intersect the cell union, but rounding
+ issues may cause this not to be the case.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToComplement.html" class="public">
+								<code>initializeToComplement</code>
+							</a>
+						</td>
+						<td>Initialize this polygon to the complement of the given polygon.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToDifference.html" class="public">
+								<code>initializeToDifference</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToDifference.html" class="public">
+								<code>initializeToDifference</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToIntersection.html" class="public">
+								<code>initializeToIntersection</code>
+							</a>
+						</td>
+						<td>Initialize this polygon to the intersection, union, difference (A - B),
+ or symmetric difference (XOR) of the given two polygons.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToIntersection.html" class="public">
+								<code>initializeToIntersection</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToSimplified.html" class="public">
+								<code>initializeToSimplified</code>
+							</a>
+						</td>
+						<td>Snaps the input polygon according to the given "snap_function" and
+ reduces the number of vertices if possible, while ensuring that no vertex
+ moves further than snap_function.snap_radius().
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToSimplifiedInCell.html" class="public">
+								<code>initializeToSimplifiedInCell</code>
+							</a>
+						</td>
+						<td>Like InitToSimplified, except that any vertices or edges on the boundary
+ of the given S2Cell are preserved if possible.  This method requires that
+ the polygon has already been clipped so that it does not extend outside
+ the cell by more than "boundary_tolerance".  In other words, it operates
+ on polygons that have already been intersected with a cell.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToSnapped.html" class="public">
+								<code>initializeToSnapped</code>
+							</a>
+						</td>
+						<td>Snaps the vertices of the given polygon using the given SnapFunction
+ (e.g., s2builderutil::IntLatLngSnapFunction(6) snaps to E6 coordinates).
+ This can change the polygon topology (merging loops, for example), but
+ the resulting polygon is guaranteed to be valid, and no vertex will move
+ by more than snap_function.snap_radius().  See S2Builder for other
+ guarantees (e.g., minimum edge-vertex separation).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToSnapped.html" class="public">
+								<code>initializeToSnapped</code>
+							</a>
+						</td>
+						<td>Convenience function that snaps the vertices to S2CellId centers at the
+ given level (default level 30, which has S2CellId centers spaced about 1
+ centimeter apart).  Polygons can be efficiently encoded by Encode() after
+ they have been snapped.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToSymmetricDifference.html" class="public">
+								<code>initializeToSymmetricDifference</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToSymmetricDifference.html" class="public">
+								<code>initializeToSymmetricDifference</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToUnion.html" class="public">
+								<code>initializeToUnion</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.initializeToUnion.html" class="public">
+								<code>initializeToUnion</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.intersects.html" class="public">
+								<code>intersects</code>
+							</a>
+						</td>
+						<td>Return true if this polygon intersects the given other polygon, i.e.
+ if there is a point that is contained by both polygons.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.intersects.html" class="public">
+								<code>intersects</code>
+							</a>
+						</td>
+						<td>Return true if this polygon intersects the given polyline.  This method
+ returns an exact result; see Contains(S2Polyline) for details.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.intersectWithPolyline.html" class="public">
+								<code>intersectWithPolyline</code>
+							</a>
+						</td>
+						<td>Intersect this polygon with the polyline "in" and return the resulting
+ zero or more polylines.  The polylines are returned in the order they
+ would be encountered by traversing "in" from beginning to end.
+ Note that the output may include polylines with only one vertex,
+ but there will not be any zero-vertex polylines.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.intersectWithPolyline.html" class="public">
+								<code>intersectWithPolyline</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.invert.html" class="public">
+								<code>invert</code>
+							</a>
+						</td>
+						<td>Invert the polygon (replace it by its complement).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.isEmpty.html" class="public">
+								<code>isEmpty</code>
+							</a>
+						</td>
+						<td>Return true if this is the empty polygon (consisting of no loops).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.isFull.html" class="public">
+								<code>isFull</code>
+							</a>
+						</td>
+						<td>Return true if this is the full polygon (consisting of a single loop that
+ encompasses the entire sphere).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.isNormalized.html" class="public">
+								<code>isNormalized</code>
+							</a>
+						</td>
+						<td>Return true if every loop of this polygon shares at most one vertex with
+ its parent loop.  Every polygon has a unique normalized form.  A polygon
+ can be normalized by passing it through S2Builder (with no snapping) in
+ order to reconstruct the polygon from its edges.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.isValid.html" class="public">
+								<code>isValid</code>
+							</a>
+						</td>
+						<td>Returns true if this is a valid polygon (including checking whether all
+ the loops are themselves valid).  Note that validity is checked
+ automatically during initialization when --s2debug is enabled (true by
+ default in debug binaries).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.loop.html" class="public">
+								<code>loop</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.mayIntersect.html" class="public">
+								<code>mayIntersect</code>
+							</a>
+						</td>
+						<td>If this method returns false, the region does not intersect the given
+ cell.  Otherwise, either region intersects the cell, or the intersection
+ relationship could not be determined.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.numLoops.html" class="public">
+								<code>numLoops</code>
+							</a>
+						</td>
+						<td>Return the number of loops in this polygon.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.numVertices.html" class="public">
+								<code>numVertices</code>
+							</a>
+						</td>
+						<td>Total number of vertices in all loops.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.opEquals.html" class="public">
+								<code>opEquals</code>
+							</a>
+						</td>
+						<td>Return true if two polygons have exactly the same loops.  The loops must
+ appear in the same order, and corresponding loops must have the same
+ linear vertex ordering (i.e., cyclic rotations are not allowed).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.project.html" class="public">
+								<code>project</code>
+							</a>
+						</td>
+						<td>If the given point is contained by the polygon, return it.  Otherwise
+ return the closest point on the polygon boundary.  If the polygon is
+ empty, return the input argument.  Note that the result may or may not be
+ contained by the polygon.  "x" should be unit length.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.projectToBoundary.html" class="public">
+								<code>projectToBoundary</code>
+							</a>
+						</td>
+						<td>Return the closest point on the polygon boundary to the given point.  If
+ the polygon is empty or full, return the input argument (since the
+ polygon has no boundary).  "x" should be unit length.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.release.html" class="public">
+								<code>release</code>
+							</a>
+						</td>
+						<td>Releases ownership of and returns the loops of this polygon, and resets
+ the polygon to be empty.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.s2debugOverride.html" class="public">
+								<code>s2debugOverride</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.setS2debugOverride.html" class="public">
+								<code>setS2debugOverride</code>
+							</a>
+						</td>
+						<td>Destroys the polygon and frees its loops.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.spaceUsed.html" class="public">
+								<code>spaceUsed</code>
+							</a>
+						</td>
+						<td>Returns the total number of bytes used by the polygon.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.subtractFromPolyline.html" class="public">
+								<code>subtractFromPolyline</code>
+							</a>
+						</td>
+						<td>Same as IntersectWithPolyline, but subtracts this polygon from
+ the given polyline.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.subtractFromPolyline.html" class="public">
+								<code>subtractFromPolyline</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region/S2Region.clone.html" class="public inherited">
+								<code>clone</code>
+							</a>
+						</td>
+						<td>Returns a deep copy of the region.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region/S2Region.getCapBound.html" class="public inherited">
+								<code>getCapBound</code>
+							</a>
+						</td>
+						<td>Returns a bounding spherical cap that contains the region.  The bound may
+ not be tight.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region/S2Region.getRectBound.html" class="public inherited">
+								<code>getRectBound</code>
+							</a>
+						</td>
+						<td>Returns a bounding latitude-longitude rectangle that contains the region.
+ The bound may not be tight.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Inner classes</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.Shape.html" class="public">
+								<code>Shape</code>
+							</a>
+						</td>
+						<td>Wrapper class for indexing a polygon (see S2ShapeIndex).  Once this
+ object is inserted into an S2ShapeIndex it is owned by that index, and
+ will be automatically deleted when no longer needed by the index.  Note
+ that this class does not take ownership of the polygon itself (see
+ OwningShape below).  You can also subtype this class to store additional
+ data (see S2Shape for details).
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Inner structs</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2polygon/S2Polygon.OverlapFractions.html" class="public">
+								<code>OverlapFractions</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

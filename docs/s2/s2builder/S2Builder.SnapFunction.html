@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class S2Builder.SnapFunction</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">builder
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polygon_layer.html">s2polygon_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polyline_layer.html">s2polyline_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polyline_vector_layer.html">s2polyline_vector_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/snap_functions.html">snap_functions</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/graph.html">graph</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/layer.html">layer</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">shapeutil
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/contains_brute_force.html">contains_brute_force</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/count_edges.html">count_edges</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/edge_iterator.html">edge_iterator</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/get_reference_point.html">get_reference_point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/range_iterator.html">range_iterator</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/shape_edge.html">shape_edge</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/shape_edge_id.html">shape_edge_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/visit_crossing_edge_pairs.html">visit_crossing_edge_pairs</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">strings
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/strings/serialize.html">serialize</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">coding
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/coding/coder.html">coder</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree_map.html">btree_map</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/rbtree_map.html">rbtree_map</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">hash
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/hash/mix.html">mix</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">log
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/log/logger.html">logger</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">math
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/exactfloat.html">exactfloat</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/mathutil.html">mathutil</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/matrix3x3.html">matrix3x3</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/s2const.html">s2const</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/vector.html">vector</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/id_set_lexicon.html">id_set_lexicon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/logger.html">logger</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/mutable_s2shape_index.html">mutable_s2shape_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r2point.html">r2point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r2rect.html">r2rect</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1chord_angle.html">s1chord_angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1interval.html">s1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2boolean_operation.html">s2boolean_operation</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_union.html">s2cell_union</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2centroids.html">s2centroids</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_edge_query.html">s2closest_edge_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_edge_query_base.html">s2closest_edge_query_base</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_point_query.html">s2closest_point_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_point_query_base.html">s2closest_point_query_base</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2contains_point_query.html">s2contains_point_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2contains_vertex_query.html">s2contains_vertex_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2coords.html">s2coords</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2crossing_edge_query.html">s2crossing_edge_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2debug.html">s2debug</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2distance_target.html">s2distance_target</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_clipping.html">s2edge_clipping</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_crosser.html">s2edge_crosser</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_crossings.html">s2edge_crossings</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_distances.html">s2edge_distances</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_vector_shape.html">s2edge_vector_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2error.html">s2error</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng.html">s2latlng</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng_rect.html">s2latlng_rect</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng_rect_bounder.html">s2latlng_rect_bounder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_loop_shape.html">s2lax_loop_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_polygon_shape.html">s2lax_polygon_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_polyline_shape.html">s2lax_polyline_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2measures.html">s2measures</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2metrics.html">s2metrics</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2min_distance_targets.html">s2min_distance_targets</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2padded_cell.html">s2padded_cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point.html">s2point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_compression.html">s2point_compression</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_index.html">s2point_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_vector_shape.html">s2point_vector_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2pointutil.html">s2pointutil</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polyline.html">s2polyline</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polyline_simplifier.html">s2polyline_simplifier</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2predicates.html">s2predicates</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape_index.html">s2shape_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape_index_region.html">s2shape_index_region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2text_format.html">s2text_format</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2wedge_relations.html">s2wedge_relations</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/sequence_lexicon.html">sequence_lexicon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/value_lexicon.html">value_lexicon</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class S2Builder.SnapFunction</h1><p>A SnapFunction restricts the locations of the output vertices.  For
+ example, there are predefined snap functions that require vertices to be
+ located at S2CellId centers or at E5/E6/E7 coordinates.  The SnapFunction
+ can also specify a minimum spacing between vertices (the "snap radius").
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">SnapFunction</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>A SnapFunction defines the following methods:
+</p>
+
+<p> 1. The SnapPoint() method, which snaps a point P to a nearby point (the
+    "candidate snap site").  Any point may be returned, including P
+    itself (this is the "identity snap function").
+</p>
+
+<p> 2. "snap_radius", the maximum distance that vertices can move when
+    snapped.  The snap_radius must be at least as large as the maximum
+    distance between P and SnapPoint(P) for any point P.
+</p>
+
+<p> 3. "max_edge_deviation", the maximum distance that edges can move when
+    snapped.  It is slightly larger than "snap_radius" because when a
+    geodesic edge is snapped, the center of the edge moves further than
+    its endpoints.  This value is computed automatically by S2Builder.
+</p>
+
+<p> 4. "min_vertex_separation", the guaranteed minimum distance between
+    vertices in the output.  This is generally a fraction of
+    "snap_radius" where the fraction depends on the snap function.
+</p>
+
+<p> 5. A "min_edge_vertex_separation", the guaranteed minimum distance
+    between edges and non-incident vertices in the output.  This is
+    generally a fraction of "snap_radius" where the fraction depends on
+    the snap function.
+</p>
+
+<p> It is important to note that SnapPoint() does not define the actual
+ mapping from input vertices to output vertices, since the points it
+ returns (the candidate snap sites) are further filtered to ensure that
+ they are separated by at least the snap radius.  For example, if you
+ specify E7 coordinates (2cm resolution) and a snap radius of 10m, then a
+ subset of points returned by SnapPoint will be chosen (the "snap sites"),
+ and each input vertex will be mapped to the closest site.  Therefore you
+ cannot assume that P is necessarily snapped to SnapPoint(P).
+</p>
+
+<p> S2Builder makes the following guarantees:
+</p>
+
+<p> 1. Every vertex is at a location returned by SnapPoint().
+</p>
+
+<p> 2. Vertices are within "snap_radius" of the corresponding input vertex.
+</p>
+
+<p> 3. Edges are within "max_edge_deviation" of the corresponding input edge
+    (a distance slightly larger than "snap_radius").
+</p>
+
+<p> 4. Vertices are separated by at least "min_vertex_separation"
+    (a fraction of "snap_radius" that depends on the snap function).
+</p>
+
+<p> 5. Edges and non-incident vertices are separated by at least
+    "min_edge_vertex_separation" (a fraction of "snap_radius").
+</p>
+
+<p> 6. Vertex and edge locations do not change unless one of the conditions
+    above is not already met (idempotency / stability).
+</p>
+
+<p> 7. The topology of the input geometry is preserved (up to the creation
+    of degeneracies).  This means that there exists a continuous
+    deformation from the input to the output such that no vertex
+    crosses an edge.
+</p>
+</section>
+
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.clone.html" class="public">
+								<code>clone</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.kMaxSnapRadius.html" class="public">
+								<code>kMaxSnapRadius</code>
+							</a>
+						</td>
+						<td>The maximum snap radius is just large enough to support snapping to
+ S2CellId level 0.  It is equivalent to 7800km on the Earth's surface.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.maxEdgeDeviation.html" class="public">
+								<code>maxEdgeDeviation</code>
+							</a>
+						</td>
+						<td>The maximum distance that the center of an edge can move when snapped.
+ This is slightly larger than "snap_radius" because when a geodesic edge
+ is snapped, the center of the edge moves further than its endpoints.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.minEdgeVertexSeparation.html" class="public">
+								<code>minEdgeVertexSeparation</code>
+							</a>
+						</td>
+						<td>The guaranteed minimum spacing between edges and non-incident vertices
+ in the output.  This is generally some fraction of "snap_radius".
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.minVertexSeparation.html" class="public">
+								<code>minVertexSeparation</code>
+							</a>
+						</td>
+						<td>The guaranteed minimum distance between vertices in the output.
+ This is generally some fraction of "snap_radius".
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.snapPoint.html" class="public">
+								<code>snapPoint</code>
+							</a>
+						</td>
+						<td>Returns a candidate snap site for the given point.  The final vertex
+ locations are a subset of the snap sites returned by this function
+ (spaced at least "min_vertex_separation" apart).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.snapRadius.html" class="public">
+								<code>snapRadius</code>
+							</a>
+						</td>
+						<td>The maximum distance that vertices can move when snapped.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.toString.html" class="public">
+								<code>toString</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

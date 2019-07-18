@@ -250,17 +250,16 @@ private:
  *
  * Note that when the distance to a ShapeIndexTarget is zero because the
  * target intersects the interior of the query index, you can find a point
- * that achieves this zero distance by calling the VisitContainingShapes()
+ * that achieves this zero distance by calling the `visitContainingShapes()`
  * method directly.  For example:
  *
  * ```
- *   S2ClosestEdgeQuery::ShapeIndexTarget target(&target_index);
- *   target.VisitContainingShapes(
- *       query_index, [](S2Shape* containing_shape,
- *                       const S2Point& target_point) {
+ *   auto target = new S2ClosestEdgeQuery.ShapeIndexTarget(target_index);
+ *   target.visitContainingShapes(
+ *       query_index, (S2Shape containing_shape, const S2Point& target_point) {
  *         ... do something with "target_point" ...
  *         return false;  // Terminate search
- *       }));
+ *       });
  * ```
  */
 class S2MinDistanceShapeIndexTarget : S2MinDistanceTarget {

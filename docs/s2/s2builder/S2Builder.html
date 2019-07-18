@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class S2Builder</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">builder
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polygon_layer.html">s2polygon_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polyline_layer.html">s2polyline_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polyline_vector_layer.html">s2polyline_vector_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/snap_functions.html">snap_functions</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/graph.html">graph</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/layer.html">layer</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">shapeutil
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/contains_brute_force.html">contains_brute_force</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/count_edges.html">count_edges</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/edge_iterator.html">edge_iterator</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/get_reference_point.html">get_reference_point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/range_iterator.html">range_iterator</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/shape_edge.html">shape_edge</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/shape_edge_id.html">shape_edge_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/visit_crossing_edge_pairs.html">visit_crossing_edge_pairs</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">strings
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/strings/serialize.html">serialize</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">coding
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/coding/coder.html">coder</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree_map.html">btree_map</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/rbtree_map.html">rbtree_map</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">hash
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/hash/mix.html">mix</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">log
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/log/logger.html">logger</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">math
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/exactfloat.html">exactfloat</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/mathutil.html">mathutil</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/matrix3x3.html">matrix3x3</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/s2const.html">s2const</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/vector.html">vector</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/id_set_lexicon.html">id_set_lexicon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/logger.html">logger</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/mutable_s2shape_index.html">mutable_s2shape_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r2point.html">r2point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r2rect.html">r2rect</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1chord_angle.html">s1chord_angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1interval.html">s1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2boolean_operation.html">s2boolean_operation</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_union.html">s2cell_union</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2centroids.html">s2centroids</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_edge_query.html">s2closest_edge_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_edge_query_base.html">s2closest_edge_query_base</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_point_query.html">s2closest_point_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_point_query_base.html">s2closest_point_query_base</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2contains_point_query.html">s2contains_point_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2contains_vertex_query.html">s2contains_vertex_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2coords.html">s2coords</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2crossing_edge_query.html">s2crossing_edge_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2debug.html">s2debug</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2distance_target.html">s2distance_target</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_clipping.html">s2edge_clipping</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_crosser.html">s2edge_crosser</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_crossings.html">s2edge_crossings</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_distances.html">s2edge_distances</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_vector_shape.html">s2edge_vector_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2error.html">s2error</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng.html">s2latlng</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng_rect.html">s2latlng_rect</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng_rect_bounder.html">s2latlng_rect_bounder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_loop_shape.html">s2lax_loop_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_polygon_shape.html">s2lax_polygon_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_polyline_shape.html">s2lax_polyline_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2measures.html">s2measures</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2metrics.html">s2metrics</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2min_distance_targets.html">s2min_distance_targets</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2padded_cell.html">s2padded_cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point.html">s2point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_compression.html">s2point_compression</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_index.html">s2point_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_vector_shape.html">s2point_vector_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2pointutil.html">s2pointutil</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polyline.html">s2polyline</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polyline_simplifier.html">s2polyline_simplifier</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2predicates.html">s2predicates</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape_index.html">s2shape_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape_index_region.html">s2shape_index_region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2text_format.html">s2text_format</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2wedge_relations.html">s2wedge_relations</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/sequence_lexicon.html">sequence_lexicon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/value_lexicon.html">value_lexicon</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class S2Builder</h1><p>S2Builder is a tool for assembling polygonal geometry from edges.  Here are
+ some of the things it is designed for:
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">S2Builder</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>1. Building polygons, polylines, and polygon meshes from unsorted
+    collections of edges.
+</p>
+
+<p> 2. Snapping geometry to discrete representations (such as S2CellId centers
+    or E7 lat/lng coordinates) while preserving the input topology and with
+    guaranteed error bounds.
+</p>
+
+<p> 3. Simplifying geometry (e.g. for indexing, display, or storage).
+</p>
+
+<p> 4. Importing geometry from other formats, including repairing geometry
+    that has errors.
+</p>
+
+<p> 5. As a tool for implementing more complex operations such as polygon
+    intersections and unions.
+</p>
+
+<p> The implementation is based on the framework of "snap rounding".  Unlike
+ most snap rounding implementations, S2Builder defines edges as geodesics on
+ the sphere (straight lines) and uses the topology of the sphere (i.e.,
+ there are no "seams" at the poles or 180th meridian).  The algorithm is
+ designed to be 100% robust for arbitrary input geometry.  It offers the
+ following properties:
+</p>
+
+<p>   - Guaranteed bounds on how far input vertices and edges can move during
+     the snapping process (i.e., at most the given "snap_radius").
+</p>
+
+<p>   - Guaranteed minimum separation between edges and vertices other than
+     their endpoints (similar to the goals of Iterated Snap Rounding).  In
+     other words, edges that do not intersect in the output are guaranteed
+     to have a minimum separation between them.
+</p>
+
+<p>   - Idempotency (similar to the goals of Stable Snap Rounding), i.e. if the
+     input already meets the output criteria then it will not be modified.
+</p>
+
+<p>   - Preservation of the input topology (up to the creation of
+     degeneracies).  This means that there exists a continuous deformation
+     from the input to the output such that no vertex crosses an edge.  In
+     other words, self-intersections won't be created, loops won't change
+     orientation, etc.
+</p>
+
+<p>   - The ability to snap to arbitrary discrete point sets (such as S2CellId
+     centers, E7 lat/lng points on the sphere, or simply a subset of the
+     input vertices), rather than being limited to an integer grid.
+</p>
+
+<p> Here are some of its other features:
+</p>
+
+<p>  - It can handle both directed and undirected edges.  Undirected edges can
+    be useful for importing data from other formats, e.g. where loops have
+    unspecified orientations.
+</p>
+
+<p>  - It can eliminate self-intersections by finding all edge pairs that cross
+    and adding a new vertex at each intersection point.
+</p>
+
+<p>  - It can simplify polygons to within a specified tolerance.  For example,
+    if two vertices are close enough they will be merged, and if an edge
+    passes nearby a vertex then it will be rerouted through that vertex.
+    Optionally, it can also detect nearly straight chains of short edges and
+    replace them with a single long edge, while maintaining the same
+    accuracy, separation, and topology guarantees ("simplify_edge_chains").
+</p>
+
+<p>  - It supports many different output types through the concept of "layers"
+    (polylines, polygons, polygon meshes, etc).  You can build multiple
+    layers at once in order to ensure that snapping does not create
+    intersections between different objects (for example, you can simplify a
+    set of contour lines without the risk of having them cross each other).
+</p>
+
+<p>  - It supports edge labels, which allow you to attach arbitrary information
+    to edges and have it preserved during the snapping process.  (This can
+    also be achieved using layers, at a coarser level of granularity.)
+</p>
+</section>
+
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Default constructor; requires Init() to be called.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Convenience constructor that calls Init().  Note that to use the default
+ options, C++ syntax requires an extra layer of parentheses:
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.addEdge.html" class="public">
+								<code>addEdge</code>
+							</a>
+						</td>
+						<td>Adds the given edge to the current layer.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.addIsFullPolygonPredicate.html" class="public">
+								<code>addIsFullPolygonPredicate</code>
+							</a>
+						</td>
+						<td>For layers that will be assembled into polygons, this method specifies a
+ predicate that will be called to determine whether the polygon is empty
+ or full except for the given degeneracies.  (See IsFullPolygonPredicate
+ above.)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.addLoop.html" class="public">
+								<code>addLoop</code>
+							</a>
+						</td>
+						<td>Adds the edges in the given loop.  If the sign() of the loop is negative
+ (i.e. this loop represents a hole within a polygon), the edge directions
+ are automatically reversed to ensure that the polygon interior is always
+ to the left of every edge.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.addPoint.html" class="public">
+								<code>addPoint</code>
+							</a>
+						</td>
+						<td>Adds a degenerate edge (representing a point) to the current layer.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.addPolygon.html" class="public">
+								<code>addPolygon</code>
+							</a>
+						</td>
+						<td>Adds the loops in the given polygon.  Loops representing holes have their
+ edge directions automatically reversed as described for AddLoop().  Note
+ that this method does not distinguish between the empty and full polygons,
+ i.e. adding a full polygon has the same effect as adding an empty one.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.addPolyline.html" class="public">
+								<code>addPolyline</code>
+							</a>
+						</td>
+						<td>Adds the edges in the given polyline.  (Note that if the polyline
+ consists of 0 or 1 vertices, this method does nothing.)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.addShape.html" class="public">
+								<code>addShape</code>
+							</a>
+						</td>
+						<td>Adds the edges of the given shape to the current layer.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.build.html" class="public">
+								<code>build</code>
+							</a>
+						</td>
+						<td>Performs the requested edge splitting, snapping, simplification, etc, and
+ then assembles the resulting edges into the requested output layers.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.clearLabels.html" class="public">
+								<code>clearLabels</code>
+							</a>
+						</td>
+						<td>Clear the stack of labels.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.forceVertex.html" class="public">
+								<code>forceVertex</code>
+							</a>
+						</td>
+						<td>Forces a vertex to be located at the given position.  This can be used to
+ prevent certain input vertices from moving.  However if you are trying to
+ preserve part of the input boundary, be aware that this option does not
+ prevent edges from being split by new vertices.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.initialize.html" class="public">
+								<code>initialize</code>
+							</a>
+						</td>
+						<td>Initializes an S2Builder with the given options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.options.html" class="public">
+								<code>options</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.popLabel.html" class="public">
+								<code>popLabel</code>
+							</a>
+						</td>
+						<td>Remove a label from the stack.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.pushLabel.html" class="public">
+								<code>pushLabel</code>
+							</a>
+						</td>
+						<td>Add a label to the stack.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.reset.html" class="public">
+								<code>reset</code>
+							</a>
+						</td>
+						<td>Clears all input data and resets the builder state.  Any options
+ specified are preserved.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.setLabel.html" class="public">
+								<code>setLabel</code>
+							</a>
+						</td>
+						<td>Convenience function that clears the stack and adds a single label.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.startLayer.html" class="public">
+								<code>startLayer</code>
+							</a>
+						</td>
+						<td>Starts a new output layer.  This method must be called before adding any
+ edges to the S2Builder.  You may call this method multiple times to build
+ multiple geometric objects that are snapped to the same set of sites.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Inner classes</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.Options.html" class="public">
+								<code>Options</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.SnapFunction.html" class="public">
+								<code>SnapFunction</code>
+							</a>
+						</td>
+						<td>A SnapFunction restricts the locations of the output vertices.  For
+ example, there are predefined snap functions that require vertices to be
+ located at S2CellId centers or at E5/E6/E7 coordinates.  The SnapFunction
+ can also specify a minimum spacing between vertices (the "snap radius").
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Enums</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.EdgeType.html" class="public">
+								<code>EdgeType</code>
+							</a>
+						</td>
+						<td>Indicates whether the input edges are undirected.  Typically this is
+ specified for each output layer (e.g., s2builderutil::S2PolygonLayer).
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Aliases</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.InputEdgeId.html" class="public">
+								<code>InputEdgeId</code>
+							</a>
+						</td>
+						<td>Identifies an input edge.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.InputEdgeIdSetId.html" class="public">
+								<code>InputEdgeIdSetId</code>
+							</a>
+						</td>
+						<td>Identifies the set of input edge ids that were snapped to a given edge.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.InputVertexId.html" class="public">
+								<code>InputVertexId</code>
+							</a>
+						</td>
+						<td>Identifies an input vertex.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.IsFullPolygonPredicate.html" class="public">
+								<code>IsFullPolygonPredicate</code>
+							</a>
+						</td>
+						<td>For output layers that represent polygons, there is an ambiguity inherent
+ in spherical geometry that does not exist in planar geometry.  Namely, if
+ a polygon has no edges, does it represent the empty polygon (containing
+ no points) or the full polygon (containing all points)?  This ambiguity
+ also occurs for polygons that consist only of degeneracies, e.g. a
+ degenerate loop with only two edges could be either a degenerate shell in
+ the empty polygon or a degenerate hole in the full polygon.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.Label.html" class="public">
+								<code>Label</code>
+							</a>
+						</td>
+						<td>Every edge can have a set of non-negative integer labels attached to it.
+ When used with an appropriate layer type, you can then retrieve the
+ labels associated with each output edge.  This can be useful when merging
+ or combining data from several sources.  (Note that in many cases it is
+ easier to use separate output layers rather than labels.)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2builder/S2Builder.LabelSetId.html" class="public">
+								<code>LabelSetId</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Caveats</h2>
+<p>- Because S2Builder only works with edges, it cannot distinguish between
+    the empty and full polygons.  If your application can generate both the
+    empty and full polygons, you must implement logic outside of this class.
+</p>
+
+<p> Example showing how to snap a polygon to E7 coordinates:
+</p>
+
+<p>  using s2builderutil::IntLatLngSnapFunction;
+  S2Builder builder(S2Builder::Options(IntLatLngSnapFunction(7)));
+  S2Polygon output;
+  builder.StartLayer(absl::make_unique<s2builderutil::S2PolygonLayer>(&output));
+  builder.AddPolygon(input);
+  S2Error error;
+  if (!builder.Build(&error)) {
+    LOG(ERROR) &lt;&lt; error;
+    ...
+  }
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

@@ -9,7 +9,8 @@
   "dependencies": {
     "fluent-asserts": "~>0.12.3"
   },
-
+  "dflags": ["-preview=markdown"],
+  "versions": ["VibeNoSSL"],
   "configurations": [
     {
       "name": "library",
@@ -30,5 +31,6 @@
         "unit-threaded": "~>0.7.53"
       }
     }
-  ]
+  ],
+  "-ddoxFilterArgs": ["--min-protection=Protected"]
 }

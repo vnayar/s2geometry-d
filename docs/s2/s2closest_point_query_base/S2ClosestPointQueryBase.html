@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class S2ClosestPointQueryBase</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">builder
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polygon_layer.html">s2polygon_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polyline_layer.html">s2polyline_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/s2polyline_vector_layer.html">s2polyline_vector_layer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/util/snap_functions.html">snap_functions</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/graph.html">graph</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/builder/layer.html">layer</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">shapeutil
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/contains_brute_force.html">contains_brute_force</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/count_edges.html">count_edges</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/edge_iterator.html">edge_iterator</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/get_reference_point.html">get_reference_point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/range_iterator.html">range_iterator</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/shape_edge.html">shape_edge</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/shape_edge_id.html">shape_edge_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/shapeutil/visit_crossing_edge_pairs.html">visit_crossing_edge_pairs</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">strings
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/strings/serialize.html">serialize</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">coding
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/coding/coder.html">coder</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree_map.html">btree_map</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/rbtree_map.html">rbtree_map</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">hash
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/hash/mix.html">mix</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">log
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/log/logger.html">logger</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">math
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/exactfloat.html">exactfloat</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/mathutil.html">mathutil</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/matrix3x3.html">matrix3x3</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/s2const.html">s2const</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/math/vector.html">vector</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/id_set_lexicon.html">id_set_lexicon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/logger.html">logger</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/mutable_s2shape_index.html">mutable_s2shape_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r2point.html">r2point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r2rect.html">r2rect</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1chord_angle.html">s1chord_angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1interval.html">s1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2boolean_operation.html">s2boolean_operation</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_union.html">s2cell_union</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2centroids.html">s2centroids</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_edge_query.html">s2closest_edge_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_edge_query_base.html">s2closest_edge_query_base</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2closest_point_query.html">s2closest_point_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../s2/s2closest_point_query_base.html">s2closest_point_query_base</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2contains_point_query.html">s2contains_point_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2contains_vertex_query.html">s2contains_vertex_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2coords.html">s2coords</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2crossing_edge_query.html">s2crossing_edge_query</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2debug.html">s2debug</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2distance_target.html">s2distance_target</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_clipping.html">s2edge_clipping</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_crosser.html">s2edge_crosser</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_crossings.html">s2edge_crossings</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_distances.html">s2edge_distances</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2edge_vector_shape.html">s2edge_vector_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2error.html">s2error</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng.html">s2latlng</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng_rect.html">s2latlng_rect</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2latlng_rect_bounder.html">s2latlng_rect_bounder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_loop_shape.html">s2lax_loop_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_polygon_shape.html">s2lax_polygon_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2lax_polyline_shape.html">s2lax_polyline_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2measures.html">s2measures</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2metrics.html">s2metrics</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2min_distance_targets.html">s2min_distance_targets</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2padded_cell.html">s2padded_cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point.html">s2point</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_compression.html">s2point_compression</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_index.html">s2point_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2point_vector_shape.html">s2point_vector_shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2pointutil.html">s2pointutil</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polyline.html">s2polyline</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polyline_simplifier.html">s2polyline_simplifier</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2predicates.html">s2predicates</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape_index.html">s2shape_index</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape_index_region.html">s2shape_index_region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2text_format.html">s2text_format</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2wedge_relations.html">s2wedge_relations</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/sequence_lexicon.html">sequence_lexicon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/value_lexicon.html">value_lexicon</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class S2ClosestPointQueryBase</h1><p>S2ClosestPointQueryBase is a templatized class for finding the closest
+ point(s) to a given target.  It is not intended to be used directly, but
+ rather to serve as the implementation of various specialized classes with
+ more convenient APIs (such as S2ClosestPointQuery).  It is flexible enough
+ so that it can be adapted to compute maximum distances and even potentially
+ Hausdorff distances.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">S2ClosestPointQueryBase</span>(Distance, Data)
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>By using the appropriate options, this class can answer questions such as:
+</p>
+
+<p>  - Find the minimum distance between a point collection A and a target B.
+  - Find all points in collection A that are within a distance D of target B.
+  - Find the k points of collection A that are closest to a given point P.
+</p>
+
+<p> The target is any class that implements the S2DistanceTarget interface.
+ There are predefined targets for points, edges, S2Cells, and S2ShapeIndexes
+ (arbitrary collctions of points, polylines, and polygons).
+</p>
+
+<p> The Distance template argument is used to represent distances.  Usually
+ this type is a thin wrapper around S1ChordAngle, but another distance type
+ may be substituted as long as it implements the API below.  This can be
+ used to change the comparison function (e.g., to find the furthest edges
+ from the target), or to get more accuracy if desired.
+</p>
+
+<p> The Distance concept is as follows:
+</p>
+
+<p> class Distance {
+</p>
+</section>
+
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Default constructor; requires initialize() to be called.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Convenience constructor that calls Init().
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Fields</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._distanceLimit.html" class="public"><code>_distanceLimit</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">Distance</span></code></td><td>The distance beyond which we can safely ignore further candidate points.
+ (Candidates that are exactly at the limit are ignored; this is more
+ efficient for UpdateMinDistance() and should not affect clients since
+ distance measurements have a small amount of error anyway.)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._index.html" class="public"><code>_index</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Index.html"><span class="typ">S2ClosestPointQueryBase<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Index</span></a></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._indexCovering.html" class="public"><code>_indexCovering</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2cell_id/S2CellId.html"><span class="typ">S2CellId</span></a><span class="pun">[]</span></code></td><td>For the optimized algorihm we precompute the top-level S2CellIds that
+ will be added to the priority queue.  There can be at most 6 of these
+ cells.  Essentially this is just a covering of the indexed points.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._intersectionWithMaxDistance.html" class="public"><code>_intersectionWithMaxDistance</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2cell_id/S2CellId.html"><span class="typ">S2CellId</span></a><span class="pun">[]</span></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._intersectionWithRegion.html" class="public"><code>_intersectionWithRegion</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2cell_id/S2CellId.html"><span class="typ">S2CellId</span></a><span class="pun">[]</span></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._iter.html" class="public"><code>_iter</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Iterator.html"><span class="typ">S2ClosestPointQueryBase<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Iterator</span></a></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._maxDistanceCovering.html" class="public"><code>_maxDistanceCovering</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2cell_id/S2CellId.html"><span class="typ">S2CellId</span></a><span class="pun">[]</span></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._options.html" class="public"><code>_options</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Options.html"><span class="typ">S2ClosestPointQueryBase<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Options</span></a></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._queue.html" class="public"><code>_queue</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.CellQueue.html"><span class="typ">S2ClosestPointQueryBase<wbr/></span><span class="pun">.<wbr/></span><span class="typ">CellQueue</span></a></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._regionCovering.html" class="public"><code>_regionCovering</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2cell_id/S2CellId.html"><span class="typ">S2CellId</span></a><span class="pun">[]</span></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._resultSet.html" class="public"><code>_resultSet</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">BinaryHeap</span>!(Result[])</code></td><td>Used as a priority queue for the results.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._resultSingleton.html" class="public"><code>_resultSingleton</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Result.html"><span class="typ">S2ClosestPointQueryBase<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Result</span></a></code></td><td>The current result set is stored in one of three ways:
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._resultVector.html" class="public"><code>_resultVector</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Result.html"><span class="typ">S2ClosestPointQueryBase<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Result</span></a><span class="pun">[]</span></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._target.html" class="public"><code>_target</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Target.html"><span class="typ">S2ClosestPointQueryBase<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Target</span></a></code></td><td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase._tmpPointData.html" class="public"><code>_tmpPointData</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.PointData.html"><span class="typ">S2ClosestPointQueryBase<wbr/></span><span class="pun">.<wbr/></span><span class="typ">PointData</span></a><span class="pun">[</span><span class="pln">MIN_POINTS_TO_ENQUEUE</span><span class="pun">-</span><span class="lit">1</span><span class="pun">]</span></code></td><td></td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.addInitialRange.html" class="public">
+								<code>addInitialRange</code>
+							</a>
+						</td>
+						<td>Adds a cell to index_covering_ that covers the given inclusive range.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.enqueueCell.html" class="public">
+								<code>enqueueCell</code>
+							</a>
+						</td>
+						<td>Either process the contents of the given cell immediately, or add it to the
+ queue to be subdivided.  If "seek" is false, then "iter" must already be
+ positioned at the first indexed point within this cell.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.findClosestPoint.html" class="public">
+								<code>findClosestPoint</code>
+							</a>
+						</td>
+						<td>Convenience method that returns exactly one point.  If no points satisfy
+ the given search criteria, then a Result with distance() == Infinity()
+ and is_empty() == true is returned.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.findClosestPoints.html" class="public">
+								<code>findClosestPoints</code>
+							</a>
+						</td>
+						<td>Returns the closest points to the given target that satisfy the given
+ options.  This method may be called multiple times.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.findClosestPoints.html" class="public">
+								<code>findClosestPoints</code>
+							</a>
+						</td>
+						<td>This version can be more efficient when this method is called many times,
+ since it does not require allocating a new vector on each call.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.findClosestPointsBruteForce.html" class="public">
+								<code>findClosestPointsBruteForce</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.findClosestPointsInternal.html" class="public">
+								<code>findClosestPointsInternal</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.findClosestPointsOptimized.html" class="public">
+								<code>findClosestPointsOptimized</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.index.html" class="public">
+								<code>index</code>
+							</a>
+						</td>
+						<td>Return a reference to the underlying S2PointIndex.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.initCovering.html" class="public">
+								<code>initCovering</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.initialize.html" class="public">
+								<code>initialize</code>
+							</a>
+						</td>
+						<td>Initializes the query.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.initQueue.html" class="public">
+								<code>initQueue</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.maybeAddResult.html" class="public">
+								<code>maybeAddResult</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.options.html" class="public">
+								<code>options</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.reInitialize.html" class="public">
+								<code>reInitialize</code>
+							</a>
+						</td>
+						<td>Reinitializes the query.  This method must be called whenever the
+ underlying index is modified.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Inner structs</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.QueueEntry.html" class="public">
+								<code>QueueEntry</code>
+							</a>
+						</td>
+						<td>The algorithm maintains a priority queue of unprocessed S2CellIds, sorted
+ in increasing order of distance from the target point.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Result.html" class="public">
+								<code>Result</code>
+							</a>
+						</td>
+						<td>Each "Result" object represents a closest point.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Aliases</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.CellQueue.html" class="public">
+								<code>CellQueue</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Delta.html" class="public">
+								<code>Delta</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Index.html" class="public">
+								<code>Index</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Iterator.html" class="public">
+								<code>Iterator</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Options.html" class="public">
+								<code>Options</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.PointData.html" class="public">
+								<code>PointData</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2closest_point_query_base/S2ClosestPointQueryBase.Target.html" class="public">
+								<code>Target</code>
+							</a>
+						</td>
+						<td>The Target class represents the geometry to which the distance is
+ measured.  For example, there can be subtypes for measuring the distance
+ to a point, an edge, or to an S2ShapeIndex (an arbitrary collection of
+ geometry).
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>public</h2>
+<p>// Default and copy constructors, assignment operator:
+   Distance();
+   Distance(const Distance&amp;);
+   Distance&amp; operator=(const Distance&amp;);
+</p>
+
+<p>   // Factory methods:
+   static Distance Zero();      // Returns a zero distance.
+   static Distance Infinity();  // Larger than any valid distance.
+   static Distance Negative();  // Smaller than any valid distance.
+</p>
+
+<p>   // Comparison operators:
+   friend bool operator==(Distance x, Distance y);
+   friend bool operator&lt;(Distance x, Distance y);
+</p>
+
+<p>   // Delta represents the positive difference between two distances.
+   // It is used together with operator-() to implement Options::max_error().
+   // Typically Distance::Delta is simply S1ChordAngle.
+   class Delta {
+</p>
+</section>
+<section><h2>public</h2>
+<p>Delta();
+     Delta(const Delta&amp;);
+     Delta&amp; operator=(const Delta&amp;);
+     friend bool operator==(Delta x, Delta y);
+     static Delta Zero();
+   };
+</p>
+
+<p>   // Subtraction operator.  Note that the second argument represents a
+   // delta between two distances.  This distinction is important for
+   // classes that compute maximum distances (e.g., S2FurthestEdgeQuery).
+   friend Distance operator-(Distance x, Delta delta);
+</p>
+
+<p>   // Method that returns an upper bound on the S1ChordAngle corresponding
+   // to this Distance (needed to implement Options::max_distance
+   // efficiently).  For example, if Distance measures WGS84 ellipsoid
+   // distance then the corresponding angle needs to be 0.56% larger.
+   S1ChordAngle GetChordAngleBound() const;
+ };
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

@@ -49,10 +49,26 @@ dub test -- -s -d s2.s2predicates_test
 
 ### Building
 
-From the appropriate directory depending on how you got the source:
+From the appropriate directory depending on how you got the source, run the command:
 
 ```sh
 dub
+```
+
+### Generating Documentation
+
+Documentation is generated from the [ddoc](https://dlang.org/spec/ddoc.html) formatted comments in
+the code. The best looking output comes from using the tool `ddox` and can be generated with the
+command:
+
+```sh
+dub build --build=ddox
+```
+
+A local server can be run to allow you to preview the documentation using the command:
+
+```sh
+dub run --build=ddox
 ```
 
 ## Disclaimer

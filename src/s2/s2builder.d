@@ -644,13 +644,14 @@ public:
    * Ownership of the layer is transferred to the S2Builder.  Example usage:
    *
    * ```
-   * S2Polyline line1, line2;
-   * builder.StartLayer(make_unique<s2builderutil::S2PolylineLayer>(&line1)));
-   * ... Add edges using builder.AddEdge(), etc ...
-   * builder.StartLayer(make_unique<s2builderutil::S2PolylineLayer>(&line2)));
-   * ... Add edges using builder.AddEdge(), etc ...
+   * auto line1 = new S2Polyline();
+   * auto line2 = new S2Polyline();
+   * builder.startLayer(new S2PolylineLayer(line1));
+   * // Add edges using builder.addEdge(), etc ...
+   * builder.startLayer(new S2PolylineLayer(line2));
+   * // Add edges using builder.addEdge(), etc ...
    * S2Error error;
-   * CHECK(builder.Build(&error)) << error;  // Builds "line1" & "line2"
+   * enforce(builder.build(error), error.toString());  // Builds "line1" & "line2"
    * ```
    */
   void startLayer(Layer layer) {
