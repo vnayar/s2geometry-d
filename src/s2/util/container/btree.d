@@ -1,3 +1,4 @@
+/// Implementation of a B-Tree based upon "Introduction to Algorithms".
 module s2.util.container.btree;
 
 import std.algorithm : max;
@@ -7,33 +8,33 @@ import std.format : format;
 
 
 /**
- * A B-Tree implementation based upon "Introduction to Algorithms" by Cormen, Leiserson, Rivest,
- * and Stein.
- *
- * B-Trees are both smaller and faster than most implementations of set/map. The red-black tree
- * implementation of a set/map typically has an overhead of 3 pointers (left, right, and parent)
- * plus the node color information for each stored value.  This B-Tree implementation stores
- * multiple values on fixed size nodes (usually 256 bytes) and does not store child pointers for
- * leaf nodes.
- *
- * The packing of multiple values into each node of a B-Tree also improves cache locality which
- * translates into faster operations.
- *
- * Because nodes contain both node pointers and values, a BTree will not have good performance
- * when used with large types that are passed by value, such as large structs.
- *
- * As always, using the BTree with class objects, which are passed by reference, also avoids
- * storage in the BTree itself.
- *
- * Params:
- *   ValueT = The element type to be organized by the BTree.
- *   NodeSizeV = The size in bytes of a node in the BinaryTree. Values are chosen to optimize
- *     performance depending on usage. For example, a value of 4096 bytes may be useful when
- *     retrieving items from disk, or the value 256 bytes to assure good use of CPU caches.
- *     The default value is 256 bytes.
- *   ValueLessF = A less-than comparison function for values, either a function or a string
- *     representing a function as described by
- *     $(LINK2 https://dlang.org/phobos/std_functional.html#binaryFun, std.functional.binaryFun).
+   A B-Tree implementation based upon "Introduction to Algorithms" by Cormen, Leiserson, Rivest,
+   and Stein.
+
+   B-Trees are both smaller and faster than most implementations of set/map. The red-black tree
+   implementation of a set/map typically has an overhead of 3 pointers (left, right, and parent)
+   plus the node color information for each stored value.  This B-Tree implementation stores
+   multiple values on fixed size nodes (usually 256 bytes) and does not store child pointers for
+   leaf nodes.
+
+   The packing of multiple values into each node of a B-Tree also improves cache locality which
+   translates into faster operations.
+
+   Because nodes contain both node pointers and values, a BTree will not have good performance
+   when used with large types that are passed by value, such as large structs.
+
+   As always, using the BTree with class objects, which are passed by reference, also avoids
+   storage in the BTree itself.
+
+   Params:
+     ValueT = The element type to be organized by the BTree.
+     NodeSizeV = The size in bytes of a node in the BinaryTree. Values are chosen to optimize
+       performance depending on usage. For example, a value of 4096 bytes may be useful when
+       retrieving items from disk, or the value 256 bytes to assure good use of CPU caches.
+       The default value is 256 bytes.
+     ValueLessF = A less-than comparison function for values, either a function or a string
+       representing a function as described by
+       $(LINK2 https://dlang.org/phobos/std_functional.html#binaryFun, std.functional.binaryFun).
  */
 final class BTree(ValueT, size_t NodeSizeV = 256, alias ValueLessF = "a < b")
 if (is(typeof(binaryFun!ValueLessF(ValueT.init, ValueT.init)) : bool)) {
@@ -42,24 +43,27 @@ private:
   Node _root;
   size_t _length;
 
-  // TODO: Determine how to enforce const functions are passed in, which is
-  // currently preventing the use of const with reference types.
   alias _isValueLess = binaryFun!ValueLessF;
 
+  /// Wrapper for ValueLessF that will fail at compile time if its signature does not match.
   static bool _isValueEqual(in ValueT v1, in ValueT v2) {
     return !_isValueLess(v1, v2) && !_isValueLess(v2, v1);
   }
 
-  // The B-Tree is defined by a minimum degree "t".
-  // Each node other than the root must have at least t-1 values.
-  // Each node may have up to 2t - 1 values, thus an internal node may have up to 2*t children.
-  //
-  // Thus, the maximum size of a non-leaf node is:
-  //   [values]    (2t-1) * (size of a value)
-  //   [numValues] + 1 * (size of size_t)
-  //   [isLeaf]    + 1 * (size of a bool)
-  //   [children]  + 2*t * (size of pointer to a node)
-  //   = NodeSize
+  /**
+     Gets the minimum degree of the B-Tree.
+
+     The B-Tree is defined by a minimum degree "t".
+     Each node other than the root must have at least t-1 values.
+     Each node may have up to 2t - 1 values, thus an internal node may have up to 2*t children.
+
+     Thus, the maximum size of a non-leaf node is:
+     - [values]    (2t-1) * (size of a value)
+     - [numValues] + 1 * (size of size_t)
+     - [isLeaf]    + 1 * (size of a bool)
+     - [children]  + 2*t * (size of pointer to a node)
+     - = NodeSize
+  */
   static size_t getMinDegree() @nogc @safe pure nothrow {
     size_t nodeSizeBase = bool.sizeof + Node.sizeof + size_t.sizeof + size_t.sizeof;
     size_t nodeExtraSizePerChild = ValueT.sizeof + Node.sizeof;
@@ -87,9 +91,7 @@ public:
     // TODO: DISK-WRITE(_root)
   }
 
-  /**
-   * The root Node of the B-Tree.
-   */
+  /// The root Node of the B-Tree.
   @property
   inout(Node) root() inout {
     return _root;
@@ -122,16 +124,12 @@ public:
   // Range Style Methods
   ////
 
-  /**
-   * A full slice for expressions of the form: myBTree[]
-   */
+  /// A full slice for expressions of the form: myBTree[].
   Range opIndex() {
     return Range(begin(), end());
   }
 
-  /**
-   * Defines the structure of a slice for slice expression of the form: myBTree[a..b]
-   */
+  /// Defines the structure of a slice for slice expression of the form: myBTree[a..b].
   ValueT[2] opSlice(size_t dim)(ValueT a, ValueT b) {
     return [a, b];
   }
@@ -141,25 +139,21 @@ public:
   }
 
   /**
-   * Find a range of elements whose value is equal to 'v'.
-   *
-   * If no elements are found, the result will be an empty range. If there is more than one
-   * element with the same value, the range will have more than 1 element.
-   */
+     Find a range of elements whose value is equal to 'v'.
+
+     If no elements are found, the result will be an empty range. If there is more than one
+     element with the same value, the range will have more than 1 element.
+  */
   Range equalRange(ValueT v) {
     return Range(_root.findFirstGE(v), _root.findFirstGT(v));
   }
 
-  /**
-   * Returns a range of all elements strictly less than 'v'.
-   */
+  /// Returns a range of all elements strictly less than 'v'.
   Range lowerRange(ValueT v) {
     return Range(begin(), _root.findFirstGE(v));
   }
 
-  /**
-   * Returns a range of all elements strictly greater than 'v'.
-   */
+  /// Returns a range of all elements strictly greater than 'v'.
   Range upperRange(ValueT v) {
     return Range(_root.findFirstGT(v), end());
   }
@@ -173,9 +167,7 @@ public:
     _length = 0;
   }
 
-  /**
-   * Inserts a new value into the BTree.
-   */
+  /// Inserts a new value into the BTree.
   void insert(ValueT v) {
     _length++;
     Node curRoot = _root;
@@ -191,17 +183,13 @@ public:
     _root.insertNonFull(v);
   }
 
-  /**
-   * Membership
-   */
+  /// Implements the "in" operator for membership.
   bool opBinaryRight(string op)(ValueT value)
   if (op == "in") {
     return !equalRange(value).empty();
   }
 
-  /**
-   * Removes a value and value from the BTree if it exists.
-   */
+  /// Removes a value and value from the BTree if it exists.
   void remove(ValueT v) {
     bool isFound = _root.remove(v);
     if (isFound) {
@@ -214,11 +202,11 @@ public:
   }
 
   /**
-   * Lower level iterators on the tree.
-   *
-   * While not in the D-style, these methods may be used for easier compatibility when working
-   * with code bases not in the D Language which are based on iterators.
-   */
+     Lower level iterators on the tree.
+
+     While not in the D-style, these methods may be used for easier compatibility when working
+     with code bases not in the D Language which are based on iterators.
+  */
   static struct Iterator {
   private:
     Node _node;
@@ -296,9 +284,7 @@ public:
     }
   }
 
-  /**
-   * D-style Ranges
-   */
+  /// D-style Ranges.
   static struct Range {
   private:
     Iterator _begin;
@@ -326,12 +312,12 @@ public:
   }
 
   /**
-   * A node in the BTree.
-   *
-   * A notable feature is that the values that are inserted are stored inside the BTree itself
-   * in the case of value data types, such as integers, floats, static arrays, or structs. In
-   * other cases, such as dynamic arrays and classes, on the reference is stored.
-   */
+     A node in the BTree.
+
+     A notable feature is that the values that are inserted are stored inside the BTree itself
+     in the case of value data types, such as integers, floats, static arrays, or structs. In
+     other cases, such as dynamic arrays and classes, on the reference is stored.
+  */
   static class Node {
   package:
     /// Indicates if the node has reached the size limit specified in $(D_INLINECODE NodeSizeV).
@@ -366,20 +352,20 @@ public:
     }
 
   package:
-    // A flag indicating whether the node is a leaf node or not.
+    /// A flag indicating whether the node is a leaf node or not.
     bool _isLeaf = true;
 
-    // A reference to the node's parent.
+    /// A reference to the node's parent.
     Node _parent = null;
 
-    // The position of the node in the node's parent.
+    /// The position of the node in the node's parent.
     size_t _position = 0;
 
-    // A count of the number of values in the node.
+    /// A count of the number of values in the node.
     size_t _numValues = 0;
     ValueT[MAX_DEGREE - 1] _values;
 
-    // Only non-leaf (internal) nodes have children.
+    /// Only non-leaf (internal) nodes have children.
     Node[MAX_DEGREE] _children;
 
     invariant {
@@ -406,9 +392,9 @@ public:
 
   public:
     /**
-     * Given that this node is non-full, but a child node that is, split the child node into two
-     * separate nodes that are half full, and insert a value into this node between them.
-     */
+       Given that this node is non-full, but a child node that is, split the child node into two
+       separate nodes that are half full, and insert a value into this node between them.
+    */
     void splitChild(size_t i)
     in {
       assert(!isFull(), "this = " ~ toString());
@@ -456,9 +442,7 @@ public:
       // TODO: DISK-WRITE(this)
     }
 
-    /**
-     * Inserts a new value into the BTree, provided that this node is not already full.
-     */
+    /// Inserts a new value into the BTree, provided that this node is not already full.
     void insertNonFull(ValueT v)
     in {
       assert(!isFull());
@@ -773,9 +757,9 @@ public:
     }
 
     /**
-     * Recursively search for a given value and produce a result indicating whether a match
-     * was found and what it's value is.
-     */
+       Recursively search for a given value and produce a result indicating whether a match
+       was found and what it's value is.
+    */
     Iterator findFirstGE(ValueT v) {
       size_t i = findFirstGEIndex(v);
       if (i < _numValues && _isValueEqual(_values[i], v)) {
@@ -792,9 +776,9 @@ public:
     }
 
     /**
-     * Recursively search for a given value and produce a result indicating whether a match
-     * was found and what it's value is.
-     */
+       Recursively search for a given value and produce a result indicating whether a match
+       was found and what it's value is.
+    */
     Iterator findFirstGT(ValueT v) {
       size_t i = findFirstGTIndex(v);
 

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class DenseHashSet</title>
+		<link rel="stylesheet" type="text/css" href="../../../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view ">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class DenseHashSet</h1><p>A set implemented via a hash that very few empty slots.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">DenseHashSet</span>(Value, HashFcn, EqualKey)
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/dense_hash_set/DenseHashSet.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Basic constructor.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/dense_hash_set/DenseHashSet.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>A constructor based on interators which provide the values to add to the set.
+     With a DenseHashSet, the key and value types used for the DenseHashTable are the same.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/dense_hash_set/DenseHashSet.identity.html" class="public">
+								<code>identity</code>
+							</a>
+						</td>
+						<td>Apparently identity is not stl-standard, so we define our own
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/dense_hash_set/DenseHashSet.loadFactor.html" class="public">
+								<code>loadFactor</code>
+							</a>
+						</td>
+						<td>These are tr1 methods.  bucket() is the bucket the key is or would be in.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/dense_hash_set/DenseHashSet.minLoadFactor.html" class="public">
+								<code>minLoadFactor</code>
+							</a>
+						</td>
+						<td>These aren't tr1 methods but perhaps ought to be.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/dense_hash_set/DenseHashSet.opEquals.html" class="public">
+								<code>opEquals</code>
+							</a>
+						</td>
+						<td>Comparison functions.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/dense_hash_set/DenseHashSet.setKey.html" class="public">
+								<code>setKey</code>
+							</a>
+						</td>
+						<td>Key and Value are the same type in a DenseHashSet.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Aliases</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/dense_hash_set/DenseHashSet.HashTable.html" class="public">
+								<code>HashTable</code>
+							</a>
+						</td>
+						<td>The actual data.
+</td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>(c) 2005, Google Inc.
+   All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+</p>
+
+<p>   - Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+</p>
+
+<p>   - Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following disclaimer
+   in the documentation and/or other materials provided with the
+   distribution.
+</p>
+
+<p>   - Neither the name of Google Inc. nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+</p>
+
+<p>   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES \(INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION\) HOWEVER CAUSED AND ON ANY
+   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   \(INCLUDING NEGLIGENCE OR OTHERWISE\) ARISING IN ANY WAY OUT OF THE USE
+   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

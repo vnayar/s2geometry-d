@@ -35,6 +35,33 @@ $('#symbolSearchPane').show();</script>
 				</li>
 			</ul>
 				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="./s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="./s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="./s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
 				<li>
 					<div class="module ">
 						<a href="./s2/r1interval.html">r1interval</a>
@@ -82,6 +109,11 @@ $('#symbolSearchPane').show();</script>
 				</li>
 				<li>
 					<div class="module ">
+						<a href="./s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
 						<a href="./s2/s2shape.html">s2shape</a>
 					</div>
 				</li>
@@ -102,6 +134,42 @@ $('#symbolSearchPane').show();</script>
 				</td>
 				<td>
 					A mutex-free lock based on noop loops.
+
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="./s2/util/container/btree.html">s2.util.container.btree</a>
+				</td>
+				<td>
+					Implementation of a B-Tree based upon "Introduction to Algorithms".
+
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="./s2/util/container/dense_hash_set.html">s2.util.container.dense_hash_set</a>
+				</td>
+				<td>
+					This is just a very thin wrapper over dense_hash_table.d, just
+   like sgi stl's stl_hash_set is a very thin wrapper over
+   stl_hashtable.  The major thing we define is operator[], because
+   we have a concept of a data_type which stl_hashtable doesn't
+   \(it only has a key and a value\).
+
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="./s2/util/container/dense_hash_table.html">s2.util.container.dense_hash_table</a>
+				</td>
+				<td>
+					A dense hashtable is a particular implementation of
+   a hashtable: one that is meant to minimize memory allocation.
+   It does this by using an array to store all the data.  We
+   steal a value from the key space to indicate "empty" array
+   elements (ie indices where no item lives) and another to indicate
+   "deleted" elements.
 
 				</td>
 			</tr>
@@ -183,6 +251,15 @@ $('#symbolSearchPane').show();</script>
 				</td>
 				<td>
 					A two-dimentional region over the unit sphere.
+
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="./s2/s2region_coverer.html">s2.s2region_coverer</a>
+				</td>
+				<td>
+					Allows arbitrary regions to be approximated as unions of cells (S2CellUnion).
 
 				</td>
 			</tr>

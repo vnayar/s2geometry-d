@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class S2RegionCoverer</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class S2RegionCoverer</h1><p>An S2RegionCoverer is a class that allows arbitrary regions to be
+   approximated as unions of cells (S2CellUnion).  This is useful for
+   implementing various sorts of search and precomputation operations.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">S2RegionCoverer</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>Typical usage:
+</p>
+<pre class="code"><code class="lang-d"><span class="kwd">auto <a href="../../s2/s2region_coverer/S2RegionCoverer.options.html"></span><span class="pln">options</span></a><span class="pln"> </span><span class="pun">= </span><span class="kwd">new <a href="../../s2/s2region_coverer/S2RegionCoverer.Options.html"></span><span class="typ">S2RegionCoverer<wbr/></span><span class="pun">.</span><span class="typ">Options</span></a><span class="pun">();
+</span><span class="pln">options<wbr/></span><span class="pun">.</span><span class="pln">setMaxCells</span><span class="pun">(</span><span class="lit">5</span><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">coverer </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">S2RegionCoverer</span><span class="pun">(<a href="../../s2/s2region_coverer/S2RegionCoverer.options.html"></span><span class="pln">options</span></a><span class="pun">);
+</span><span class="kwd">auto </span><span class="pln">cap </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">S2Cap</span><span class="pun">(</span><span class="pln">center</span><span class="pun">, </span><span class="pln">radius</span><span class="pun">);
+</span><span class="typ">S2CellUnion </span><span class="pln">covering </span><span class="pun">= </span><span class="pln">coverer<wbr/></span><span class="pun">.</span><span class="pln">getCovering</span><span class="pun">(</span><span class="pln">cap</span><span class="pun">);</span></code></pre>
+
+<p>   This yields a vector of at most 5 cells that is guaranteed to cover the
+   given cap (a disc-shaped region on the sphere).
+</p>
+
+<p>   The approximation algorithm is not optimal but does a pretty good job in
+   practice.  The output does not always use the maximum number of cells
+   allowed, both because this would not always yield a better approximation,
+   and because max_cells() is a limit on how much work is done exploring the
+   possible covering as well as a limit on the final output size.
+</p>
+
+<p>   Because it is an approximation algorithm, one should not rely on the
+   stability of the output.  In particular, the output of the covering algorithm
+   may change across different versions of the library.
+</p>
+
+<p>   One can also generate interior coverings, which are sets of cells which
+   are entirely contained within a region.  Interior coverings can be
+   empty, even for non-empty regions, if there are no cells that satisfy
+   the provided constraints and are contained by the region.  Note that for
+   performance reasons, it is wise to specify a max_level when computing
+   interior coverings - otherwise for regions with small or zero area, the
+   algorithm may spend a lot of time subdividing cells all the way to leaf
+   level to try to find contained cells.
+</p>
+</section>
+
+			<section><h2>Constructors</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.this.html" class="public">
+								<code>this</code>
+							</a>
+						</td>
+						<td>Constructs an S2RegionCoverer with the given options.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.canonicalizeCovering.html" class="public">
+								<code>canonicalizeCovering</code>
+							</a>
+						</td>
+						<td>Modify "covering" if necessary so that it conforms to the current
+     covering parameters (max_cells, min_level, max_level, and level_mod).
+     There are no restrictions on the input S2CellIds (they may be unsorted,
+     overlapping, etc).
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.floodFill.html" class="public">
+								<code>floodFill</code>
+							</a>
+						</td>
+						<td>Given a region and a starting cell, returns the set of all the
+     edge-connected cells at the same level that intersect "region".
+     The output cells are returned in arbitrary order.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.getCovering.html" class="public">
+								<code>getCovering</code>
+							</a>
+						</td>
+						<td>Returns an S2CellUnion that covers (GetCovering) or is contained within
+     (GetInteriorCovering) the given region and satisfies the current options.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.getCovering.html" class="public">
+								<code>getCovering</code>
+							</a>
+						</td>
+						<td>Like the methods above, but works directly with a vector of S2CellIds.
+     This version can be more efficient when this method is called many times,
+     since it does not require allocating a new vector on each call.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.getFastCovering.html" class="public">
+								<code>getFastCovering</code>
+							</a>
+						</td>
+						<td>Like GetCovering(), except that this method is much faster and the
+     coverings are not as tight.  All of the usual parameters are respected
+     (max_cells, min_level, max_level, and level_mod), except that the
+     implementation makes no attempt to take advantage of large values of
+     max_cells().  (A small number of cells will always be returned.)
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.getSimpleCovering.html" class="public">
+								<code>getSimpleCovering</code>
+							</a>
+						</td>
+						<td>Given a connected region and a starting point, return a set of cells at
+     the given level that cover the region.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.isCanonical.html" class="public">
+								<code>isCanonical</code>
+							</a>
+						</td>
+						<td>Returns true if the given S2CellId vector represents a valid covering
+     that conforms to the current covering parameters.  In particular:
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.options.html" class="public">
+								<code>options</code>
+							</a>
+						</td>
+						<td>Returns the current options.  Options can be modifed between calls.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Inner classes</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../s2/s2region_coverer/S2RegionCoverer.Options.html" class="public">
+								<code>Options</code>
+							</a>
+						</td>
+						<td>Options for the S2RegionCoverer.
+</td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p>ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>2005 Google Inc. All Rights Reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+</p>
+
+<p>   <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>
+</p>
+
+<p>   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

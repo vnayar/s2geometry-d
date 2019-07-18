@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Function S2RegionCoverer.Options.maxCells</title>
+		<link rel="stylesheet" type="text/css" href="../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view collapsed">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Function S2RegionCoverer.Options.maxCells</h1><p>Sets the desired maximum number of cells in the approximation.  Note
+       the following:
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="typ">int</span> <span class="pln">maxCells</span><span class="pun">(</span><span class="pun">)</span><span class="pln"> </span><span class="kwd">const</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>- For any setting of max_cells(), up to 6 cells may be returned if
+          that is the minimum number required (e.g. if the region intersects
+          all six cube faces).  Even for very tiny regions, up to 3 cells may
+          be returned if they happen to be located at the intersection of
+          three cube faces.
+</p>
+
+<p>        - min_level() takes priority over max_cells(), i.e. cells below the
+          given level will never be used even if this causes a large number of
+          cells to be returned.
+</p>
+
+<p>        - If max_cells() is less than 4, the area of the covering may be
+          arbitrarily large compared to the area of the original region even
+          if the region is convex (e.g. an S2Cap or S2LatLngRect).
+</p>
+
+<p>       Accuracy is measured by dividing the area of the covering by the area
+       of the original region.  The following table shows the median and worst
+       case values for this area ratio on a test case consisting of 100,000
+       spherical caps of random size (generated using s2region_coverer_test):
+</p>
+
+<pre class="code"><code class="lang-d"><span class="pln">max_cells</span><span class="pun">:        </span><span class="lit">3      4     5     6     8    12    20   100   1000
+</span><span class="pln">median ratio</span><span class="pun">:  </span><span class="lit">5.33   3.32  2.73  2.34  1.98  1.66  1.42  1.11   1.01
+</span><span class="pln">worst </span><span class="kwd">case</span><span class="pun">:  </span><span class="lit">215518  14.41  9.72  5.26  3.91  2.75  1.92  1.20   1.02</span></code></pre>
+
+<p>       The default value of 8 gives a reasonable tradeoff between the number
+       of cells used and the accuracy of the approximation.
+</p>
+</section>
+
+			<section><h2>DEFAULT</h2>
+<p>DEFAULT_MAX_CELLS
+</p>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							<p>ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>2005 Google Inc. All Rights Reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+</p>
+
+<p>   <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>
+</p>
+
+<p>   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

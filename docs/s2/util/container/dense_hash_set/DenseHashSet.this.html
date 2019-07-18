@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>DenseHashSet.this - multiple declarations</title>
+		<link rel="stylesheet" type="text/css" href="../../../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view ">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>DenseHashSet.this - multiple declarations</h1>
+			<nav class="page-nav">
+				<ul>
+					<li>
+						<a href="#0">
+							Function <code>DenseHashSet.this</code>
+						</a>
+					</li>
+					<li>
+						<a href="#1">
+							Function <code>DenseHashSet.this</code>
+						</a>
+					</li>
+				</ul>
+			</nav><h2 id="0">Function DenseHashSet.this</h2><p>Basic constructor.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="pln">this</span>
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="pln">size_t</span> <span class="pln">expected_max_items_in_table</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">HashFcn</span> <span class="pln">hashFcn</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">EqualKey</span> <span class="pln">equalKey</span>
+			<br/>
+			<span class="pun">)</span><span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			
+			<h2 id="1">Function DenseHashSet.this</h2><p>A constructor based on interators which provide the values to add to the set.
+     With a DenseHashSet, the key and value types used for the DenseHashTable are the same.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="pln">this</span>(InputIterator)
+			<span class="pun">(</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">InputIterator</span> <span class="pln">f</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">InputIterator</span> <span class="pln">l</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">Value</span> <span class="pln">empty_key_val</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="pln">size_t</span> <span class="pln">expected_max_items_in_table</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">HashFcn</span> <span class="pln">hashFcn</span><span class="pun">,</span>
+			<br/>
+			&nbsp;&nbsp;<span class="typ">EqualKey</span> <span class="pln">equalKey</span>
+			<br/>
+			<span class="pun">)</span>
+			<br/>
+			<span class="kwd">if</span> <span class="pun">(</span><span class="kwd">is</span><span class="pun">(</span><span class="kwd">typeof</span><span class="pun">(*</span><span class="typ">InputIterator<wbr/></span><span class="pun">.</span><span class="pln">init</span><span class="pun">) : </span><span class="typ">Value</span><span class="pun">)</span><span class="pun">);</span>
+					</div>
+				</code>
+			</div>
+			<section></section>
+
+			<section><h3>Parameters</h3>
+<table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
+<tr><td id="InputIterator">InputIterator</td><td> Compile-time type parameter of the iterators that support the "*" operator.</td></tr>
+<tr><td id="f">f</td><td> Iterator for the first value.</td></tr>
+<tr><td id="l">l</td><td> Iterator for the last value.</td></tr>
+<tr><td id="empty_key_val">empty_key_val</td><td> An unused value that can be used to represent an "empty" hash slot.</td></tr>
+<tr><td id="expected_max_items_in_table">expected_max_items_in_table</td><td> Sets an initial size to help avoid additional memory allocations.</td></tr>
+<tr><td id="hashFcn">hashFcn</td><td> A function for computin the hash of Value.</td></tr>
+<tr><td id="equalKey">equalKey</td><td> A function to determine if two Values are equal.</td></tr>
+</table>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>(c) 2005, Google Inc.
+   All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+</p>
+
+<p>   - Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+</p>
+
+<p>   - Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following disclaimer
+   in the documentation and/or other materials provided with the
+   distribution.
+</p>
+
+<p>   - Neither the name of Google Inc. nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+</p>
+
+<p>   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES \(INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION\) HOWEVER CAUSED AND ON ANY
+   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   \(INCLUDING NEGLIGENCE OR OTHERWISE\) ARISING IN ANY WAY OUT OF THE USE
+   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

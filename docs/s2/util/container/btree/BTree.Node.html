@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class BTree.Node</title>
+		<link rel="stylesheet" type="text/css" href="../../../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view ">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../../../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class BTree.Node</h1><p>A node in the BTree.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">Node</span>
+			<span class="pun">;</span>
+					</div>
+				</code>
+			</div>
+			<section><p>A notable feature is that the values that are inserted are stored inside the BTree itself
+     in the case of value data types, such as integers, floats, static arrays, or structs. In
+     other cases, such as dynamic arrays and classes, on the reference is stored.
+</p>
+</section>
+
+			<section><h2>Fields</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node._children.html" class="public"><code>_children</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../../../s2/util/container/btree/BTree.Node.html"><span class="typ">BTree<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Node</span></a><span class="pun">[</span><span class="pln">MAX_DEGREE</span><span class="pun">]</span></code></td><td>Only non-leaf (internal) nodes have children.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node._isLeaf.html" class="public"><code>_isLeaf</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="typ">bool</span></code></td><td>A flag indicating whether the node is a leaf node or not.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node._numValues.html" class="public"><code>_numValues</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">size_t</span></code></td><td>A count of the number of values in the node.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node._parent.html" class="public"><code>_parent</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><a href="../../../../s2/util/container/btree/BTree.Node.html"><span class="typ">BTree<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Node</span></a></code></td><td>A reference to the node's parent.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node._position.html" class="public"><code>_position</code></a>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="pln">size_t</span></code></td><td>The position of the node in the node's parent.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node.findFirstGE.html" class="public">
+								<code>findFirstGE</code>
+							</a>
+						</td>
+						<td>Recursively search for a given value and produce a result indicating whether a match
+       was found and what it's value is.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node.findFirstGT.html" class="public">
+								<code>findFirstGT</code>
+							</a>
+						</td>
+						<td>Recursively search for a given value and produce a result indicating whether a match
+       was found and what it's value is.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node.getValue.html" class="public">
+								<code>getValue</code>
+							</a>
+						</td>
+						<td>Retrieves a values stored in this node.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node.insertNonFull.html" class="public">
+								<code>insertNonFull</code>
+							</a>
+						</td>
+						<td>Inserts a new value into the BTree, provided that this node is not already full.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node.isFull.html" class="public">
+								<code>isFull</code>
+							</a>
+						</td>
+						<td>Indicates if the node has reached the size limit specified in <code class="lang-d">NodeSizeV</code>.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node.numValues.html" class="public">
+								<code>numValues</code>
+							</a>
+						</td>
+						<td>Indicates how many values are in this node.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node.splitChild.html" class="public">
+								<code>splitChild</code>
+							</a>
+						</td>
+						<td>Given that this node is non-full, but a child node that is, split the child node into two
+       separate nodes that are half full, and insert a value into this node between them.
+</td>
+					</tr>
+				</table>
+			</section>
+			
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

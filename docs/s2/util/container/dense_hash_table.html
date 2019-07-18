@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Module s2.util.container.dense_hash_table</title>
+		<link rel="stylesheet" type="text/css" href="../../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view ">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Module s2.util.container.dense_hash_table</h1><p>A dense hashtable is a particular implementation of
+   a hashtable: one that is meant to minimize memory allocation.
+   It does this by using an array to store all the data.  We
+   steal a value from the key space to indicate "empty" array
+   elements (ie indices where no item lives) and another to indicate
+   "deleted" elements.
+</p><section><p>(Note it is possible to change the value of the delete key
+   on the fly; you can even remove it, though after that point
+   the hashtable is insert_only until you set it again.  The empty
+   value however can't be changed.)
+</p>
+
+<p>   To minimize allocation and pointer overhead, we use internal
+   probing, in which the hashtable is a single table, and collisions
+   are resolved by trying to insert again in another bucket.  The
+   most cache-efficient internal probing schemes are linear probing
+   (which suffers, alas, from clumping) and quadratic probing, which
+   is what we implement by default.
+</p>
+
+<p>   Type requirements: value_type is required to be Copy Constructible
+   and Default Constructible. It is not required to be (and commonly
+   isn't) Assignable.
+</p>
+
+<p>   You probably shouldn't use this code directly.  Use dense_hash_map&lt;&gt;
+   or dense_hash_set&lt;&gt; instead.
+</p>
+
+<p>   You can change the following below:
+</p>
+
+<p>   - HT_OCCUPANCY_PCT      -- how full before we double size
+</p>
+
+<p>   - HT_EMPTY_PCT          -- how empty before we halve size
+</p>
+
+<p>   - HT_MIN_BUCKETS        -- default smallest bucket size
+</p>
+
+<p>   You can also change enlarge_factor (which defaults to
+   HT_OCCUPANCY_PCT), and shrink_factor (which defaults to
+   HT_EMPTY_PCT) with set_resizing_parameters().
+</p>
+
+<p>   How to decide what values to use?
+   shrink_factor's default of .4 * OCCUPANCY_PCT, is probably good.
+   HT_MIN_BUCKETS is probably unnecessary since you can specify
+   (indirectly) the starting number of buckets at construct-time.
+   For enlarge_factor, you can use this chart to try to trade-off
+   expected lookup time to the space taken up.  By default, this
+   code uses quadratic probing, though you can change it to linear
+   via JUMP_ below if you really want to.
+</p>
+
+<p>   From http://www.augustana.ca/~mohrj/courses/1999.fall/csc210/lecture_notes/hashing.html
+</p>
+
+<pre class="code"><code class="lang-d"><span class="pln">NUMBER OF PROBES </span><span class="pun">/ </span><span class="pln">LOOKUP       </span><span class="typ">Successful            Unsuccessful
+Quadratic </span><span class="pln">collision resolution   </span><span class="lit">1 </span><span class="pun">- </span><span class="pln">ln</span><span class="pun">(</span><span class="lit">1</span><span class="pun">-</span><span class="pln">L</span><span class="pun">) - </span><span class="pln">L</span><span class="pun">/</span><span class="lit">2    1</span><span class="pun">/(</span><span class="lit">1</span><span class="pun">-</span><span class="pln">L</span><span class="pun">) - </span><span class="pln">L </span><span class="pun">- </span><span class="pln">ln</span><span class="pun">(</span><span class="lit">1</span><span class="pun">-</span><span class="pln">L</span><span class="pun">)
+</span><span class="typ">Linear </span><span class="pln">collision resolution     </span><span class="pun">[</span><span class="lit">1</span><span class="pun">+</span><span class="lit">1</span><span class="pun">/(</span><span class="lit">1</span><span class="pun">-</span><span class="pln">L</span><span class="pun">)]/</span><span class="lit">2         </span><span class="pun">[</span><span class="lit">1</span><span class="pun">+</span><span class="lit">1</span><span class="pun">/(</span><span class="lit">1</span><span class="pun">-</span><span class="pln">L</span><span class="pun">)</span><span class="lit">2</span><span class="pun">]/</span><span class="lit">2
+
+</span><span class="pun">-- </span><span class="pln">enlarge_factor </span><span class="pun">--           </span><span class="lit">0.10  0.50  0.60  0.75  0.80  0.90  0.99
+</span><span class="pln">QUADRATIC COLLISION RES<wbr/></span><span class="pun">.
+   </span><span class="pln">probes</span><span class="pun">/</span><span class="pln">successful lookup    </span><span class="lit">1.05  1.44  1.62  2.01  2.21  2.85  5.11
+   </span><span class="pln">probes</span><span class="pun">/</span><span class="pln">unsuccessful lookup  </span><span class="lit">1.11  2.19  2.82  4.64  5.81  11.4  103.6
+</span><span class="pln">LINEAR COLLISION RES<wbr/></span><span class="pun">.
+   </span><span class="pln">probes</span><span class="pun">/</span><span class="pln">successful lookup    </span><span class="lit">1.06  1.5   1.75  2.5   3.0   5.5   50.5
+   </span><span class="pln">probes</span><span class="pun">/</span><span class="pln">unsuccessful lookup  </span><span class="lit">1.12  2.5   3.6   8.5   13.0  50.0  5000.0</span></code></pre>
+</section>
+
+			<section></section>
+			<section>
+				<h2>Classes</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="DenseHashTable" class="public" href="../../../s2/util/container/dense_hash_table/DenseHashTable.html">DenseHashTable</a>
+							</code>
+						</td>
+						<td>Hashtable class, used to implement the hashed associative containers
+hash_set and hash_map.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Structs</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="DenseHashTableIterator" class="public" href="../../../s2/util/container/dense_hash_table/DenseHashTableIterator.html">DenseHashTableIterator</a>
+							</code>
+						</td>
+						<td>A basic iterator type for finding entries and iterating.
+ We're just an array, but we need to skip over empty and deleted elements.
+</td>
+					</tr>
+				</table>
+			</section>
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>(c) 2005, Google Inc.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>All rights reserved.
+</p>
+
+<p>   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+</p>
+
+<p>       * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+       * Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following disclaimer
+   in the documentation and/or other materials provided with the
+   distribution.
+       * Neither the name of Google Inc. nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+</p>
+
+<p>   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

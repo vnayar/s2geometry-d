@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Class BTree</title>
+		<link rel="stylesheet" type="text/css" href="../../../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view ">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module selected">
+						<a href="../../../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Class BTree</h1><p>A B-Tree implementation based upon "Introduction to Algorithms" by Cormen, Leiserson, Rivest,
+   and Stein.
+</p>
+			<div class="prototype">
+				<code class="lang-d">
+					<div class="single-prototype">
+			<span class="kwd">class</span> <span class="typ">BTree</span>(ValueT, <span class="typ">ulong</span> NodeSizeV<span class="pln"> </span><span class="pun">= </span><span class="lit">256</span>, alias ValueLessF)
+			<br/>
+			&nbsp;&nbsp;
+			<br/>
+			<span class="kwd">if</span> <span class="pun">(</span><span class="kwd">is</span><span class="pun">(</span><span class="kwd">typeof</span><span class="pun">(</span><span class="pln">binaryFun</span><span class="pun">!</span><span class="typ">ValueLessF</span><span class="pun">(</span><span class="typ">ValueT<wbr/></span><span class="pun">.</span><span class="pln">init</span><span class="pun">, </span><span class="typ">ValueT<wbr/></span><span class="pun">.</span><span class="pln">init</span><span class="pun">)) : </span><span class="typ">bool</span><span class="pun">)</span><span class="pun">);</span>
+					</div>
+				</code>
+			</div>
+			<section><p>B-Trees are both smaller and faster than most implementations of set/map. The red-black tree
+   implementation of a set/map typically has an overhead of 3 pointers (left, right, and parent)
+   plus the node color information for each stored value.  This B-Tree implementation stores
+   multiple values on fixed size nodes (usually 256 bytes) and does not store child pointers for
+   leaf nodes.
+</p>
+
+<p>   The packing of multiple values into each node of a B-Tree also improves cache locality which
+   translates into faster operations.
+</p>
+
+<p>   Because nodes contain both node pointers and values, a BTree will not have good performance
+   when used with large types that are passed by value, such as large structs.
+</p>
+
+<p>   As always, using the BTree with class objects, which are passed by reference, also avoids
+   storage in the BTree itself.
+</p>
+</section>
+
+			<section><h2>Properties</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Type</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.root.html" class="public property"><code>root</code></a><span class="tableEntryAnnotation">[get]</span>
+						</td>
+						<td class="typecol"><code class="prettyprint lang-d"><span class="kwd">inout</span><span class="pun">(</span><a href="../../../../s2/util/container/btree/BTree.Node.html"><span class="typ">BTree<wbr/></span><span class="pun">.<wbr/></span><span class="typ">Node</span></a><span class="pun">)</span></code></td><td>The root Node of the B-Tree.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Methods</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree._isValueEqual.html" class="public">
+								<code>_isValueEqual</code>
+							</a>
+						</td>
+						<td>Wrapper for ValueLessF that will fail at compile time if its signature does not match.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.begin.html" class="public">
+								<code>begin</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.clear.html" class="public">
+								<code>clear</code>
+							</a>
+						</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.equalRange.html" class="public">
+								<code>equalRange</code>
+							</a>
+						</td>
+						<td>Find a range of elements whose value is equal to 'v'.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.getMinDegree.html" class="public">
+								<code>getMinDegree</code>
+							</a>
+						</td>
+						<td>Gets the minimum degree of the B-Tree.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.insert.html" class="public">
+								<code>insert</code>
+							</a>
+						</td>
+						<td>Inserts a new value into the BTree.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.lowerRange.html" class="public">
+								<code>lowerRange</code>
+							</a>
+						</td>
+						<td>Returns a range of all elements strictly less than 'v'.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.opBinaryRight.html" class="public">
+								<code>opBinaryRight</code>
+							</a>
+						</td>
+						<td>Implements the "in" operator for membership.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.opIndex.html" class="public">
+								<code>opIndex</code>
+							</a>
+						</td>
+						<td>A full slice for expressions of the form: myBTree[].
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.opSlice.html" class="public">
+								<code>opSlice</code>
+							</a>
+						</td>
+						<td>Defines the structure of a slice for slice expression of the form: myBTree[a..b].
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.remove.html" class="public">
+								<code>remove</code>
+							</a>
+						</td>
+						<td>Removes a value and value from the BTree if it exists.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.upperRange.html" class="public">
+								<code>upperRange</code>
+							</a>
+						</td>
+						<td>Returns a range of all elements strictly greater than 'v'.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Inner classes</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Node.html" class="public">
+								<code>Node</code>
+							</a>
+						</td>
+						<td>A node in the BTree.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Inner structs</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Iterator.html" class="public">
+								<code>Iterator</code>
+							</a>
+						</td>
+						<td>Lower level iterators on the tree.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="../../../../s2/util/container/btree/BTree.Range.html" class="public">
+								<code>Range</code>
+							</a>
+						</td>
+						<td>D-style Ranges.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section><h2>Parameters</h2>
+<table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
+<tr><td id="ValueT">ValueT</td><td> The element type to be organized by the BTree.</td></tr>
+<tr><td id="NodeSizeV">NodeSizeV</td><td> The size in bytes of a node in the BinaryTree. Values are chosen to optimize
+       performance depending on usage. For example, a value of 4096 bytes may be useful when
+       retrieving items from disk, or the value 256 bytes to assure good use of CPU caches.
+       The default value is 256 bytes.</td></tr>
+<tr><td id="ValueLessF">ValueLessF</td><td> A less-than comparison function for values, either a function or a string
+       representing a function as described by
+       <a href="https://dlang.org/phobos/std_functional.html#binaryFun">std.functional.binaryFun</a>.</td></tr>
+</table>
+</section>
+<section><h2>Example</h2>
+<p>Simple use case with primitive types.
+</p>
+<pre class="code"><code class="lang-d"><span class="kwd">auto </span><span class="pln">btree </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">BTree</span><span class="pun">!</span><span class="typ">int</span><span class="pun">();
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="lit">2</span><span class="pun">);
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="lit">3</span><span class="pun">);
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="lit">4</span><span class="pun">);
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="lit">1</span><span class="pun">);
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="lit">4</span><span class="pun">);
+
+</span><span class="com">// equalRange() provides a range used to get the tree values equal to the given search value.
+</span><span class="kwd">auto </span><span class="pln">r </span><span class="pun">= </span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="lit">2</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(!</span><span class="pln">r<wbr/></span><span class="pun">.</span><span class="pln">empty</span><span class="pun">());
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">r<wbr/></span><span class="pun">.</span><span class="pln">front</span><span class="pun">() == </span><span class="lit">2</span><span class="pun">);
+
+</span><span class="com">// There can be more than one match.
+</span><span class="pln">r </span><span class="pun">= </span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="lit">4</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(!</span><span class="pln">r<wbr/></span><span class="pun">.</span><span class="pln">empty</span><span class="pun">());
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">r<wbr/></span><span class="pun">.</span><span class="pln">front</span><span class="pun">() == </span><span class="lit">4</span><span class="pun">);
+</span><span class="pln">r<wbr/></span><span class="pun">.</span><span class="pln">popFront</span><span class="pun">();
+</span><span class="kwd">assert</span><span class="pun">(!</span><span class="pln">r<wbr/></span><span class="pun">.</span><span class="pln">empty</span><span class="pun">());
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">r<wbr/></span><span class="pun">.</span><span class="pln">front</span><span class="pun">() == </span><span class="lit">4</span><span class="pun">);
+
+</span><span class="com">// If there is not match, an empty range is returned.
+</span><span class="pln">r </span><span class="pun">= </span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(-</span><span class="lit">3</span><span class="pun">);
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">r<wbr/></span><span class="pun">.</span><span class="pln">empty</span><span class="pun">());
+</span></code></pre>
+</section>
+<section><h2>Example</h2>
+<p>Use case using comparison by a specific value.
+</p>
+<pre class="code"><code class="lang-d"><span class="kwd">struct </span><span class="typ">Structo </span><span class="pun">{
+  </span><span class="typ">int </span><span class="pln">_id</span><span class="pun">;
+  </span><span class="typ">string </span><span class="pln">_data</span><span class="pun">;
+}
+
+</span><span class="com">// Organize the BTree using the _id field as the value used for comparison.
+</span><span class="kwd">auto </span><span class="pln">btree </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">BTree</span><span class="pun">!(</span><span class="typ">Structo</span><span class="pun">, </span><span class="lit">1024</span><span class="pun">, </span><span class="str">"a._id &lt; b._id"</span><span class="pun">);
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">1</span><span class="pun">, </span><span class="str">"Good Day"</span><span class="pun">));
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">2</span><span class="pun">, </span><span class="str">"Guten Tag"</span><span class="pun">));
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">3</span><span class="pun">, </span><span class="str">"G'Day Mate"</span><span class="pun">));
+</span><span class="kwd">assert</span><span class="pun">(!</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">2</span><span class="pun">))<wbr/>.</span><span class="pln">empty</span><span class="pun">());
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">4</span><span class="pun">))<wbr/>.</span><span class="pln">empty</span><span class="pun">());
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">3</span><span class="pun">))<wbr/>.</span><span class="pln">front</span><span class="pun">()<wbr/>.</span><span class="pln">_data </span><span class="pun">== </span><span class="str">"G'Day Mate"</span><span class="pun">);
+</span></code></pre>
+</section>
+<section><h2>Example</h2>
+<p>Use case using comparison by a specific value.
+</p>
+<pre class="code"><code class="lang-d"><span class="kwd">struct </span><span class="typ">Structo </span><span class="pun">{
+  </span><span class="typ">int </span><span class="pln">_id</span><span class="pun">;
+  </span><span class="typ">string </span><span class="pln">_data</span><span class="pun">;
+}
+
+</span><span class="com">// This time use the string _data field, but only the first two characters.
+</span><span class="kwd">auto </span><span class="pln">btree2 </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">BTree</span><span class="pun">!(</span><span class="typ">Structo</span><span class="pun">, </span><span class="lit">1024</span><span class="pun">, </span><span class="str">"a._data[0..2] &gt; b._data[0..2]"</span><span class="pun">);
+
+</span><span class="com">// Lambdas may also be used.
+</span><span class="kwd">auto </span><span class="pln">btree3 </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">BTree</span><span class="pun">!(
+    </span><span class="typ">Structo</span><span class="pun">,  </span><span class="com">// The type of thing being stored in the BTree.
+    </span><span class="lit">1024</span><span class="pun">,  </span><span class="com">// The size of a node in bytes.
+    </span><span class="pun">(</span><span class="pln">a</span><span class="pun">, </span><span class="pln">b</span><span class="pun">) =&gt; </span><span class="pln">a<wbr/></span><span class="pun">.</span><span class="pln">_data</span><span class="pun">[</span><span class="lit">0</span><span class="pun">..</span><span class="lit">2</span><span class="pun">] &gt; </span><span class="pln">b<wbr/></span><span class="pun">.</span><span class="pln">_data</span><span class="pun">[</span><span class="lit">0</span><span class="pun">..</span><span class="lit">2</span><span class="pun">]);  </span><span class="com">// Determine if one value is less than another.
+
+</span><span class="pln">btree3<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">1</span><span class="pun">, </span><span class="str">"RW-Fish"</span><span class="pun">));
+</span><span class="pln">btree3<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">2</span><span class="pun">, </span><span class="str">"LG-Sheep"</span><span class="pun">));
+</span><span class="pln">btree3<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">3</span><span class="pun">, </span><span class="str">"BK-Bunny"</span><span class="pun">));
+</span><span class="kwd">assert</span><span class="pun">(!</span><span class="pln">btree3<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">0</span><span class="pun">, </span><span class="str">"RW"</span><span class="pun">))<wbr/>.</span><span class="pln">empty</span><span class="pun">());
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">btree3<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">0</span><span class="pun">, </span><span class="str">"ZM"</span><span class="pun">))<wbr/>.</span><span class="pln">empty</span><span class="pun">());
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">btree3<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="typ">Structo</span><span class="pun">(</span><span class="lit">0</span><span class="pun">, </span><span class="str">"BK"</span><span class="pun">))<wbr/>.</span><span class="pln">front</span><span class="pun">()<wbr/>.</span><span class="pln">_data </span><span class="pun">== </span><span class="str">"BK-Bunny"</span><span class="pun">);
+</span></code></pre>
+</section>
+<section><h2>Example</h2>
+<p>Use case compatible with class comparing operator overrides:
+</p>
+<pre class="code"><code class="lang-d"><span class="kwd">class </span><span class="typ">Thingy </span><span class="pun">{
+  </span><span class="typ">int </span><span class="pln">_a</span><span class="pun">, </span><span class="pln">_b</span><span class="pun">;
+
+  </span><span class="kwd">this</span><span class="pun">(</span><span class="typ">int </span><span class="pln">a</span><span class="pun">, </span><span class="typ">int </span><span class="pln">b</span><span class="pun">) {
+    </span><span class="pln">_a </span><span class="pun">= </span><span class="pln">a</span><span class="pun">;
+    </span><span class="pln">_b </span><span class="pun">= </span><span class="pln">b</span><span class="pun">;
+  }
+
+  </span><span class="typ">int </span><span class="pln">opCmp</span><span class="pun">(</span><span class="kwd">in </span><span class="typ">Thingy </span><span class="pln">o</span><span class="pun">) </span><span class="kwd">const </span><span class="pun">{
+    </span><span class="kwd">return </span><span class="pln">_a </span><span class="pun">&lt; </span><span class="pln">o<wbr/></span><span class="pun">.</span><span class="pln">_a </span><span class="pun">? -</span><span class="lit">1
+        </span><span class="pun">: </span><span class="pln">_a </span><span class="pun">&gt; </span><span class="pln">o<wbr/></span><span class="pun">.</span><span class="pln">_a </span><span class="pun">? </span><span class="lit">1
+        </span><span class="pun">: </span><span class="pln">_b </span><span class="pun">&lt; </span><span class="pln">o<wbr/></span><span class="pun">.</span><span class="pln">_b </span><span class="pun">? -</span><span class="lit">1
+        </span><span class="pun">: </span><span class="pln">_b </span><span class="pun">&gt; </span><span class="pln">o<wbr/></span><span class="pun">.</span><span class="pln">_b </span><span class="pun">? </span><span class="lit">1
+        </span><span class="pun">: </span><span class="lit">0</span><span class="pun">;
+  }
+
+  </span><span class="kwd">override
+  </span><span class="typ">bool </span><span class="pln">opEquals</span><span class="pun">(</span><span class="kwd">in </span><span class="typ">Object </span><span class="pln">o</span><span class="pun">) </span><span class="kwd">const </span><span class="pun">{
+    </span><span class="typ">Thingy </span><span class="pln">other </span><span class="pun">= </span><span class="kwd">cast</span><span class="pun">(</span><span class="typ">Thingy</span><span class="pun">) </span><span class="pln">o</span><span class="pun">;
+    </span><span class="kwd">if </span><span class="pun">(</span><span class="pln">other </span><span class="kwd">is null</span><span class="pun">) </span><span class="kwd">return false</span><span class="pun">;
+    </span><span class="kwd">return </span><span class="pln">_a </span><span class="pun">== </span><span class="pln">other<wbr/></span><span class="pun">.</span><span class="pln">_a </span><span class="pun">&amp;&amp; </span><span class="pln">_b </span><span class="pun">== </span><span class="pln">other<wbr/></span><span class="pun">.</span><span class="pln">_b</span><span class="pun">;
+  }
+}
+
+</span><span class="kwd">auto </span><span class="pln">btree </span><span class="pun">= </span><span class="kwd">new </span><span class="typ">BTree</span><span class="pun">!</span><span class="typ">Thingy</span><span class="pun">();
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="kwd">new </span><span class="typ">Thingy</span><span class="pun">(</span><span class="lit">1</span><span class="pun">, </span><span class="lit">2</span><span class="pun">));
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="kwd">new </span><span class="typ">Thingy</span><span class="pun">(</span><span class="lit">1</span><span class="pun">, </span><span class="lit">3</span><span class="pun">));
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="kwd">new </span><span class="typ">Thingy</span><span class="pun">(</span><span class="lit">2</span><span class="pun">, </span><span class="lit">1</span><span class="pun">));
+</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">insert</span><span class="pun">(</span><span class="kwd">new </span><span class="typ">Thingy</span><span class="pun">(</span><span class="lit">1</span><span class="pun">, </span><span class="lit">2</span><span class="pun">));
+
+</span><span class="kwd">assert</span><span class="pun">(!</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="kwd">new </span><span class="typ">Thingy</span><span class="pun">(</span><span class="lit">2</span><span class="pun">, </span><span class="lit">1</span><span class="pun">))<wbr/>.</span><span class="pln">empty</span><span class="pun">());
+</span><span class="kwd">assert</span><span class="pun">(</span><span class="pln">btree<wbr/></span><span class="pun">.</span><span class="pln">equalRange</span><span class="pun">(</span><span class="kwd">new </span><span class="typ">Thingy</span><span class="pun">(</span><span class="lit">2</span><span class="pun">, </span><span class="lit">2</span><span class="pun">))<wbr/>.</span><span class="pln">empty</span><span class="pun">());
+</span></code></pre>
+</section>
+
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

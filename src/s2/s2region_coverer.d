@@ -1,21 +1,23 @@
-// Copyright 2005 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
+/**
+   Allows arbitrary regions to be approximated as unions of cells (S2CellUnion).
 
-// Original Author: ericv@google.com (Eric Veach)
-// Converted to D:  madric@gmail.com (Vijay Nayar)
+   Copyright: 2005 Google Inc. All Rights Reserved.
 
+   License:
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   $(LINK http://www.apache.org/licenses/LICENSE-2.0)
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS-IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   Authors: ericv@google.com (Eric Veach), madric@gmail.com (Vijay Nayar)
+*/
 module s2.s2region_coverer;
 
 import s2.logger;
@@ -31,79 +33,83 @@ import std.container : BinaryHeap, heapify;
 import std.range : assumeSorted, chain, SortedRange, takeOne;
 
 /**
- * An S2RegionCoverer is a class that allows arbitrary regions to be
- * approximated as unions of cells (S2CellUnion).  This is useful for
- * implementing various sorts of search and precomputation operations.
- *
- * Typical usage:
- *
- * S2RegionCoverer::Options options;
- * options.set_max_cells(5);
- * S2RegionCoverer coverer(options);
- * S2Cap cap(center, radius);
- * S2CellUnion covering = coverer.GetCovering(cap);
- *
- * This yields a vector of at most 5 cells that is guaranteed to cover the
- * given cap (a disc-shaped region on the sphere).
- *
- * The approximation algorithm is not optimal but does a pretty good job in
- * practice.  The output does not always use the maximum number of cells
- * allowed, both because this would not always yield a better approximation,
- * and because max_cells() is a limit on how much work is done exploring the
- * possible covering as well as a limit on the final output size.
- *
- * Because it is an approximation algorithm, one should not rely on the
- * stability of the output.  In particular, the output of the covering algorithm
- * may change across different versions of the library.
- *
- * One can also generate interior coverings, which are sets of cells which
- * are entirely contained within a region.  Interior coverings can be
- * empty, even for non-empty regions, if there are no cells that satisfy
- * the provided constraints and are contained by the region.  Note that for
- * performance reasons, it is wise to specify a max_level when computing
- * interior coverings - otherwise for regions with small or zero area, the
- * algorithm may spend a lot of time subdividing cells all the way to leaf
- * level to try to find contained cells.
- */
+   An S2RegionCoverer is a class that allows arbitrary regions to be
+   approximated as unions of cells (S2CellUnion).  This is useful for
+   implementing various sorts of search and precomputation operations.
+
+   Typical usage:
+   ---
+   auto options = new S2RegionCoverer.Options();
+   options.setMaxCells(5);
+   auto coverer = new S2RegionCoverer(options);
+   auto cap = new S2Cap(center, radius);
+   S2CellUnion covering = coverer.getCovering(cap);
+   ---
+
+   This yields a vector of at most 5 cells that is guaranteed to cover the
+   given cap (a disc-shaped region on the sphere).
+
+   The approximation algorithm is not optimal but does a pretty good job in
+   practice.  The output does not always use the maximum number of cells
+   allowed, both because this would not always yield a better approximation,
+   and because max_cells() is a limit on how much work is done exploring the
+   possible covering as well as a limit on the final output size.
+
+   Because it is an approximation algorithm, one should not rely on the
+   stability of the output.  In particular, the output of the covering algorithm
+   may change across different versions of the library.
+
+   One can also generate interior coverings, which are sets of cells which
+   are entirely contained within a region.  Interior coverings can be
+   empty, even for non-empty regions, if there are no cells that satisfy
+   the provided constraints and are contained by the region.  Note that for
+   performance reasons, it is wise to specify a max_level when computing
+   interior coverings - otherwise for regions with small or zero area, the
+   algorithm may spend a lot of time subdividing cells all the way to leaf
+   level to try to find contained cells.
+*/
 class S2RegionCoverer {
 public:
 
+  /// Options for the S2RegionCoverer.
   static class Options {
   public:
-    /**
-     * Sets the desired maximum number of cells in the approximation.  Note
-     * the following:
-     *
-     *  - For any setting of max_cells(), up to 6 cells may be returned if
-     *    that is the minimum number required (e.g. if the region intersects
-     *    all six cube faces).  Even for very tiny regions, up to 3 cells may
-     *    be returned if they happen to be located at the intersection of
-     *    three cube faces.
-     *
-     *  - min_level() takes priority over max_cells(), i.e. cells below the
-     *    given level will never be used even if this causes a large number of
-     *    cells to be returned.
-     *
-     *  - If max_cells() is less than 4, the area of the covering may be
-     *    arbitrarily large compared to the area of the original region even
-     *    if the region is convex (e.g. an S2Cap or S2LatLngRect).
-     *
-     * Accuracy is measured by dividing the area of the covering by the area
-     * of the original region.  The following table shows the median and worst
-     * case values for this area ratio on a test case consisting of 100,000
-     * spherical caps of random size (generated using s2region_coverer_test):
-     *
-     *   max_cells:        3      4     5     6     8    12    20   100   1000
-     *   median ratio:  5.33   3.32  2.73  2.34  1.98  1.66  1.42  1.11   1.01
-     *   worst case:  215518  14.41  9.72  5.26  3.91  2.75  1.92  1.20   1.02
-     *
-     * The default value of 8 gives a reasonable tradeoff between the number
-     * of cells used and the accuracy of the approximation.
-     *
-     * DEFAULT: kDefaultMaxCells
-     */
     enum int DEFAULT_MAX_CELLS = 8;
 
+    /**
+       Sets the desired maximum number of cells in the approximation.  Note
+       the following:
+
+        - For any setting of max_cells(), up to 6 cells may be returned if
+          that is the minimum number required (e.g. if the region intersects
+          all six cube faces).  Even for very tiny regions, up to 3 cells may
+          be returned if they happen to be located at the intersection of
+          three cube faces.
+
+        - min_level() takes priority over max_cells(), i.e. cells below the
+          given level will never be used even if this causes a large number of
+          cells to be returned.
+
+        - If max_cells() is less than 4, the area of the covering may be
+          arbitrarily large compared to the area of the original region even
+          if the region is convex (e.g. an S2Cap or S2LatLngRect).
+
+       Accuracy is measured by dividing the area of the covering by the area
+       of the original region.  The following table shows the median and worst
+       case values for this area ratio on a test case consisting of 100,000
+       spherical caps of random size (generated using s2region_coverer_test):
+
+       ---
+         max_cells:        3      4     5     6     8    12    20   100   1000
+         median ratio:  5.33   3.32  2.73  2.34  1.98  1.66  1.42  1.11   1.01
+         worst case:  215518  14.41  9.72  5.26  3.91  2.75  1.92  1.20   1.02
+       ---
+
+       The default value of 8 gives a reasonable tradeoff between the number
+       of cells used and the accuracy of the approximation.
+
+       DEFAULT: DEFAULT_MAX_CELLS
+    */
     int maxCells() const {
       return _maxCells;
     }
@@ -113,26 +119,28 @@ public:
     }
 
     /**
-     * Sets the minimum and maximum cell levels to be used.  The default is to
-     * use all cell levels.
-     *
-     * To find the cell level corresponding to a given physical distance, use
-     * the S2Cell metrics defined in s2metrics.h.  For example, to find the
-     * cell level that corresponds to an average edge length of 10km, use:
-     *
-     *   int level =
-     *       S2::kAvgEdge.GetClosestLevel(S2Earth::KmToRadians(length_km));
-     *
-     * Note that min_level() takes priority over max_cells(), i.e. cells below
-     * the given level will never be used even if this causes a large number
-     * of cells to be returned.  (This doesn't apply to interior coverings,
-     * since interior coverings make no completeness guarantees -- the result
-     * is simply a set of cells that covers as much of the interior as
-     * possible while satisfying the given restrictions.)
-     *
-     * REQUIRES: max_level() >= min_level()
-     * DEFAULT: 0
-     */
+       Sets the minimum and maximum cell levels to be used.  The default is to
+       use all cell levels.
+
+       To find the cell level corresponding to a given physical distance, use
+       the S2Cell metrics defined in s2metrics.h.  For example, to find the
+       cell level that corresponds to an average edge length of 10km, use:
+
+       ---
+         int level =
+             AVG_EDGE.getClosestLevel(S2Earth.kmToRadians(length_km));
+       ---
+
+       Note that min_level() takes priority over max_cells(), i.e. cells below
+       the given level will never be used even if this causes a large number
+       of cells to be returned.  (This doesn't apply to interior coverings,
+       since interior coverings make no completeness guarantees -- the result
+       is simply a set of cells that covers as much of the interior as
+       possible while satisfying the given restrictions.)
+
+       Requires: max_level() >= min_level()
+       Default: 0
+    */
     int minLevel() const {
       return _minLevel;
     }
@@ -145,7 +153,7 @@ public:
       _minLevel = max(0, min(S2CellId.MAX_LEVEL, min_level));
     }
 
-    // DEFAULT: S2CellId::kMaxLevel
+    /// Default: `S2CellId.MAX_LEVEL`
     int maxLevel() const {
       return _maxLevel;
     }
@@ -165,14 +173,14 @@ public:
     }
 
     /**
-     * If specified, then only cells where (level - min_level) is a multiple
-     * of "level_mod" will be used (default 1).  This effectively allows the
-     * branching factor of the S2CellId hierarchy to be increased.  Currently
-     * the only parameter values allowed are 1, 2, or 3, corresponding to
-     * branching factors of 4, 16, and 64 respectively.
-     *
-     * DEFAULT: 1
-     */
+       If specified, then only cells where (level - min_level) is a multiple
+       of "level_mod" will be used (default 1).  This effectively allows the
+       branching factor of the S2CellId hierarchy to be increased.  Currently
+       the only parameter values allowed are 1, 2, or 3, corresponding to
+       branching factors of 4, 16, and 64 respectively.
+
+       Default: 1
+    */
     int levelMod() const {
       return _levelMod;
     }
@@ -186,12 +194,14 @@ public:
     }
 
     /**
-     * Convenience function that returns the maximum level such that
-     *
-     *   (level <= max_level()) && (level - min_level()) % level_mod() == 0.
-     *
-     * This is the maximum level that will actually be used in coverings.
-     */
+       Convenience function that returns the maximum level such that
+
+       ---
+       (level <= max_level()) && (level - min_level()) % level_mod() == 0.
+       ---
+
+       This is the maximum level that will actually be used in coverings.
+    */
     int trueMaxLevel() const {
       if (_levelMod == 1) return _maxLevel;
       return _maxLevel - (_maxLevel - _minLevel) % _levelMod;
@@ -218,13 +228,13 @@ public:
     _options = new Options();
   }
 
-  // Constructs an S2RegionCoverer with the given options.
+  /// Constructs an S2RegionCoverer with the given options.
   this(Options options) {
     this();
     _options = options;
   }
 
-  // Returns the current options.  Options can be modifed between calls.
+  /// Returns the current options.  Options can be modifed between calls.
   const(Options) options() const {
     return _options;
   }
@@ -234,13 +244,13 @@ public:
   }
 
   /**
-   * Returns an S2CellUnion that covers (GetCovering) or is contained within
-   * (GetInteriorCovering) the given region and satisfies the current options.
-   *
-   * Note that if options().min_level() > 0 or options().level_mod() > 1, the
-   * by definition the S2CellUnion may not be normalized, i.e. there may be
-   * groups of four child cells that can be replaced by their parent cell.
-   */
+     Returns an S2CellUnion that covers (GetCovering) or is contained within
+     (GetInteriorCovering) the given region and satisfies the current options.
+
+     Note that if options().min_level() > 0 or options().level_mod() > 1, the
+     by definition the S2CellUnion may not be normalized, i.e. there may be
+     groups of four child cells that can be replaced by their parent cell.
+  */
   S2CellUnion getCovering(S2Region region) {
     _interiorCovering = false;
     getCoveringInternal(region);
@@ -258,10 +268,10 @@ public:
   }
 
   /**
-   * Like the methods above, but works directly with a vector of S2CellIds.
-   * This version can be more efficient when this method is called many times,
-   * since it does not require allocating a new vector on each call.
-   */
+     Like the methods above, but works directly with a vector of S2CellIds.
+     This version can be more efficient when this method is called many times,
+     since it does not require allocating a new vector on each call.
+  */
   void getCovering(S2Region region, ref S2CellId[] covering) {
     _interiorCovering = false;
     getCoveringInternal(region);
@@ -277,41 +287,41 @@ public:
   }
 
   /**
-   * Like GetCovering(), except that this method is much faster and the
-   * coverings are not as tight.  All of the usual parameters are respected
-   * (max_cells, min_level, max_level, and level_mod), except that the
-   * implementation makes no attempt to take advantage of large values of
-   * max_cells().  (A small number of cells will always be returned.)
-   *
-   * This function is useful as a starting point for algorithms that
-   * recursively subdivide cells.
-   */
+     Like GetCovering(), except that this method is much faster and the
+     coverings are not as tight.  All of the usual parameters are respected
+     (max_cells, min_level, max_level, and level_mod), except that the
+     implementation makes no attempt to take advantage of large values of
+     max_cells().  (A small number of cells will always be returned.)
+
+     This function is useful as a starting point for algorithms that
+     recursively subdivide cells.
+  */
   void getFastCovering(S2Region region, ref S2CellId[] covering) {
     region.getCellUnionBound(covering);
     canonicalizeCovering(covering);
   }
 
   /**
-   * Given a connected region and a starting point, return a set of cells at
-   * the given level that cover the region.
-   *
-   * Note that this method is *not* faster than the regular GetCovering()
-   * method for most region types, such as S2Cap or S2Polygon, and in fact it
-   * can be much slower when the output consists of a large number of cells.
-   * Currently it can be faster at generating coverings of long narrow regions
-   * such as polylines, but this may change in the future, in which case this
-   * method will most likely be removed.
-   */
+     Given a connected region and a starting point, return a set of cells at
+     the given level that cover the region.
+
+     Note that this method is *not* faster than the regular GetCovering()
+     method for most region types, such as S2Cap or S2Polygon, and in fact it
+     can be much slower when the output consists of a large number of cells.
+     Currently it can be faster at generating coverings of long narrow regions
+     such as polylines, but this may change in the future, in which case this
+     method will most likely be removed.
+  */
   static void getSimpleCovering(
       S2Region region, in S2Point start, int level, ref S2CellId[] output) {
     return floodFill(region, S2CellId(start).parent(level), output);
   }
 
   /**
-   * Given a region and a starting cell, returns the set of all the
-   * edge-connected cells at the same level that intersect "region".
-   * The output cells are returned in arbitrary order.
-   */
+     Given a region and a starting cell, returns the set of all the
+     edge-connected cells at the same level that intersect "region".
+     The output cells are returned in arbitrary order.
+  */
   static void floodFill(S2Region region, S2CellId start, out S2CellId[] output) {
     bool[S2CellId] all;
     S2CellId[] frontier;
@@ -336,21 +346,21 @@ public:
   }
 
   /**
-   * Returns true if the given S2CellId vector represents a valid covering
-   * that conforms to the current covering parameters.  In particular:
-   *
-   *  - All S2CellIds must be valid.
-   *
-   *  - S2CellIds must be sorted and non-overlapping.
-   *
-   *  - S2CellId levels must satisfy min_level(), max_level(), and level_mod().
-   *
-   *  - If covering.size() > max_cells(), there must be no two cells with
-   *    a common ancestor at min_level() or higher.
-   *
-   *  - There must be no sequence of cells that could be replaced by an
-   *    ancestor (i.e. with level_mod() == 1, the 4 child cells of a parent).
-   */
+     Returns true if the given S2CellId vector represents a valid covering
+     that conforms to the current covering parameters.  In particular:
+
+     - All S2CellIds must be valid.
+
+     - S2CellIds must be sorted and non-overlapping.
+
+     - S2CellId levels must satisfy min_level(), max_level(), and level_mod().
+
+     - If covering.size() > max_cells(), there must be no two cells with
+       a common ancestor at min_level() or higher.
+
+     - There must be no sequence of cells that could be replaced by an
+       ancestor (i.e. with level_mod() == 1, the 4 child cells of a parent).
+  */
   bool isCanonical(in S2CellUnion covering) const {
     return isCanonical(covering.cellIds());
   }
@@ -404,11 +414,11 @@ public:
   }
 
   /**
-   * Modify "covering" if necessary so that it conforms to the current
-   * covering parameters (max_cells, min_level, max_level, and level_mod).
-   * There are no restrictions on the input S2CellIds (they may be unsorted,
-   * overlapping, etc).
-   */
+     Modify "covering" if necessary so that it conforms to the current
+     covering parameters (max_cells, min_level, max_level, and level_mod).
+     There are no restrictions on the input S2CellIds (they may be unsorted,
+     overlapping, etc).
+  */
   S2CellUnion canonicalizeCovering(in S2CellUnion covering) {
     auto ids = covering.cellIds().dup;
     canonicalizeCovering(ids);
@@ -503,10 +513,10 @@ public:
   }
 
   /**
-   * If the cell intersects the given region, return a new candidate with no
-   * children, otherwise return nullptr.  Also marks the candidate as "terminal"
-   * if it should not be expanded further.
-   */
+     If the cell intersects the given region, return a new candidate with no
+     children, otherwise return nullptr.  Also marks the candidate as "terminal"
+     if it should not be expanded further.
+  */
   Candidate newCandidate(S2Cell cell) {
     if (!_region.mayIntersect(cell)) return null;
 
@@ -541,9 +551,11 @@ public:
     return 2 * options().levelMod();
   }
 
-  // Process a candidate by either adding it to the result_ vector or
-  // expanding its children and inserting it into the priority queue.
-  // Passing an argument of nullptr does nothing.
+  /**
+     Process a candidate by either adding it to the result_ vector or
+     expanding its children and inserting it into the priority queue.
+     Passing an argument of nullptr does nothing.
+  */
   void addCandidate(Candidate candidate) {
     if (candidate is null) return;
 
@@ -583,10 +595,10 @@ public:
   }
 
   /**
-   * Populate the children of "candidate" by expanding the given number of
-   * levels from the given cell.  Returns the number of children that were
-   * marked "terminal".
-   */
+     Populate the children of "candidate" by expanding the given number of
+     levels from the given cell.  Returns the number of children that were
+     marked "terminal".
+  */
   int expandChildren(Candidate candidate, const S2Cell cell, int num_levels) {
     num_levels--;
     S2Cell[4] child_cells;
@@ -609,7 +621,7 @@ public:
     return num_terminals;
   }
 
-  // Computes a set of initial candidates that cover the given region.
+  /// Computes a set of initial candidates that cover the given region.
   void getInitialCandidates() {
     // Optimization: start with a small (usually 4 cell) covering of the
     // region's bounding cap.
@@ -700,10 +712,10 @@ public:
   }
 
   /**
-   * If level > min_level(), then reduce "level" if necessary so that it also
-   * satisfies level_mod().  Levels smaller than min_level() are not affected
-   * (since cells at these levels are eventually expanded).
-   */
+     If level > min_level(), then reduce "level" if necessary so that it also
+     satisfies level_mod().  Levels smaller than min_level() are not affected
+     (since cells at these levels are eventually expanded).
+  */
   int adjustLevel(int level) const {
     if (_options.levelMod() > 1 && level > _options.minLevel()) {
       level -= (level - _options.minLevel()) % _options.levelMod();
@@ -711,10 +723,12 @@ public:
     return level;
   }
 
-  // Ensure that all cells with level > min_level() also satisfy level_mod(),
-  // by replacing them with an ancestor if necessary.  Cell levels smaller
-  // than min_level() are not modified (see AdjustLevel).  The output is
-  // then normalized to ensure that no redundant cells are present.
+  /**
+     Ensure that all cells with level > min_level() also satisfy level_mod(),
+     by replacing them with an ancestor if necessary.  Cell levels smaller
+     than min_level() are not modified (see AdjustLevel).  The output is
+     then normalized to ensure that no redundant cells are present.
+  */
   void adjustCellLevels(ref S2CellId[] cells) const
   in {
     assert(isSorted(cells));
@@ -733,8 +747,10 @@ public:
     cells.length = output;
   }
 
-  // Returns true if "covering" contains all children of "id" at level
-  // (id.level() + options_.level_mod()).
+  /**
+     Returns true if "covering" contains all children of "id" at level
+     (id.level() + options_.level_mod()).
+  */
   bool containsAllChildren(in S2CellId[] covering, S2CellId id) const {
     auto ranges = assumeSorted(covering).trisect(id.rangeMin());
     auto geRange = chain(ranges[1], ranges[2]);
@@ -747,8 +763,8 @@ public:
     return true;
   }
 
-  // Replaces all descendants of "id" in "covering" with "id".
-  // REQUIRES: "covering" contains at least one descendant of "id".
+  /// Replaces all descendants of "id" in "covering" with "id".
+  /// REQUIRES: "covering" contains at least one descendant of "id".
   void replaceCellsWithAncestor(ref S2CellId[] covering, S2CellId id) const {
     auto ltRange = assumeSorted(covering).lowerBound(id.rangeMin());
     auto gtRange = assumeSorted(covering).upperBound(id.rangeMax());

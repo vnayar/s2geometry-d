@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>Module s2.util.container.dense_hash_set</title>
+		<link rel="stylesheet" type="text/css" href="../../../styles/ddox.css"/>
+		<link rel="stylesheet" href="../../../prettify/prettify.css" type="text/css"/>
+		<script type="text/javascript" src="../../../scripts/jquery.js">/**/</script><script type="text/javascript" src="../../../scripts/ddox.js">/**/</script>
+	</head>
+	<body onload="setupDdox();">
+		<nav id="main-nav">
+			<noscript>
+				<p style="color: red">The search functionality needs JavaScript enabled</p>
+			</noscript>
+			<div id="symbolSearchPane" style="display: none">
+				<form action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();"/>
+				</form>
+				<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../";
+$('#symbolSearchPane').show();</script>
+			</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">s2
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view collapsed">
+					<div class="package ">base
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../s2/base/spinlock.html">spinlock</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+				<li class="tree-view ">
+					<div class="package ">util
+					</div>
+			<ul class="tree-view">
+				<li class="tree-view ">
+					<div class="package ">container
+					</div>
+			<ul class="tree-view">
+				<li>
+					<div class="module ">
+						<a href="../../../s2/util/container/btree.html">btree</a>
+					</div>
+				</li>
+				<li>
+					<div class="module selected">
+						<a href="../../../s2/util/container/dense_hash_set.html">dense_hash_set</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/util/container/dense_hash_table.html">dense_hash_table</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/r1interval.html">r1interval</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s1angle.html">s1angle</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2builder.html">s2builder</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2cap.html">s2cap</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2cell.html">s2cell</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2cell_id.html">s2cell_id</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2loop.html">s2loop</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2polygon.html">s2polygon</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2region.html">s2region</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2region_coverer.html">s2region_coverer</a>
+					</div>
+				</li>
+				<li>
+					<div class="module ">
+						<a href="../../../s2/s2shape.html">s2shape</a>
+					</div>
+				</li>
+			</ul>
+				</li>
+			</ul>
+		</nav>
+		<div id="main-contents">
+			<h1>Module s2.util.container.dense_hash_set</h1><p>This is just a very thin wrapper over dense_hash_table.d, just
+   like sgi stl's stl_hash_set is a very thin wrapper over
+   stl_hashtable.  The major thing we define is operator[], because
+   we have a concept of a data_type which stl_hashtable doesn't
+   \(it only has a key and a value\).
+</p><section><p>This is more different from dense_hash_map than you might think,
+   because all iterators for sets are const \(you obviously can't
+   change the key, and for sets there is no value\).
+</p>
+</section>
+
+			<section><section><h2>NOTE</h2>
+<p>this is exactly like sparse_hash_set.h, with the word
+   "sparse" replaced by "dense", except for the addition of
+   <code class="lang-d"><span class="pln">setEmptyKey</span><span class="pun">()</span></code>.
+</p>
+
+<p>     YOU MUST CALL SET_EMPTY_KEY() IMMEDIATELY AFTER CONSTRUCTION.
+</p>
+
+<p>   Otherwise your program will die in mysterious ways.  \(Note if you
+   use the constructor that takes an InputIterator range, you pass in
+   the empty key in the constructor, rather than after.  As a result,
+   this constructor differs from the standard STL version.\)
+</p>
+
+<p>   In other respects, we adhere mostly to the STL semantics for
+   hash-map.  One important exception is that <code class="lang-d"><span class="pln">insert</span><span class="pun">()</span></code> may invalidate
+   iterators entirely -- STL semantics are that <code class="lang-d"><span class="pln">insert</span><span class="pun">()</span></code> may reorder
+   iterators, but they all still refer to something valid in the
+   hashtable.  Not so for us.  Likewise, <code class="lang-d"><span class="pln">insert</span><span class="pun">()</span></code> may invalidate
+   pointers into the hashtable.  \(Whether insert invalidates iterators
+   and pointers depends on whether it results in a hashtable resize\).
+   On the plus side, <code class="lang-d"><span class="kwd">delete</span><span class="pun">()</span></code> doesn't invalidate iterators or pointers
+   at all, or even change the ordering of elements.
+</p>
+
+<p>   Here are a few "power user" tips:
+</p>
+
+<p>      1. <code class="lang-d"><span class="pln">set_deleted_key</span><span class="pun">()</span></code>:
+           If you want to use erase() you must call set_deleted_key(),
+           in addition to set_empty_key(), after construction.
+           The deleted and empty keys must differ.
+</p>
+
+<p>      2. <code class="lang-d"><span class="pln">resize</span><span class="pun">(</span><span class="lit">0</span><span class="pun">)</span></code>:
+           When an item is deleted, its memory isn't freed right
+           away.  This allows you to iterate over a hashtable,
+           and call erase(), without invalidating the iterator.
+           To force the memory to be freed, call resize(0).
+           For tr1 compatibility, this can also be called as rehash(0).
+</p>
+
+<p>      3. <code class="lang-d"><span class="pln">min_load_factor</span><span class="pun">(</span><span class="lit">0.0</span><span class="pun">)</span></code>
+           Setting the minimum load factor to 0.0 guarantees that
+           the hash table will never shrink.
+</p>
+
+<p>   Roughly speaking:
+     (1) dense_hash_set: fastest, uses the most memory unless entries are small
+     (2) sparse_hash_set: slowest, uses the least memory
+     (3) hash_set / unordered_set (STL): in the middle
+</p>
+
+<p>   Typically I use sparse_hash_set when I care about space and/or when
+   I need to save the hashtable on disk.  I use hash_set otherwise.  I
+   don't personally use dense_hash_set ever; some people use it for
+   small sets with lots of lookups.
+</p>
+
+<p>   - dense_hash_set has, typically, about 78% memory overhead \(if your
+     data takes up X bytes, the hash_set uses .78X more bytes in overhead\).
+   - sparse_hash_set has about 4 bits overhead per entry.
+   - sparse_hash_set can be 3-7 times slower than the others for lookup and,
+     especially, inserts.  See time_hash_map.cc for details.
+</p>
+
+<p>   See /usr/(local/)?doc/sparsehash-*/dense_hash_set.html
+   for information about how to use this class.
+</p>
+</section>
+</section>
+			<section>
+				<h2>Functions</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="denseHashSet" class="public" href="../../../s2/util/container/dense_hash_set/denseHashSet.html">denseHashSet</a><span class="decoration">(expected_max_items_in_table, hashFcn, equalKey)</span>
+							</code>
+						</td>
+						<td>Creates a DenseHashSet for a given type using default comparison functions.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="equalTo" class="public" href="../../../s2/util/container/dense_hash_set/equalTo.html">equalTo</a><span class="decoration">(v1, v2)</span>
+							</code>
+						</td>
+						<td>Helper function for comparing two values.
+</td>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="hash" class="public" href="../../../s2/util/container/dense_hash_set/hash.html">hash</a><span class="decoration">(value)</span>
+							</code>
+						</td>
+						<td>Helper function for computing the hash of a basic type.
+</td>
+					</tr>
+				</table>
+			</section>
+			<section>
+				<h2>Classes</h2>
+				<table>
+					<col class="caption"/>
+					<tr>
+						<th>Name</th><th>Description</th>
+					</tr>
+					<tr>
+						<td>
+							<code>
+								<a id="DenseHashSet" class="public" href="../../../s2/util/container/dense_hash_set/DenseHashSet.html">DenseHashSet</a>
+							</code>
+						</td>
+						<td>A set implemented via a hash that very few empty slots.
+</td>
+					</tr>
+				</table>
+			</section>
+			<footer>
+				<table class="license-info">
+					<tr>
+						<th>Authors</th>
+						<td>
+							
+						</td>
+					</tr>
+					<tr>
+						<th>Copyright</th>
+						<td>
+							<p>(c) 2005, Google Inc.
+   All rights reserved.
+</p>
+
+						</td>
+					</tr>
+					<tr>
+						<th>License</th>
+						<td>
+							<p>Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+</p>
+
+<p>   - Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+</p>
+
+<p>   - Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following disclaimer
+   in the documentation and/or other materials provided with the
+   distribution.
+</p>
+
+<p>   - Neither the name of Google Inc. nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+</p>
+
+<p>   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES \(INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION\) HOWEVER CAUSED AND ON ANY
+   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   \(INCLUDING NEGLIGENCE OR OTHERWISE\) ARISING IN ANY WAY OUT OF THE USE
+   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</p>
+
+						</td>
+					</tr>
+				</table>
+				<p class="faint">Generated using the DDOX documentation generator</p>
+			</footer>
+		</div>
+	</body>
+</html>

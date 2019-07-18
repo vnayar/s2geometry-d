@@ -1,91 +1,97 @@
-// Copyright (c) 2005, Google Inc.
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Converted to D:  madric@gmail.com (Vijay Nayar)
+/++
+   A dense hashtable is a particular implementation of
+   a hashtable: one that is meant to minimize memory allocation.
+   It does this by using an array to store all the data.  We
+   steal a value from the key space to indicate "empty" array
+   elements (ie indices where no item lives) and another to indicate
+   "deleted" elements.
 
-// A dense hashtable is a particular implementation of
-// a hashtable: one that is meant to minimize memory allocation.
-// It does this by using an array to store all the data.  We
-// steal a value from the key space to indicate "empty" array
-// elements (ie indices where no item lives) and another to indicate
-// "deleted" elements.
-//
-// (Note it is possible to change the value of the delete key
-// on the fly; you can even remove it, though after that point
-// the hashtable is insert_only until you set it again.  The empty
-// value however can't be changed.)
-//
-// To minimize allocation and pointer overhead, we use internal
-// probing, in which the hashtable is a single table, and collisions
-// are resolved by trying to insert again in another bucket.  The
-// most cache-efficient internal probing schemes are linear probing
-// (which suffers, alas, from clumping) and quadratic probing, which
-// is what we implement by default.
-//
-// Type requirements: value_type is required to be Copy Constructible
-// and Default Constructible. It is not required to be (and commonly
-// isn't) Assignable.
-//
-// You probably shouldn't use this code directly.  Use dense_hash_map<>
-// or dense_hash_set<> instead.
+   (Note it is possible to change the value of the delete key
+   on the fly; you can even remove it, though after that point
+   the hashtable is insert_only until you set it again.  The empty
+   value however can't be changed.)
 
-// You can change the following below:
-// HT_OCCUPANCY_PCT      -- how full before we double size
-// HT_EMPTY_PCT          -- how empty before we halve size
-// HT_MIN_BUCKETS        -- default smallest bucket size
-//
-// You can also change enlarge_factor (which defaults to
-// HT_OCCUPANCY_PCT), and shrink_factor (which defaults to
-// HT_EMPTY_PCT) with set_resizing_parameters().
-//
-// How to decide what values to use?
-// shrink_factor's default of .4 * OCCUPANCY_PCT, is probably good.
-// HT_MIN_BUCKETS is probably unnecessary since you can specify
-// (indirectly) the starting number of buckets at construct-time.
-// For enlarge_factor, you can use this chart to try to trade-off
-// expected lookup time to the space taken up.  By default, this
-// code uses quadratic probing, though you can change it to linear
-// via JUMP_ below if you really want to.
-//
-// From http://www.augustana.ca/~mohrj/courses/1999.fall/csc210/lecture_notes/hashing.html
-// NUMBER OF PROBES / LOOKUP       Successful            Unsuccessful
-// Quadratic collision resolution   1 - ln(1-L) - L/2    1/(1-L) - L - ln(1-L)
-// Linear collision resolution     [1+1/(1-L)]/2         [1+1/(1-L)2]/2
-//
-// -- enlarge_factor --           0.10  0.50  0.60  0.75  0.80  0.90  0.99
-// QUADRATIC COLLISION RES.
-//    probes/successful lookup    1.05  1.44  1.62  2.01  2.21  2.85  5.11
-//    probes/unsuccessful lookup  1.11  2.19  2.82  4.64  5.81  11.4  103.6
-// LINEAR COLLISION RES.
-//    probes/successful lookup    1.06  1.5   1.75  2.5   3.0   5.5   50.5
-//    probes/unsuccessful lookup  1.12  2.5   3.6   8.5   13.0  50.0  5000.0
+   To minimize allocation and pointer overhead, we use internal
+   probing, in which the hashtable is a single table, and collisions
+   are resolved by trying to insert again in another bucket.  The
+   most cache-efficient internal probing schemes are linear probing
+   (which suffers, alas, from clumping) and quadratic probing, which
+   is what we implement by default.
 
+   Type requirements: value_type is required to be Copy Constructible
+   and Default Constructible. It is not required to be (and commonly
+   isn't) Assignable.
+
+   You probably shouldn't use this code directly.  Use dense_hash_map<>
+   or dense_hash_set<> instead.
+
+   You can change the following below:
+
+   - HT_OCCUPANCY_PCT      -- how full before we double size
+
+   - HT_EMPTY_PCT          -- how empty before we halve size
+
+   - HT_MIN_BUCKETS        -- default smallest bucket size
+
+   You can also change enlarge_factor (which defaults to
+   HT_OCCUPANCY_PCT), and shrink_factor (which defaults to
+   HT_EMPTY_PCT) with set_resizing_parameters().
+
+   How to decide what values to use?
+   shrink_factor's default of .4 * OCCUPANCY_PCT, is probably good.
+   HT_MIN_BUCKETS is probably unnecessary since you can specify
+   (indirectly) the starting number of buckets at construct-time.
+   For enlarge_factor, you can use this chart to try to trade-off
+   expected lookup time to the space taken up.  By default, this
+   code uses quadratic probing, though you can change it to linear
+   via JUMP_ below if you really want to.
+
+   From http://www.augustana.ca/~mohrj/courses/1999.fall/csc210/lecture_notes/hashing.html
+
+   ---
+   NUMBER OF PROBES / LOOKUP       Successful            Unsuccessful
+   Quadratic collision resolution   1 - ln(1-L) - L/2    1/(1-L) - L - ln(1-L)
+   Linear collision resolution     [1+1/(1-L)]/2         [1+1/(1-L)2]/2
+
+   -- enlarge_factor --           0.10  0.50  0.60  0.75  0.80  0.90  0.99
+   QUADRATIC COLLISION RES.
+      probes/successful lookup    1.05  1.44  1.62  2.01  2.21  2.85  5.11
+      probes/unsuccessful lookup  1.11  2.19  2.82  4.64  5.81  11.4  103.6
+   LINEAR COLLISION RES.
+      probes/successful lookup    1.06  1.5   1.75  2.5   3.0   5.5   50.5
+      probes/unsuccessful lookup  1.12  2.5   3.6   8.5   13.0  50.0  5000.0
+   ---
+
+   Copyright: (c) 2005, Google Inc.
+
+   License:
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+       * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+       * Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following disclaimer
+   in the documentation and/or other materials provided with the
+   distribution.
+       * Neither the name of Google Inc. nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++/
 module s2.util.container.dense_hash_table;
 
 import std.algorithm;
