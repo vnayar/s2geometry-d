@@ -155,13 +155,13 @@ public:
   // Constructors
 
   /// Copy constructor.
-  this(in ExactFloat b) nothrow {
+  this(in ExactFloat b) nothrow pure {
     _sign = b._sign;
     _bnExp = b._bnExp;
     _bn = b._bn;
   }
 
-  this(T)(T v) nothrow {
+  this(T)(T v) nothrow pure {
     this = v;
   }
 
@@ -172,7 +172,7 @@ public:
    * "ExactFloat f = 2.5;" would not compile.)  All double-precision values are
    * supported, including denormalized numbers, infinities, and NaNs.
    */
-  void opAssign(T)(T v) nothrow
+  void opAssign(T)(T v) nothrow pure
   if (traits.isFloatingPoint!T) {
     _bn = BigInt();
     _sign = math.signbit(v) ? -1 : 1;
@@ -208,7 +208,7 @@ public:
    * used in floating-point calculations and it is safer to require them to be
    * explicitly cast.
    */
-  void opAssign(T)(T v) nothrow
+  void opAssign(T)(T v) nothrow pure
   if (traits.isIntegral!T) {
     _sign = (v >= 0) ? 1 : -1;
     _bn = math.abs(v);
@@ -221,7 +221,7 @@ public:
    * the value is exactly representable as a floating-point number (so for
    * example, "0.125" is allowed but "0.1" is not).
    */
-  void opAssign(T)(T s) nothrow
+  void opAssign(T)(T s) nothrow pure
   if (traits.isSomeString!T) {
     ExactFloat.unimplemented();
   }
@@ -236,7 +236,7 @@ public:
 
   /// Return an ExactFloat equal to positive zero (if sign >= 0) or
   /// negative zero (if sign < 0).
-  static ExactFloat signedZero(int sign) nothrow {
+  static ExactFloat signedZero(int sign) nothrow pure {
     ExactFloat r;
     r.setZero(sign);
     return r;
@@ -244,14 +244,14 @@ public:
 
   /// Return an ExactFloat equal to positive infinity (if sign >= 0) or
   /// negative infinity (if sign < 0).
-  static ExactFloat infinity(int sign) nothrow {
+  static ExactFloat infinity(int sign) nothrow pure {
     ExactFloat r;
     r.setInf(sign);
     return r;
   }
 
   /// Return an ExactFloat that is NaN (Not-a-Number).
-  static ExactFloat nan() nothrow {
+  static ExactFloat nan() nothrow pure {
     ExactFloat r;
     r.setNan();
     return r;
@@ -264,14 +264,14 @@ public:
   /// Return the maximum precision of the ExactFloat.  This method exists only
   /// for compatibility with MPFloat.
   @property
-  int maxPrec() const nothrow {
+  int maxPrec() const nothrow @nogc pure {
     return MAX_PREC;
   }
 
   /// Return the actual precision of this ExactFloat (the current number of
   /// bits in its mantissa).  Returns 0 for non-normal numbers such as NaN.
   @property
-  int prec() const nothrow {
+  int prec() const nothrow @nogc pure {
     // TODO: BUG Fix this to get the exact number of used bits.
     int totalBits = cast(int) (_bn.uintLength() - 1) * 32;
     uint lastDigit = _bn.getDigit!uint(_bn.uintLength() - 1);
@@ -287,7 +287,7 @@ public:
    * range [0.5, 1).  It is an error to call this method if the value is zero,
    * infinity, or NaN.
    */
-  int exp() const nothrow
+  int exp() const nothrow @nogc pure
   in {
     assert(isNormal());
   } do {
@@ -295,7 +295,7 @@ public:
   }
 
   /// Set the value of the ExactFloat to +0 (if sign >= 0) or -0 (if sign < 0).
-  void setZero(int sign) nothrow {
+  void setZero(int sign) nothrow pure {
     _sign = sign;
     _bnExp = EXP_ZERO;
     if (_bn != 0) {
@@ -305,7 +305,7 @@ public:
 
   /// Set the value of the ExactFloat to positive infinity (if sign >= 0) or
   /// negative infinity (if sign < 0).
-  void setInf(int sign) nothrow {
+  void setInf(int sign) nothrow pure {
     _sign = sign;
     _bnExp = EXP_INFINITY;
     if (_bn != 0) {
@@ -314,7 +314,7 @@ public:
   }
 
   /// Set the value of the ExactFloat to NaN (Not-a-Number).
-  void setNan() nothrow {
+  void setNan() nothrow pure {
     _sign = 1;
     _bnExp = EXP_NAN;
     if (_bn != 0) {
@@ -330,17 +330,17 @@ public:
   // These macros are not implemented: signbit(x), fpclassify(x).
 
   /// Return true if this value is zero (including negative zero).
-  bool isZero() const nothrow {
+  bool isZero() const nothrow @nogc pure {
     return _bnExp == EXP_ZERO;
   }
 
   /// Return true if this value is infinity (positive or negative).
-  bool isInf() const nothrow {
+  bool isInf() const nothrow @nogc pure {
     return _bnExp == EXP_INFINITY;
   }
 
   /// Return true if this value is NaN (Not-a-Number).
-  bool isNan() const nothrow {
+  bool isNan() const nothrow @nogc pure {
     return _bnExp == EXP_NAN;
   }
 
@@ -350,21 +350,21 @@ public:
    * because they are represented using special exponent values and their
    * mantissa is not defined.
    */
-  bool isNormal() const nothrow {
+  bool isNormal() const nothrow @nogc pure {
     return _bnExp < EXP_ZERO;
   }
 
 
   /// Return true if this value is a normal floating-point number or zero,
   /// i.e. it is not infinity or NaN.
-  bool isFinite() const nothrow {
+  bool isFinite() const nothrow @nogc pure {
     return _bnExp <= EXP_ZERO;
   }
 
 
   /// Return true if the sign bit is set (this includes negative zero).
   @property
-  bool signBit() const nothrow {
+  bool signBit() const nothrow @nogc pure {
     return _sign < 0;
   }
 
@@ -374,7 +374,7 @@ public:
    * both positive and negative zero.
    */
   @property
-  int sign() const nothrow {
+  int sign() const nothrow @nogc pure {
     return (isNan() || isZero()) ? 0 : _sign;
   }
 
@@ -620,13 +620,13 @@ public:
   // operations to support rounding to a specified precision.
 
   // Arithmetic assignment operators (+=, -=, *=).
-  ref ExactFloat opOpAssign(string op)(in ExactFloat b) nothrow
+  ref ExactFloat opOpAssign(string op)(in ExactFloat b) nothrow @nogc pure
   if (op == "+" || op == "-" || op == "*") {
     return mixin("this = this " ~ op ~ " b");
   }
 
   /// Comparison operators (==, !=).
-  bool opEquals(in ExactFloat b) const nothrow {
+  bool opEquals(in ExactFloat b) const nothrow @nogc pure {
     // NaN is not equal to anything, not even itself.
     if (isNan() || b.isNan()) return false;
 
@@ -643,11 +643,11 @@ public:
   }
 
   /// Support operations with any convertable types.
-  bool opEquals(T)(in T b) const nothrow {
+  bool opEquals(T)(in T b) const nothrow @nogc pure {
     return opEquals(ExactFloat(b));
   }
 
-  int scaleAndCompare(in ExactFloat b) const nothrow
+  int scaleAndCompare(in ExactFloat b) const nothrow @nogc pure
   in {
     assert(isNormal() && b.isNormal() && _bnExp >= b._bnExp);
   } do {
@@ -658,7 +658,7 @@ public:
     else return 0;
   }
 
-  bool unsignedLess(in ExactFloat b) const nothrow {
+  bool unsignedLess(in ExactFloat b) const nothrow @nogc pure {
     // Handle the zero/infinity cases (NaN has already been done).
     if (isInf() || b.isZero()) return false;
     if (isZero() || b.isInf()) return true;
@@ -673,7 +673,7 @@ public:
 
 
   /// Comparison operators (<, <=, >, >=).
-  int opCmp(in ExactFloat b) const nothrow {
+  int opCmp(in ExactFloat b) const nothrow pure {
     // NaN is unordered compared to everything, including itself.
     if (isNan() || b.isNan()) return -1;
     // Positive and negative zero are equal.
@@ -688,7 +688,7 @@ public:
   }
 
   /// Support operations with any convertable types.
-  int opCmp(T)(in T b) const nothrow {
+  int opCmp(T)(in T b) const nothrow pure {
     return opCmp(ExactFloat(b));
   }
 
@@ -978,7 +978,7 @@ private:
    * the given sign; otherwise the mantissa is normalized so that its low bit
    * is 1.  Non-normal numbers are left unchanged.
    */
-  void canonicalize() nothrow {
+  void canonicalize() nothrow pure {
     if (!isNormal()) return;
 
     // Underflow/overflow occurs if exp() is not in [kMinExp, kMaxExp].
@@ -1008,7 +1008,7 @@ private:
    * Count the number of low-order zero bits in the given BIGNUM (ignoring its
    * sign).  Returns 0 if the argument is zero.
    */
-  private static int countLowZeroBits(in BigInt bn) nothrow {
+  private static int countLowZeroBits(in BigInt bn) nothrow pure {
     int count = 0;
     for (int i = 0; i < bn.ulongLength(); ++i) {
       ulong w = bn.getDigit!ulong(i);
@@ -1029,7 +1029,7 @@ private:
    * sign.  (Similar to copysign, except that the sign is given explicitly
    * rather than being copied from another ExactFloat.)
    */
-  ExactFloat copyWithSign(int sign) const nothrow {
+  ExactFloat copyWithSign(int sign) const nothrow @nogc pure {
     ExactFloat r = this;
     r._sign = sign;
     return r;
@@ -1094,11 +1094,11 @@ private:
 //////// Miscellaneous simple arithmetic functions.
 
 /// Absolute value.
-ExactFloat fabs(in ExactFloat a) nothrow {
+ExactFloat fabs(in ExactFloat a) nothrow @nogc pure {
   return abs(a);
 }
 
-ExactFloat abs(in ExactFloat a) nothrow {
+ExactFloat abs(in ExactFloat a) nothrow @nogc pure {
   return a.copyWithSign(+1);
 }
 
@@ -1221,7 +1221,7 @@ ExactFloat modf(in ExactFloat a, out ExactFloat i_ptr) nothrow {
  * Return an ExactFloat with the magnitude of "a" and the sign bit of "b".
  * (Note that an IEEE zero can be either positive or negative.)
  */
-ExactFloat copysign(in ExactFloat a, in ExactFloat b) nothrow {
+ExactFloat copysign(in ExactFloat a, in ExactFloat b) nothrow @nogc pure {
   return a.copyWithSign(b.sign);
 }
 
