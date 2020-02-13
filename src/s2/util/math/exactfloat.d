@@ -155,7 +155,7 @@ public:
   // Constructors
 
   /// Copy constructor.
-  this(in ExactFloat b) nothrow pure {
+  this(in ExactFloat b) nothrow @nogc pure {
     _sign = b._sign;
     _bnExp = b._bnExp;
     _bn = b._bn;
@@ -673,7 +673,7 @@ public:
 
 
   /// Comparison operators (<, <=, >, >=).
-  int opCmp(in ExactFloat b) const nothrow pure {
+  int opCmp(in ExactFloat b) const nothrow @nogc pure {
     // NaN is unordered compared to everything, including itself.
     if (isNan() || b.isNan()) return -1;
     // Positive and negative zero are equal.
