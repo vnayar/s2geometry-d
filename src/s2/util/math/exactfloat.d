@@ -398,7 +398,7 @@ public:
    * ExactFloats, then x = fabs(y) would silently convert "y" to a "double",
    * take its absolute value, and convert it back to an ExactFloat.
    */
-  double toDouble() const nothrow {
+  double toDouble() const nothrow pure {
     // If the mantissa has too many bits, we need to round it.
     if (prec() <= DOUBLE_MANTISSA_BITS) {
       return toDoubleHelper();
@@ -529,7 +529,7 @@ public:
    * using the given rounding mode.  Requires "max_prec" to be at least 2
    * (since kRoundTiesToEven doesn't make sense with fewer bits than this).
    */
-  ExactFloat roundToMaxPrec(int max_prec, RoundingMode mode) const nothrow
+  ExactFloat roundToMaxPrec(int max_prec, RoundingMode mode) const nothrow pure
   in {
     // The "kRoundTiesToEven" mode requires at least 2 bits of precision
     // (otherwise both adjacent representable values may be odd).
@@ -553,13 +553,13 @@ public:
   // Operators
 
   /// Unary plus.
-  ExactFloat opUnary(string op)() const nothrow
+  ExactFloat opUnary(string op)() const nothrow @nogc pure
   if (op == "+") {
     return *this;
   }
 
   /// Unary minus.
-  ExactFloat opUnary(string op)() const nothrow
+  ExactFloat opUnary(string op)() const nothrow @nogc pure
   if (op == "-") {
     return copyWithSign(-_sign);
   }
@@ -692,6 +692,17 @@ public:
     return opCmp(ExactFloat(b));
   }
 
+  //////// Miscellaneous simple arithmetic functions.
+
+  /// Absolute value.
+  ExactFloat fabs() const nothrow @nogc pure {
+    return abs();
+  }
+
+  ExactFloat abs() const nothrow @nogc pure {
+    return copyWithSign(+1);
+  }
+
 private:
   // Numbers are always formatted with at least this many significant digits.
   // This prevents small integers from being formatted in exponential notation
@@ -724,7 +735,7 @@ private:
    * Convert an ExactFloat with no more than 53 bits in its mantissa to a
    * "double".  This method handles non-normal values (NaN, etc).
    */
-  double toDoubleHelper() const nothrow
+  double toDoubleHelper() const nothrow @nogc pure
   in {
     assert(prec() <= DOUBLE_MANTISSA_BITS);
   } do {
@@ -747,7 +758,7 @@ private:
    * Round an ExactFloat so that it is a multiple of (2 ** bit_exp), using the
    * given rounding mode.
    */
-  ExactFloat roundToPowerOf2(int bit_exp, RoundingMode mode) const nothrow
+  ExactFloat roundToPowerOf2(int bit_exp, RoundingMode mode) const nothrow pure
   in {
     assert(bit_exp >= MIN_EXP - MAX_PREC);
     assert(bit_exp <= MAX_EXP);
@@ -806,7 +817,7 @@ private:
     return r;
   }
 
-  private static bool isBitSet(in BigInt bn, int bitNum) nothrow {
+  private static bool isBitSet(in BigInt bn, int bitNum) nothrow @nogc pure {
     size_t digitNum = bitNum / (8 * ulong.sizeof);
     size_t shift = bitNum % (8 * ulong.sizeof);
     ulong digit = bn.getDigit!ulong(digitNum);
@@ -817,7 +828,7 @@ private:
    * Count the number of low-order zero bits in the given BIGNUM (ignoring its
    * sign).  Returns 0 if the argument is zero.
    */
-  private static int extCountLowZeroBits(in BigInt bn) nothrow {
+  private static int extCountLowZeroBits(in BigInt bn) nothrow @nogc pure {
     int count = 0;
     for (int i = 0; i < bn.ulongLength(); ++i) {
       ulong w = bn.getDigit!ulong(i);
