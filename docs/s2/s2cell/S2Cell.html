@@ -154,6 +154,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell/S2Cell.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>The default constructor is required in order to use freelists.
 Cells should otherwise always be constructed explicitly.
@@ -164,6 +165,7 @@ Cells should otherwise always be constructed explicitly.
 							<a href="../../s2/s2cell/S2Cell.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(id)</span>
 						</td>
 						<td>An S2Cell always corresponds to a particular S2CellId.  The other
 constructors are just convenience methods.
@@ -174,6 +176,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Convenience constructors.  The S2LatLng must be normalized.
 </td>
@@ -191,6 +194,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.approxArea.html" class="public">
 								<code>approxArea</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the approximate area of this cell in steradians.  This method is
  accurate to within 3% percent for all cell sizes and accurate to within
@@ -203,6 +207,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.averageArea.html" class="public">
 								<code>averageArea</code>
 							</a>
+							<span class="tableEntryAnnotation">(level)</span>
 						</td>
 						<td>Returns the average area for cells at the given level.
 </td>
@@ -212,6 +217,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.averageArea.html" class="public">
 								<code>averageArea</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the average area of cells at this level in steradians.  This is
  accurate to within a factor of 1.7 (for S2_QUADRATIC_PROJECTION) and is
@@ -223,6 +229,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.clone.html" class="public">
 								<code>clone</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td></td>
 					</tr>
@@ -231,6 +238,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Returns true if the cell contains the given point "p".  Note that unlike
  S2Loop/S2Polygon, S2Cells are considered to be closed sets.  This means
@@ -243,6 +251,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.decode.html" class="public">
 								<code>decode</code>
 							</a>
+							<span class="tableEntryAnnotation">(decoder)</span>
 						</td>
 						<td>Decodes an S2Cell encoded with Encode().  Returns true on success.
 </td>
@@ -252,6 +261,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.encode.html" class="public">
 								<code>encode</code>
 							</a>
+							<span class="tableEntryAnnotation">(encoder)</span>
 						</td>
 						<td>Appends a serialized representation of the S2Cell to "encoder".
 </td>
@@ -261,6 +271,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.exactArea.html" class="public">
 								<code>exactArea</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the area of this cell as accurately as possible.  This method is
  more expensive but it is accurate to 6 digits of precision even for leaf
@@ -272,6 +283,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.fromFace.html" class="public">
 								<code>fromFace</code>
 							</a>
+							<span class="tableEntryAnnotation">(face)</span>
 						</td>
 						<td>Returns the cell corresponding to the given S2 cube face.
 </td>
@@ -281,6 +293,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.fromFacePosLevel.html" class="public">
 								<code>fromFacePosLevel</code>
 							</a>
+							<span class="tableEntryAnnotation">(face, pos, level)</span>
 						</td>
 						<td>Returns a cell given its face (range 0..5), Hilbert curve position within
  that face (an unsigned integer with S2CellId::kPosBits bits), and level
@@ -295,6 +308,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.getBoundaryDistance.html" class="public">
 								<code>getBoundaryDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(target)</span>
 						</td>
 						<td>Returns the distance from the cell boundary to the given point.
 </td>
@@ -304,6 +318,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.getBoundUV.html" class="public">
 								<code>getBoundUV</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the bounds of this cell in (u,v)-space.
 </td>
@@ -313,6 +328,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.getCenter.html" class="public">
 								<code>getCenter</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the direction vector corresponding to the center in (s,t)-space of
  the given cell.  This is the point at which the cell is divided into four
@@ -326,6 +342,7 @@ constructors are just convenience methods.
 							<a href="../../s2/s2cell/S2Cell.getDistance.html" class="public">
 								<code>getDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(target)</span>
 						</td>
 						<td>Returns the distance from the cell to the given point.  Returns zero if
 the point is inside the cell.
@@ -336,6 +353,7 @@ the point is inside the cell.
 							<a href="../../s2/s2cell/S2Cell.getDistance.html" class="public">
 								<code>getDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, b)</span>
 						</td>
 						<td>Returns the minimum distance from the cell to the given edge AB.  Returns
 zero if the edge intersects the cell interior.
@@ -346,6 +364,7 @@ zero if the edge intersects the cell interior.
 							<a href="../../s2/s2cell/S2Cell.getDistance.html" class="public">
 								<code>getDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(target)</span>
 						</td>
 						<td>Returns the distance from the cell to the given cell.  Returns zero if
 one cell contains the other.
@@ -356,6 +375,7 @@ one cell contains the other.
 							<a href="../../s2/s2cell/S2Cell.getEdge.html" class="public">
 								<code>getEdge</code>
 							</a>
+							<span class="tableEntryAnnotation">(k)</span>
 						</td>
 						<td>Returns the inward-facing normal of the great circle passing through the
  edge from vertex k to vertex k+1 (mod 4).  The normals returned by
@@ -368,6 +388,7 @@ one cell contains the other.
 							<a href="../../s2/s2cell/S2Cell.getMaxDistance.html" class="public">
 								<code>getMaxDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(target)</span>
 						</td>
 						<td>Returns the maximum distance from the cell (including its interior) to the given point.
 </td>
@@ -377,6 +398,7 @@ one cell contains the other.
 							<a href="../../s2/s2cell/S2Cell.getMaxDistance.html" class="public">
 								<code>getMaxDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, b)</span>
 						</td>
 						<td>Returns the maximum distance from the cell (including its interior) to the
 given edge AB.
@@ -387,6 +409,7 @@ given edge AB.
 							<a href="../../s2/s2cell/S2Cell.getMaxDistance.html" class="public">
 								<code>getMaxDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(target)</span>
 						</td>
 						<td>Returns the maximum distance from the cell (including its interior) to the given target cell.
 </td>
@@ -396,6 +419,7 @@ given edge AB.
 							<a href="../../s2/s2cell/S2Cell.getSizeIJ.html" class="public">
 								<code>getSizeIJ</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>These are equivalent to the S2CellId methods, but have a more efficient
 implementation since the level has been precomputed.
@@ -406,6 +430,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2cell/S2Cell.getVertex.html" class="public">
 								<code>getVertex</code>
 							</a>
+							<span class="tableEntryAnnotation">(k)</span>
 						</td>
 						<td>Returns the k-th vertex of the cell (k = 0,1,2,3).  Vertices are returned
  in CCW order (lower left, lower right, upper right, upper left in the UV
@@ -418,6 +443,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2cell/S2Cell.opEquals.html" class="public">
 								<code>opEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td></td>
 					</tr>
@@ -426,6 +452,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2cell/S2Cell.subdivide.html" class="public">
 								<code>subdivide</code>
 							</a>
+							<span class="tableEntryAnnotation">(children)</span>
 						</td>
 						<td>Divides the S2Cell into its four children.
 </td>
@@ -435,6 +462,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2region/S2Region.clone.html" class="public inherited">
 								<code>clone</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a deep copy of the region.
 </td>
@@ -444,6 +472,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2region/S2Region.contains.html" class="public inherited">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Returns true if and only if the given point is contained by the region.
  The point 'p' is generally required to be unit length, although some
@@ -455,6 +484,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2region/S2Region.contains.html" class="public inherited">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>Returns true if the region completely contains the given cell, otherwise
  returns false.
@@ -465,6 +495,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2region/S2Region.getCapBound.html" class="public inherited">
 								<code>getCapBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a bounding spherical cap that contains the region.  The bound may
  not be tight.
@@ -475,6 +506,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2region/S2Region.getCellUnionBound.html" class="public inherited">
 								<code>getCellUnionBound</code>
 							</a>
+							<span class="tableEntryAnnotation">(cellIds)</span>
 						</td>
 						<td>Returns a small collection of S2CellIds whose union covers the region.
  The cells are not sorted, may have redundancies (such as cells that
@@ -486,6 +518,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2region/S2Region.getRectBound.html" class="public inherited">
 								<code>getRectBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a bounding latitude-longitude rectangle that contains the region.
  The bound may not be tight.
@@ -496,6 +529,7 @@ implementation since the level has been precomputed.
 							<a href="../../s2/s2region/S2Region.mayIntersect.html" class="public inherited">
 								<code>mayIntersect</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>If this method returns false, the region does not intersect the given
  cell.  Otherwise, either region intersects the cell, or the intersection

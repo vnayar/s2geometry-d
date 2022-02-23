@@ -180,6 +180,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(options)</span>
 						</td>
 						<td>Constructs an S2RegionCoverer with the given options.
 </td>
@@ -197,6 +198,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.canonicalizeCovering.html" class="public">
 								<code>canonicalizeCovering</code>
 							</a>
+							<span class="tableEntryAnnotation">(covering)</span>
 						</td>
 						<td>Modify "covering" if necessary so that it conforms to the current
      covering parameters (max_cells, min_level, max_level, and level_mod).
@@ -209,6 +211,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.floodFill.html" class="public">
 								<code>floodFill</code>
 							</a>
+							<span class="tableEntryAnnotation">(region, start, output)</span>
 						</td>
 						<td>Given a region and a starting cell, returns the set of all the
      edge-connected cells at the same level that intersect "region".
@@ -220,6 +223,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.getCovering.html" class="public">
 								<code>getCovering</code>
 							</a>
+							<span class="tableEntryAnnotation">(region)</span>
 						</td>
 						<td>Returns an S2CellUnion that covers (GetCovering) or is contained within
      (GetInteriorCovering) the given region and satisfies the current options.
@@ -230,6 +234,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.getCovering.html" class="public">
 								<code>getCovering</code>
 							</a>
+							<span class="tableEntryAnnotation">(region, covering)</span>
 						</td>
 						<td>Like the methods above, but works directly with a vector of S2CellIds.
      This version can be more efficient when this method is called many times,
@@ -241,6 +246,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.getFastCovering.html" class="public">
 								<code>getFastCovering</code>
 							</a>
+							<span class="tableEntryAnnotation">(region, covering)</span>
 						</td>
 						<td>Like GetCovering(), except that this method is much faster and the
      coverings are not as tight.  All of the usual parameters are respected
@@ -254,6 +260,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.getSimpleCovering.html" class="public">
 								<code>getSimpleCovering</code>
 							</a>
+							<span class="tableEntryAnnotation">(region, start, level, output)</span>
 						</td>
 						<td>Given a connected region and a starting point, return a set of cells at
      the given level that cover the region.
@@ -264,6 +271,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.isCanonical.html" class="public">
 								<code>isCanonical</code>
 							</a>
+							<span class="tableEntryAnnotation">(covering)</span>
 						</td>
 						<td>Returns true if the given S2CellId vector represents a valid covering
      that conforms to the current covering parameters.  In particular:
@@ -274,6 +282,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region_coverer/S2RegionCoverer.options.html" class="public">
 								<code>options</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the current options.  Options can be modifed between calls.
 </td>

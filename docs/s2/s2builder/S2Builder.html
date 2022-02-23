@@ -231,6 +231,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Default constructor; requires Init() to be called.
 </td>
@@ -240,6 +241,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(options)</span>
 						</td>
 						<td>Convenience constructor that calls Init().  Note that to use the default
  options, C++ syntax requires an extra layer of parentheses:
@@ -258,6 +260,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.addEdge.html" class="public">
 								<code>addEdge</code>
 							</a>
+							<span class="tableEntryAnnotation">(v0, v1)</span>
 						</td>
 						<td>Adds the given edge to the current layer.
 </td>
@@ -267,6 +270,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.addIsFullPolygonPredicate.html" class="public">
 								<code>addIsFullPolygonPredicate</code>
 							</a>
+							<span class="tableEntryAnnotation">(predicate)</span>
 						</td>
 						<td>For layers that will be assembled into polygons, this method specifies a
  predicate that will be called to determine whether the polygon is empty
@@ -279,6 +283,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.addLoop.html" class="public">
 								<code>addLoop</code>
 							</a>
+							<span class="tableEntryAnnotation">(loop)</span>
 						</td>
 						<td>Adds the edges in the given loop.  If the sign() of the loop is negative
  (i.e. this loop represents a hole within a polygon), the edge directions
@@ -291,6 +296,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.addPoint.html" class="public">
 								<code>addPoint</code>
 							</a>
+							<span class="tableEntryAnnotation">(v)</span>
 						</td>
 						<td>Adds a degenerate edge (representing a point) to the current layer.
 </td>
@@ -300,6 +306,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.addPolygon.html" class="public">
 								<code>addPolygon</code>
 							</a>
+							<span class="tableEntryAnnotation">(polygon)</span>
 						</td>
 						<td>Adds the loops in the given polygon.  Loops representing holes have their
  edge directions automatically reversed as described for AddLoop().  Note
@@ -312,6 +319,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.addPolyline.html" class="public">
 								<code>addPolyline</code>
 							</a>
+							<span class="tableEntryAnnotation">(polyline)</span>
 						</td>
 						<td>Adds the edges in the given polyline.  (Note that if the polyline
  consists of 0 or 1 vertices, this method does nothing.)
@@ -322,6 +330,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.addShape.html" class="public">
 								<code>addShape</code>
 							</a>
+							<span class="tableEntryAnnotation">(shape)</span>
 						</td>
 						<td>Adds the edges of the given shape to the current layer.
 </td>
@@ -331,6 +340,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.build.html" class="public">
 								<code>build</code>
 							</a>
+							<span class="tableEntryAnnotation">(error)</span>
 						</td>
 						<td>Performs the requested edge splitting, snapping, simplification, etc, and
  then assembles the resulting edges into the requested output layers.
@@ -341,6 +351,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.clearLabels.html" class="public">
 								<code>clearLabels</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Clear the stack of labels.
 </td>
@@ -350,6 +361,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.forceVertex.html" class="public">
 								<code>forceVertex</code>
 							</a>
+							<span class="tableEntryAnnotation">(vertex)</span>
 						</td>
 						<td>Forces a vertex to be located at the given position.  This can be used to
  prevent certain input vertices from moving.  However if you are trying to
@@ -362,6 +374,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.initialize.html" class="public">
 								<code>initialize</code>
 							</a>
+							<span class="tableEntryAnnotation">(options)</span>
 						</td>
 						<td>Initializes an S2Builder with the given options.
 </td>
@@ -371,6 +384,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.popLabel.html" class="public">
 								<code>popLabel</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Remove a label from the stack.
 </td>
@@ -380,6 +394,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.pushLabel.html" class="public">
 								<code>pushLabel</code>
 							</a>
+							<span class="tableEntryAnnotation">(label)</span>
 						</td>
 						<td>Add a label to the stack.
 </td>
@@ -389,6 +404,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.reset.html" class="public">
 								<code>reset</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Clears all input data and resets the builder state.  Any options
  specified are preserved.
@@ -399,6 +415,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.setLabel.html" class="public">
 								<code>setLabel</code>
 							</a>
+							<span class="tableEntryAnnotation">(label)</span>
 						</td>
 						<td>Convenience function that clears the stack and adds a single label.
 </td>
@@ -408,6 +425,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/S2Builder.startLayer.html" class="public">
 								<code>startLayer</code>
 							</a>
+							<span class="tableEntryAnnotation">(layer)</span>
 						</td>
 						<td>Starts a new output layer.  This method must be called before adding any
  edges to the S2Builder.  You may call this method multiple times to build

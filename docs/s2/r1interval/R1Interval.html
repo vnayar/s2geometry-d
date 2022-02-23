@@ -150,6 +150,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(lo, hi)</span>
 						</td>
 						<td>Constructor.  If lo &gt; hi, the interval is empty.
 </td>
@@ -167,6 +168,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.addInterval.html" class="public">
 								<code>addInterval</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Expands the interval so that it contains the given interval "y".
 </td>
@@ -176,6 +178,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.addPoint.html" class="public">
 								<code>addPoint</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Expands the interval so that it contains the given point "p".
 </td>
@@ -185,6 +188,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.approxEquals.html" class="public">
 								<code>approxEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(y, max_error)</span>
 						</td>
 						<td>Returns true if this interval can be transformed into the given interval
      by moving each endpoint by at most "max_error".  The empty interval is
@@ -197,6 +201,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Returns true if this interval contains the interval 'y'.
 </td>
@@ -206,6 +211,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.empty.html" class="public">
 								<code>empty</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns an empty interval.
 </td>
@@ -215,6 +221,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.expanded.html" class="public">
 								<code>expanded</code>
 							</a>
+							<span class="tableEntryAnnotation">(margin)</span>
 						</td>
 						<td>Returns an interval that has been expanded on each side by the given
      distance "margin".  If "margin" is negative, then shrink the interval on
@@ -227,6 +234,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.fromPoint.html" class="public">
 								<code>fromPoint</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Convenience method to construct an interval containing a single point.
 </td>
@@ -236,6 +244,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.fromPointPair.html" class="public">
 								<code>fromPointPair</code>
 							</a>
+							<span class="tableEntryAnnotation">(p1, p2)</span>
 						</td>
 						<td>Convenience method to construct the minimal interval containing
      the two given points.  This is equivalent to starting with an empty
@@ -247,6 +256,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.getCenter.html" class="public">
 								<code>getCenter</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the center of the interval.  For empty intervals, the result is arbitrary.
 </td>
@@ -256,6 +266,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/r1interval/R1Interval.getDirectedHausdorffDistance.html" class="public">
 								<code>getDirectedHausdorffDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Returns the Hausdorff distance to the given interval 'y'. For two
 R1Intervals x and y, this distance is defined as
@@ -267,6 +278,7 @@ R1Intervals x and y, this distance is defined as
 							<a href="../../s2/r1interval/R1Interval.getLength.html" class="public">
 								<code>getLength</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the length of the interval.  The length of an empty interval is negative.
 </td>
@@ -276,6 +288,7 @@ R1Intervals x and y, this distance is defined as
 							<a href="../../s2/r1interval/R1Interval.interiorContains.html" class="public">
 								<code>interiorContains</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Returns true if the interior of this interval contains the entire interval 'y' (including its
 boundary).
@@ -286,6 +299,7 @@ boundary).
 							<a href="../../s2/r1interval/R1Interval.interiorIntersects.html" class="public">
 								<code>interiorIntersects</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Returns true if the interior of this interval intersects any point of the given interval
 (including its boundary).
@@ -296,6 +310,7 @@ boundary).
 							<a href="../../s2/r1interval/R1Interval.intersection.html" class="public">
 								<code>intersection</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Returns the intersection of this interval with the given interval.  Empty intervals do not
 need to be special-cased.
@@ -306,6 +321,7 @@ need to be special-cased.
 							<a href="../../s2/r1interval/R1Interval.intersects.html" class="public">
 								<code>intersects</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Returns true if this interval intersects the given interval, i.e. if they have any points in
 common.
@@ -316,6 +332,7 @@ common.
 							<a href="../../s2/r1interval/R1Interval.isEmpty.html" class="public">
 								<code>isEmpty</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return true if the interval is empty, i.e. it contains no points.
 </td>
@@ -325,6 +342,7 @@ common.
 							<a href="../../s2/r1interval/R1Interval.opEquals.html" class="public">
 								<code>opEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Supports the == and != operators. Return true if two intervals contain the same set of points.
 </td>
@@ -334,6 +352,7 @@ common.
 							<a href="../../s2/r1interval/R1Interval.opIndex.html" class="public">
 								<code>opIndex</code>
 							</a>
+							<span class="tableEntryAnnotation">(i)</span>
 						</td>
 						<td>Methods that allow the R1Interval to be accessed as a vector.  (The
      recommended style is to use lo() and hi() whenever possible, but these
@@ -345,6 +364,7 @@ common.
 							<a href="../../s2/r1interval/R1Interval.project.html" class="public">
 								<code>project</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Returns the closest point in the interval to the given point "p".  The interval must be
 </td>
@@ -354,6 +374,7 @@ common.
 							<a href="../../s2/r1interval/R1Interval.unite.html" class="public">
 								<code>unite</code>
 							</a>
+							<span class="tableEntryAnnotation">(y)</span>
 						</td>
 						<td>Returns the smallest interval that contains this interval and the given interval "y".
 </td>

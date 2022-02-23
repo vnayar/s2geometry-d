@@ -146,6 +146,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2builder/VertexIdEdgeVectorShape.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(edges, vertices)</span>
 						</td>
 						<td>Requires that "edges" is constant for the lifetime of this object.
 </td>
@@ -163,6 +164,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.chain.html" class="public inherited">
 								<code>chain</code>
 							</a>
+							<span class="tableEntryAnnotation">(chain_id)</span>
 						</td>
 						<td>Returns the range of edge ids corresponding to the given edge chain.  The
      edge chains must form contiguous, non-overlapping ranges that cover the
@@ -174,6 +176,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.chainEdge.html" class="public inherited">
 								<code>chainEdge</code>
 							</a>
+							<span class="tableEntryAnnotation">(chain_id, offset)</span>
 						</td>
 						<td>Returns the edge at offset "offset" within edge chain "chain_id".
      Equivalent to "shape.edge(shape.chain(chain_id).start + offset)"
@@ -185,6 +188,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.chainPosition.html" class="public inherited">
 								<code>chainPosition</code>
 							</a>
+							<span class="tableEntryAnnotation">(edge_id)</span>
 						</td>
 						<td>Finds the chain containing the given edge, and returns the position of
      that edge as a (chain_id, offset) pair.
@@ -195,6 +199,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.dimension.html" class="public inherited">
 								<code>dimension</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the dimension of the geometry represented by this shape.
 </td>
@@ -204,6 +209,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.edge.html" class="public inherited">
 								<code>edge</code>
 							</a>
+							<span class="tableEntryAnnotation">(edge_id)</span>
 						</td>
 						<td>Returns the endpoints of the given edge id.
 </td>
@@ -213,6 +219,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.getReferencePoint.html" class="public inherited">
 								<code>getReferencePoint</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns an arbitrary point P along with a boolean indicating whether P is
      contained by the shape.  (The boolean value must be false for shapes that
@@ -224,6 +231,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.hasInterior.html" class="public inherited">
 								<code>hasInterior</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Convenience function that returns true if this shape has an interior.
 </td>
@@ -233,6 +241,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.id.html" class="public inherited">
 								<code>id</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>A unique id assigned to this shape by S2ShapeIndex.  Shape ids are
      assigned sequentially starting from 0 in the order shapes are added.
@@ -243,6 +252,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.numChains.html" class="public inherited">
 								<code>numChains</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the number of contiguous edge chains in the shape.  For example,
      a shape whose edges are [AB, BC, CD, AE, EF] would consist of two chains
@@ -255,6 +265,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.numEdges.html" class="public inherited">
 								<code>numEdges</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the number of edges in this shape.  Edges have ids ranging from 0 to num_edges() - 1.
 </td>
@@ -264,6 +275,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2shape/S2Shape.userData.html" class="public inherited">
 								<code>userData</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Virtual methods that return pointers of your choice.
 </td>

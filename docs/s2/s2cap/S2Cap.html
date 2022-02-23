@@ -168,6 +168,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cap/S2Cap.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>The default constructor returns an empty S2Cap.
 </td>
@@ -177,6 +178,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cap/S2Cap.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(center, radius)</span>
 						</td>
 						<td>Constructs a cap with the given center and radius.  A negative radius
      yields an empty cap; a radius of 180 degrees or more yields a full cap
@@ -188,6 +190,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cap/S2Cap.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(center, radius)</span>
 						</td>
 						<td>Constructs a cap where the angle is expressed as an S1ChordAngle.  This
 constructor is more efficient than the one above.
@@ -206,6 +209,7 @@ constructor is more efficient than the one above.
 							<a href="../../s2/s2cap/S2Cap.addCap.html" class="public">
 								<code>addCap</code>
 							</a>
+							<span class="tableEntryAnnotation">(other)</span>
 						</td>
 						<td>Increases the cap height if necessary to include "other".  If the current
 cap is empty it is set to the given other cap.
@@ -216,6 +220,7 @@ cap is empty it is set to the given other cap.
 							<a href="../../s2/s2cap/S2Cap.addPoint.html" class="public">
 								<code>addPoint</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Increase the cap height if necessary to include the given point.  If the
      cap is empty then the center is set to the given point, but otherwise the
@@ -227,6 +232,7 @@ cap is empty it is set to the given other cap.
 							<a href="../../s2/s2cap/S2Cap.approxEquals.html" class="public">
 								<code>approxEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(other, max_error_angle)</span>
 						</td>
 						<td>Returns true if the cap center and height differ by at most "max_error"
 from the given cap "other".
@@ -237,6 +243,7 @@ from the given cap "other".
 							<a href="../../s2/s2cap/S2Cap.clone.html" class="public">
 								<code>clone</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td></td>
 					</tr>
@@ -245,6 +252,7 @@ from the given cap "other".
 							<a href="../../s2/s2cap/S2Cap.complement.html" class="public">
 								<code>complement</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the complement of the interior of the cap.  A cap and its
      complement have the same boundary but do not share any interior points.
@@ -258,6 +266,7 @@ from the given cap "other".
 							<a href="../../s2/s2cap/S2Cap.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(other)</span>
 						</td>
 						<td>Returns true if and only if this cap contains the given other cap
 (in a set containment sense, e.g. every cap contains the empty cap).
@@ -268,6 +277,7 @@ from the given cap "other".
 							<a href="../../s2/s2cap/S2Cap.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>The point "p" should be a unit-length vector.
 </td>
@@ -277,6 +287,7 @@ from the given cap "other".
 							<a href="../../s2/s2cap/S2Cap.decode.html" class="public">
 								<code>decode</code>
 							</a>
+							<span class="tableEntryAnnotation">(decoder)</span>
 						</td>
 						<td>Decodes an S2Cap encoded with Encode().  Returns true on success.
 </td>
@@ -286,6 +297,7 @@ from the given cap "other".
 							<a href="../../s2/s2cap/S2Cap.empty.html" class="public">
 								<code>empty</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns an empty cap, i.e. a cap that contains no points.
 </td>
@@ -295,6 +307,7 @@ from the given cap "other".
 							<a href="../../s2/s2cap/S2Cap.encode.html" class="public">
 								<code>encode</code>
 							</a>
+							<span class="tableEntryAnnotation">(encoder)</span>
 						</td>
 						<td>Appends a serialized representation of the S2Cap to "encoder".
 </td>
@@ -304,6 +317,7 @@ from the given cap "other".
 							<a href="../../s2/s2cap/S2Cap.expanded.html" class="public">
 								<code>expanded</code>
 							</a>
+							<span class="tableEntryAnnotation">(distance)</span>
 						</td>
 						<td>Returns a cap that contains all points within a given distance of this
 cap.  Note that any expansion of the empty cap is still empty.
@@ -314,6 +328,7 @@ cap.  Note that any expansion of the empty cap is still empty.
 							<a href="../../s2/s2cap/S2Cap.fromCenterArea.html" class="public">
 								<code>fromCenterArea</code>
 							</a>
+							<span class="tableEntryAnnotation">(center, area)</span>
 						</td>
 						<td>Returns a cap with the given center and surface area.  Note that the area
      can also be interpreted as the solid angle subtended by the cap (because
@@ -326,6 +341,7 @@ cap.  Note that any expansion of the empty cap is still empty.
 							<a href="../../s2/s2cap/S2Cap.fromCenterHeight.html" class="public">
 								<code>fromCenterHeight</code>
 							</a>
+							<span class="tableEntryAnnotation">(center, height)</span>
 						</td>
 						<td>Returns a cap with the given center and height (see comments above).  A
      negative height yields an empty cap; a height of 2 or more yields a full
@@ -337,6 +353,7 @@ cap.  Note that any expansion of the empty cap is still empty.
 							<a href="../../s2/s2cap/S2Cap.fromPoint.html" class="public">
 								<code>fromPoint</code>
 							</a>
+							<span class="tableEntryAnnotation">(center)</span>
 						</td>
 						<td>Convenience function that creates a cap containing a single point.  This
 method is more efficient that the S2Cap(center, radius) constructor.
@@ -347,6 +364,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.full.html" class="public">
 								<code>full</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a full cap, i.e. a cap that contains all points.
 </td>
@@ -356,6 +374,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.getArea.html" class="public">
 								<code>getArea</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the area of the cap.
 </td>
@@ -365,6 +384,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.getCellUnionBound.html" class="public">
 								<code>getCellUnionBound</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell_ids)</span>
 						</td>
 						<td>Computes a covering of the S2Cap.  In general the covering consists of at
      most 4 cells except for very large caps, which may need up to 6 cells.
@@ -376,6 +396,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.getCentroid.html" class="public">
 								<code>getCentroid</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the true centroid of the cap multiplied by its surface area (see
      s2centroids.h for details on centroids). The result lies on the ray from
@@ -389,6 +410,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.getRadius.html" class="public">
 								<code>getRadius</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the cap radius as an S1Angle.  (Note that the cap angle is stored
      internally as an S1ChordAngle, so this method requires a trigonometric
@@ -401,6 +423,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.height.html" class="public">
 								<code>height</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the height of the cap, i.e. the distance from the center point to the cutoff plane.
 </td>
@@ -410,6 +433,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.interiorContains.html" class="public">
 								<code>interiorContains</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Returns true if and only if the given point is contained in the interior
      of the cap (i.e. the cap excluding its boundary).  "p" should be be a
@@ -421,6 +445,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.interiorIntersects.html" class="public">
 								<code>interiorIntersects</code>
 							</a>
+							<span class="tableEntryAnnotation">(other)</span>
 						</td>
 						<td>Returns true if and only if the interior of this cap intersects the
      given other cap.  (This relationship is not symmetric, since only
@@ -432,6 +457,7 @@ method is more efficient that the S2Cap(center, radius) constructor.
 							<a href="../../s2/s2cap/S2Cap.intersects.html" class="public">
 								<code>intersects</code>
 							</a>
+							<span class="tableEntryAnnotation">(other)</span>
 						</td>
 						<td>Returns true if and only if this cap intersects the given other cap,
 i.e. whether they have any points in common.
@@ -442,6 +468,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2cap/S2Cap.isEmpty.html" class="public">
 								<code>isEmpty</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if the cap is empty, i.e. it contains no points.
 </td>
@@ -451,6 +478,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2cap/S2Cap.isFull.html" class="public">
 								<code>isFull</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if the cap is full, i.e. it contains all points.
 </td>
@@ -460,6 +488,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2cap/S2Cap.isValid.html" class="public">
 								<code>isValid</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>We allow negative heights (to represent empty caps) but heights are
      normalized so that they do not exceed 2.
@@ -470,6 +499,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2cap/S2Cap.opEquals.html" class="public">
 								<code>opEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(o)</span>
 						</td>
 						<td>Returns true if two caps are identical.
 </td>
@@ -479,6 +509,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2region/S2Region.clone.html" class="public inherited">
 								<code>clone</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a deep copy of the region.
 </td>
@@ -488,6 +519,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2region/S2Region.contains.html" class="public inherited">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Returns true if and only if the given point is contained by the region.
  The point 'p' is generally required to be unit length, although some
@@ -499,6 +531,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2region/S2Region.contains.html" class="public inherited">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>Returns true if the region completely contains the given cell, otherwise
  returns false.
@@ -509,6 +542,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2region/S2Region.getCapBound.html" class="public inherited">
 								<code>getCapBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a bounding spherical cap that contains the region.  The bound may
  not be tight.
@@ -519,6 +553,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2region/S2Region.getRectBound.html" class="public inherited">
 								<code>getRectBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a bounding latitude-longitude rectangle that contains the region.
  The bound may not be tight.
@@ -529,6 +564,7 @@ i.e. whether they have any points in common.
 							<a href="../../s2/s2region/S2Region.mayIntersect.html" class="public inherited">
 								<code>mayIntersect</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>If this method returns false, the region does not intersect the given
  cell.  Otherwise, either region intersects the cell, or the intersection

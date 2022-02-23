@@ -104,7 +104,7 @@ public:
     return _bounds;
   }
 
-  ref Vector2_d mutableBounds() {
+  ref Vector2_d mutableBounds() return {
     return _bounds;
   }
 

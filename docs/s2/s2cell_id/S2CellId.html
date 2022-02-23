@@ -151,6 +151,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(id)</span>
 						</td>
 						<td>Construct a cell from a raw numerical S2 Cell ID.
 </td>
@@ -160,6 +161,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Construct a leaf cell containing the given point "p".  Usually there is
  is exactly one such cell, but for points along the edge of a cell, any
@@ -173,6 +175,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(ll)</span>
 						</td>
 						<td>Constructs a cell from a latitude-longitude coordinate.
 </td>
@@ -205,6 +208,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.advance.html" class="public">
 								<code>advance</code>
 							</a>
+							<span class="tableEntryAnnotation">(steps)</span>
 						</td>
 						<td>This method advances or retreats the indicated number of steps along the
  Hilbert curve at the current level, and returns the new position.  The
@@ -216,6 +220,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.advanceWrap.html" class="public">
 								<code>advanceWrap</code>
 							</a>
+							<span class="tableEntryAnnotation">(steps)</span>
 						</td>
 						<td>This method advances or retreats the indicated number of steps along the
  Hilbert curve at the current level, and returns the new position.  The
@@ -228,6 +233,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.appendAllNeighbors.html" class="public">
 								<code>appendAllNeighbors</code>
 							</a>
+							<span class="tableEntryAnnotation">(nbr_level, output)</span>
 						</td>
 						<td>Append all neighbors of this cell at the given level to "output".  Two
  cells X and Y are neighbors if their boundaries intersect but their
@@ -241,6 +247,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.appendVertexNeighbors.html" class="public">
 								<code>appendVertexNeighbors</code>
 							</a>
+							<span class="tableEntryAnnotation">(level, output)</span>
 						</td>
 						<td>Returns the neighbors of closest vertex to this cell at the given level,
  by appending them to "output".  Normally there are four neighbors, but
@@ -253,6 +260,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.begin.html" class="public">
 								<code>begin</code>
 							</a>
+							<span class="tableEntryAnnotation">(level)</span>
 						</td>
 						<td>Iterator-style methods for traversing all the cells along the Hilbert
  curve at a given level (across all 6 faces of the cube).  Note that the
@@ -265,6 +273,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.child.html" class="public">
 								<code>child</code>
 							</a>
+							<span class="tableEntryAnnotation">(position)</span>
 						</td>
 						<td>Returns the immediate child of this cell at the given traversal order
  position (in the range 0 to 3).  This cell must not be a leaf cell.
@@ -275,6 +284,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.childBegin.html" class="public">
 								<code>childBegin</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Iterator-style methods for traversing the immediate children of a cell or
  all of the children at a given level (greater than or equal to the current
@@ -288,6 +298,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.childPosition.html" class="public">
 								<code>childPosition</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return the child position (0..3) of this cell within its parent.
 </td>
@@ -297,6 +308,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.childPosition.html" class="public">
 								<code>childPosition</code>
 							</a>
+							<span class="tableEntryAnnotation">(level)</span>
 						</td>
 						<td>Return the child position (0..3) of this cell's ancestor at the given
  level within its parent.  For example, child_position(1) returns the
@@ -308,6 +320,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(other)</span>
 						</td>
 						<td>Returns true if the given cell is contained within this one.
 </td>
@@ -317,6 +330,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.decode.html" class="public">
 								<code>decode</code>
 							</a>
+							<span class="tableEntryAnnotation">(decoder)</span>
 						</td>
 						<td>Decodes an S2CellId encoded by Encode(). Returns true on success.
 </td>
@@ -326,6 +340,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.distanceFromBegin.html" class="public">
 								<code>distanceFromBegin</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the number of steps that this cell is from Begin(level()). The
  return value is always non-negative.
@@ -336,6 +351,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.encode.html" class="public">
 								<code>encode</code>
 							</a>
+							<span class="tableEntryAnnotation">(encoder)</span>
 						</td>
 						<td>Use encoder to generate a serialized representation of this cell id.
  Can also encode an invalid cell.
@@ -346,6 +362,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.expandedByDistanceUV.html" class="public">
 								<code>expandedByDistanceUV</code>
 							</a>
+							<span class="tableEntryAnnotation">(uv, distance)</span>
 						</td>
 						<td>Expands a rectangle in (u,v)-space so that it contains all points within
  the given distance of the boundary, and return the smallest such
@@ -359,6 +376,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.face.html" class="public">
 								<code>face</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Which cube face this cell belongs to, in the range 0..5.
 </td>
@@ -368,6 +386,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.fromDebugString.html" class="public">
 								<code>fromDebugString</code>
 							</a>
+							<span class="tableEntryAnnotation">(str)</span>
 						</td>
 						<td>Converts a string in the format returned by ToString() to an S2CellId.
  Returns S2CellId::None() if the string could not be parsed.
@@ -378,6 +397,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.fromFace.html" class="public">
 								<code>fromFace</code>
 							</a>
+							<span class="tableEntryAnnotation">(face)</span>
 						</td>
 						<td>Return the cell corresponding to a given S2 cube face.
 </td>
@@ -387,6 +407,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.fromFaceIJ.html" class="public">
 								<code>fromFaceIJ</code>
 							</a>
+							<span class="tableEntryAnnotation">(face, i, j)</span>
 						</td>
 						<td>Returns a leaf cell given its cube face (range 0..5) and
  i- and j-coordinates (see s2coords.h).
@@ -397,6 +418,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.fromFacePosLevel.html" class="public">
 								<code>fromFacePosLevel</code>
 							</a>
+							<span class="tableEntryAnnotation">(face, pos, level)</span>
 						</td>
 						<td>Returns a cell given its face \(range 0..5\), Hilbert curve position within
  that face \(an unsigned integer with S2CellId::POS_BITS bits\), and level
@@ -411,6 +433,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getBoundST.html" class="public">
 								<code>getBoundST</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the bounds of this cell in (s,t)-space.
 </td>
@@ -420,6 +443,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getBoundUV.html" class="public">
 								<code>getBoundUV</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the bounds of this cell in (u,v)-space.
 </td>
@@ -429,6 +453,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getCenterSiTi.html" class="public">
 								<code>getCenterSiTi</code>
 							</a>
+							<span class="tableEntryAnnotation">(psi, pti)</span>
 						</td>
 						<td>Returns the (face, si, ti) coordinates of the center of the cell.  Note
  that although (si,ti) coordinates span the range [0,2**31] in general,
@@ -441,6 +466,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getCenterST.html" class="public">
 								<code>getCenterST</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the center of the cell in (s,t) coordinates (see s2coords.d).
 </td>
@@ -450,6 +476,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getCenterUV.html" class="public">
 								<code>getCenterUV</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the center of the cell in (u,v) coordinates (see s2coords.h).
  Note that the center of the cell is defined as the point at which it is
@@ -462,6 +489,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getCommonAncestorLevel.html" class="public">
 								<code>getCommonAncestorLevel</code>
 							</a>
+							<span class="tableEntryAnnotation">(other)</span>
 						</td>
 						<td>Returns the level of the lowest common ancestor of this cell and "other",
  that is, the maximum level such that parent(level) == other.parent(level).
@@ -474,6 +502,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getEdgeNeighbors.html" class="public">
 								<code>getEdgeNeighbors</code>
 							</a>
+							<span class="tableEntryAnnotation">(neighbors)</span>
 						</td>
 						<td>Returns the four cells that are adjacent across the cell's four edges.
  Neighbors are returned in the order defined by S2Cell::GetEdge.  All
@@ -485,6 +514,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getSizeIJ.html" class="public">
 								<code>getSizeIJ</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the edge length of this cell in (i,j)-space.
 </td>
@@ -494,6 +524,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getSizeIJ.html" class="public">
 								<code>getSizeIJ</code>
 							</a>
+							<span class="tableEntryAnnotation">(level)</span>
 						</td>
 						<td>Like getSizeIJ(), but returns the size of cells at the given level.
 </td>
@@ -503,6 +534,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getSizeST.html" class="public">
 								<code>getSizeST</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the edge length of this cell in (s,t)-space.
 </td>
@@ -512,6 +544,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.getSizeST.html" class="public">
 								<code>getSizeST</code>
 							</a>
+							<span class="tableEntryAnnotation">(level)</span>
 						</td>
 						<td>Returns the edge length in (s,t)-space of cells at the given level.
 </td>
@@ -521,6 +554,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.IJLevelToBoundUV.html" class="public">
 								<code>IJLevelToBoundUV</code>
 							</a>
+							<span class="tableEntryAnnotation">(ij, level)</span>
 						</td>
 						<td>Returns the bound in (u,v)-space for the cell at the given level containing
  the leaf cell with the given (i,j)-coordinates.
@@ -531,6 +565,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.intersects.html" class="public">
 								<code>intersects</code>
 							</a>
+							<span class="tableEntryAnnotation">(other)</span>
 						</td>
 						<td>Returns true if the given cell intersects this one.
 </td>
@@ -540,6 +575,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.isFace.html" class="public">
 								<code>isFace</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return true if this is a top-level face cell (more efficient than
  checking whether level() == 0).
@@ -550,6 +586,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.isLeaf.html" class="public">
 								<code>isLeaf</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if this is a leaf cell (more efficient than checking
  whether level() == MAX_LEVEL).
@@ -560,6 +597,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.isValid.html" class="public">
 								<code>isValid</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if id() represents a valid cell.
 </td>
@@ -569,6 +607,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.level.html" class="public">
 								<code>level</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the subdivision level of the cell (range 0..MAX_LEVEL).
 </td>
@@ -578,6 +617,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.lsb.html" class="public">
 								<code>lsb</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the lowest-numbered bit that is on for this cell id, which is
  equal to (uint64(1) &lt;&lt; (2 * (MAX_LEVEL - level))).  So for example,
@@ -590,6 +630,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.lsbForLevel.html" class="public">
 								<code>lsbForLevel</code>
 							</a>
+							<span class="tableEntryAnnotation">(level)</span>
 						</td>
 						<td>Returns the lowest-numbered bit that is on for cells at the given level.
 </td>
@@ -599,6 +640,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.maximumTile.html" class="public">
 								<code>maximumTile</code>
 							</a>
+							<span class="tableEntryAnnotation">(limit)</span>
 						</td>
 						<td>Returns the largest cell with the same <code class="lang-d"><span class="pln">range_min</span><span class="pun">()</span></code> and such that
  <code class="lang-d"><span class="pln">range_max</span><span class="pun">() &lt; </span><span class="pln">limit<wbr/></span><span class="pun">.</span><span class="pln">range_min</span><span class="pun">()</span></code>.
@@ -609,6 +651,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.next.html" class="public">
 								<code>next</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the next/previous cell at the same level along the Hilbert curve.
  Works correctly when advancing from one face to the next, but
@@ -620,6 +663,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.nextWrap.html" class="public">
 								<code>nextWrap</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Like next() and prev(), but these methods wrap around from the last face
  to the first and vice versa.  They should *not* be used for iteration in
@@ -632,6 +676,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.none.html" class="public">
 								<code>none</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns an representative empty cell smaller than any valid cell..
 </td>
@@ -641,6 +686,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.opCmp.html" class="public">
 								<code>opCmp</code>
 							</a>
+							<span class="tableEntryAnnotation">(v)</span>
 						</td>
 						<td>Supports &lt;, &lt;=, &gt;, and &gt;= operators.
 </td>
@@ -650,6 +696,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.opEquals.html" class="public">
 								<code>opEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(v)</span>
 						</td>
 						<td>Supports the == and != operators.
 </td>
@@ -659,6 +706,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.parent.html" class="public">
 								<code>parent</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the cell at the previous level or at the given level (which must
  be less than or equal to the current level).
@@ -669,6 +717,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.pos.html" class="public">
 								<code>pos</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>The position of the cell center along the Hilbert curve over this face,
  in the range 0..(2**POS_BITS-1).
@@ -679,6 +728,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.rangeMin.html" class="public">
 								<code>rangeMin</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>These methods return the range of cell ids that are contained within this
  cell \(including itself\).
@@ -689,6 +739,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.sentinel.html" class="public">
 								<code>sentinel</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns an invalid cell id guaranteed to be larger than any
  valid cell id.  Useful for creating indexes.
@@ -699,6 +750,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.toFaceIJOrientation.html" class="public">
 								<code>toFaceIJOrientation</code>
 							</a>
+							<span class="tableEntryAnnotation">(pi, pj)</span>
 						</td>
 						<td>Return the (face, i, j) coordinates for the leaf cell corresponding to
  this cell id.  Since cells are represented by the Hilbert curve position
@@ -712,6 +764,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.toHash.html" class="public">
 								<code>toHash</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>The ID serves as a good hash for associative arrays.
 </td>
@@ -721,6 +774,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.toLatLng.html" class="public">
 								<code>toLatLng</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the S2LatLng corresponding to the center of the given cell.
 </td>
@@ -730,6 +784,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.toS2Point.html" class="public">
 								<code>toS2Point</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the direction vector corresponding to the center of the given
  cell.  The vector returned by ToPointRaw is not necessarily unit length.
@@ -741,6 +796,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.toString.html" class="public">
 								<code>toString</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Creates a human readable debug string.  Used for &lt;&lt; and available for
  direct usage as well.  The format is "f/dd..d" where "f" is a digit in
@@ -754,6 +810,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2cell_id/S2CellId.toToken.html" class="public">
 								<code>toToken</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Methods to encode and decode cell ids to compact text strings suitable
  for display or indexing.  Cells at lower levels (i.e. larger cells) are

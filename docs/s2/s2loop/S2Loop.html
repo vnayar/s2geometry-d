@@ -170,6 +170,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2loop/S2Loop.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Default constructor.  The loop must be initialized by calling Init() or
 Decode() before it is used.
@@ -180,6 +181,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(vertices, s2DebugOverride)</span>
 						</td>
 						<td>Convenience constructor that calls Init() with the given vertices.
 </td>
@@ -189,6 +191,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>Construct a loop corresponding to the given cell.
 </td>
@@ -224,6 +227,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.boundaryApproxEquals.html" class="public">
 								<code>boundaryApproxEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, max_error)</span>
 						</td>
 						<td>Returns true if two loops have the same boundary except for vertex
      perturbations.  More precisely, the vertices in the two loops must be in
@@ -236,6 +240,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.boundaryEquals.html" class="public">
 								<code>boundaryEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Returns true if two loops have the same boundary.  This is true if and
      only if the loops have the same vertices in the same cyclic order (i.e.,
@@ -248,6 +253,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.boundaryNear.html" class="public">
 								<code>boundaryNear</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, max_error)</span>
 						</td>
 						<td>Returns true if the two loop boundaries are within "max_error" of each
      other along their entire lengths.  The two loops may have different
@@ -264,6 +270,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.clone.html" class="public">
 								<code>clone</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td></td>
 					</tr>
@@ -272,6 +279,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.compareBoundary.html" class="public">
 								<code>compareBoundary</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Return +1 if A contains the boundary of B, -1 if A excludes the boundary
      of B, and 0 if the boundaries of A and B cross.  Shared edges are handled
@@ -287,6 +295,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Returns true if the region contained by this loop is a superset of the
      region contained by the given other loop.
@@ -297,6 +306,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.containsNested.html" class="public">
 								<code>containsNested</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Given two loops of a polygon, return true if A contains B.  This version
      of Contains() is cheap because it does not test for edge intersections.
@@ -310,6 +320,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.decode.html" class="public">
 								<code>decode</code>
 							</a>
+							<span class="tableEntryAnnotation">(decoder)</span>
 						</td>
 						<td>Decodes a loop encoded with Encode() or the private method
      EncodeCompressed() (used by the S2Polygon encoder).  Returns true on
@@ -321,6 +332,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.depth.html" class="public">
 								<code>depth</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>The depth of a loop is defined as its nesting level within its containing
      polygon.  "Outer shell" loops have depth 0, holes within those loops have
@@ -333,6 +345,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.empty.html" class="public">
 								<code>empty</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>A special vertex chain of length 1 that creates an empty loop (i.e., a
      loop with no edges that contains no points).  Example usage:
@@ -343,6 +356,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.encode.html" class="public">
 								<code>encode</code>
 							</a>
+							<span class="tableEntryAnnotation">(encoder)</span>
 						</td>
 						<td>Appends a serialized representation of the S2Loop to "encoder".
 </td>
@@ -352,6 +366,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.equals.html" class="public">
 								<code>equals</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Returns true if two loops have the same vertices in the same linear order
      (i.e., cyclic rotations are not allowed).
@@ -362,6 +377,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.findValidationError.html" class="public">
 								<code>findValidationError</code>
 							</a>
+							<span class="tableEntryAnnotation">(error)</span>
 						</td>
 						<td>Returns true if this is *not* a valid loop and sets "error"
      appropriately.  Otherwise returns false and leaves "error" unchanged.
@@ -372,6 +388,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.findValidationErrorNoIndex.html" class="public">
 								<code>findValidationErrorNoIndex</code>
 							</a>
+							<span class="tableEntryAnnotation">(error)</span>
 						</td>
 						<td>Like FindValidationError(), but skips any checks that would require
      building the S2ShapeIndex (i.e., self-intersection tests).  This is used
@@ -384,6 +401,7 @@ Decode() before it is used.
 							<a href="../../s2/s2loop/S2Loop.full.html" class="public">
 								<code>full</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>A special vertex chain of length 1 that creates a full loop (i.e., a loop
 with no edges that contains all points).  See kEmpty() for details.
@@ -394,6 +412,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.getArea.html" class="public">
 								<code>getArea</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return the area of the loop interior, i.e. the region on the left side of
      the loop.  The return value is between 0 and 4*Pi.  (Note that the return
@@ -405,6 +424,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.getCapBound.html" class="public">
 								<code>getCapBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>GetRectBound() returns essentially tight results, while GetCapBound()
      might have a lot of extra padding.  Both bounds are conservative in that
@@ -416,6 +436,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.getCentroid.html" class="public">
 								<code>getCentroid</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the true centroid of the loop multiplied by the area of the loop
      (see s2centroids.h for details on centroids).  The result is not unit
@@ -428,6 +449,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.getDistance.html" class="public">
 								<code>getDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(x)</span>
 						</td>
 						<td>Returns the distance from the given point to the loop interior.  If the
      loop is empty, return S1Angle::Infinity().  "x" should be unit length.
@@ -438,6 +460,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.getDistanceToBoundary.html" class="public">
 								<code>getDistanceToBoundary</code>
 							</a>
+							<span class="tableEntryAnnotation">(x)</span>
 						</td>
 						<td>Returns the distance from the given point to the loop boundary.  If the
      loop is empty or full, return S1Angle::Infinity() (since the loop has no
@@ -449,6 +472,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.getSurfaceIntegral.html" class="public">
 								<code>getSurfaceIntegral</code>
 							</a>
+							<span class="tableEntryAnnotation">(fTri)</span>
 						</td>
 						<td>This method computes the oriented surface integral of some quantity f(x)
      over the loop interior, given a function f_tri(A,B,C) that returns the
@@ -461,6 +485,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.getTurningAngle.html" class="public">
 								<code>getTurningAngle</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the sum of the turning angles at each vertex.  The return value is
      positive if the loop is counter-clockwise, negative if the loop is
@@ -475,6 +500,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.getTurningAngleMaxError.html" class="public">
 								<code>getTurningAngleMaxError</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return the maximum error in GetTurningAngle().  The return value is not
      constant; it depends on the loop.
@@ -485,6 +511,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.initialize.html" class="public">
 								<code>initialize</code>
 							</a>
+							<span class="tableEntryAnnotation">(vertexRange)</span>
 						</td>
 						<td>Initialize a loop with given vertices.  The last vertex is implicitly
      connected to the first.  All points should be unit length.  Loops must
@@ -497,6 +524,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.intersects.html" class="public">
 								<code>intersects</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Returns true if the region contained by this loop intersects the region
      contained by the given other loop.
@@ -507,6 +535,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.invert.html" class="public">
 								<code>invert</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Reverse the order of the loop vertices, effectively complementing the
      region represented by the loop.  For example, the loop ABCD (with edges
@@ -520,6 +549,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.isEmpty.html" class="public">
 								<code>isEmpty</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if this is the special "empty" loop that contains no points.
 </td>
@@ -529,6 +559,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.isEmptyOrFull.html" class="public">
 								<code>isEmptyOrFull</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if this loop is either "empty" or "full".
 </td>
@@ -538,6 +569,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.isFull.html" class="public">
 								<code>isFull</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if this is the special "full" loop that contains all points.
 </td>
@@ -547,6 +579,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.isHole.html" class="public">
 								<code>isHole</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if this loop represents a hole in its containing polygon.
 </td>
@@ -556,6 +589,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.isNormalized.html" class="public">
 								<code>isNormalized</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return true if the loop area is at most 2*Pi.  Degenerate loops are
      handled consistently with s2pred::Sign(), i.e., if a loop can be
@@ -568,6 +602,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.isValid.html" class="public">
 								<code>isValid</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if this is a valid loop.  Note that validity is checked
      automatically during initialization when --s2debug is enabled (true by
@@ -579,6 +614,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.makeRegularLoop.html" class="public">
 								<code>makeRegularLoop</code>
 							</a>
+							<span class="tableEntryAnnotation">(center, radius, num_vertices)</span>
 						</td>
 						<td>Constructs a regular polygon with the given number of vertices, all
      located on a circle of the specified radius around "center".  The radius
@@ -590,6 +626,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.makeRegularLoop.html" class="public">
 								<code>makeRegularLoop</code>
 							</a>
+							<span class="tableEntryAnnotation">(frame, radius, num_vertices)</span>
 						</td>
 						<td>Like the function above, but this version constructs a loop centered
      around the z-axis of the given coordinate frame, with the first vertex in
@@ -602,6 +639,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.normalize.html" class="public">
 								<code>normalize</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Invert the loop if necessary so that the area enclosed by the loop is at most 2*Pi.
 </td>
@@ -611,6 +649,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.orientedVertex.html" class="public">
 								<code>orientedVertex</code>
 							</a>
+							<span class="tableEntryAnnotation">(i)</span>
 						</td>
 						<td>Like vertex(), but this method returns vertices in reverse order if the
      loop represents a polygon hole.  For example, arguments 0, 1, 2 are
@@ -624,6 +663,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.project.html" class="public">
 								<code>project</code>
 							</a>
+							<span class="tableEntryAnnotation">(x)</span>
 						</td>
 						<td>If the given point is contained by the loop, return it.  Otherwise return
      the closest point on the loop boundary.  If the loop is empty, return the
@@ -636,6 +676,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.projectToBoundary.html" class="public">
 								<code>projectToBoundary</code>
 							</a>
+							<span class="tableEntryAnnotation">(x)</span>
 						</td>
 						<td>Return the closest point on the loop boundary to the given point.  If the
      loop is empty or full, return the input argument (since the loop has no
@@ -647,6 +688,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.sign.html" class="public">
 								<code>sign</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>The sign of a loop is -1 if the loop represents a hole in its containing
      polygon, and +1 otherwise.
@@ -657,6 +699,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.spaceUsed.html" class="public">
 								<code>spaceUsed</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the total number of bytes used by the loop.
 </td>
@@ -666,6 +709,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2loop/S2Loop.vertex.html" class="public">
 								<code>vertex</code>
 							</a>
+							<span class="tableEntryAnnotation">(i)</span>
 						</td>
 						<td>For convenience, we make two entire copies of the vertex list available:
      vertex(n..2*n-1) is mapped to vertex(0..n-1), where n == num_vertices().
@@ -676,6 +720,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2region/S2Region.clone.html" class="public inherited">
 								<code>clone</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a deep copy of the region.
 </td>
@@ -685,6 +730,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2region/S2Region.contains.html" class="public inherited">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>Returns true if and only if the given point is contained by the region.
  The point 'p' is generally required to be unit length, although some
@@ -696,6 +742,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2region/S2Region.contains.html" class="public inherited">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>Returns true if the region completely contains the given cell, otherwise
  returns false.
@@ -706,6 +753,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2region/S2Region.getCapBound.html" class="public inherited">
 								<code>getCapBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a bounding spherical cap that contains the region.  The bound may
  not be tight.
@@ -716,6 +764,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2region/S2Region.getCellUnionBound.html" class="public inherited">
 								<code>getCellUnionBound</code>
 							</a>
+							<span class="tableEntryAnnotation">(cellIds)</span>
 						</td>
 						<td>Returns a small collection of S2CellIds whose union covers the region.
  The cells are not sorted, may have redundancies (such as cells that
@@ -727,6 +776,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2region/S2Region.getRectBound.html" class="public inherited">
 								<code>getRectBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a bounding latitude-longitude rectangle that contains the region.
  The bound may not be tight.
@@ -737,6 +787,7 @@ with no edges that contains all points).  See kEmpty() for details.
 							<a href="../../s2/s2region/S2Region.mayIntersect.html" class="public inherited">
 								<code>mayIntersect</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>If this method returns false, the region does not intersect the given
  cell.  Otherwise, either region intersects the cell, or the intersection

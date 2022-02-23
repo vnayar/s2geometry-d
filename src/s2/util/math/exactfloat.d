@@ -107,7 +107,7 @@ import traits = std.traits;
  * macro in <math.h> and therefore can't easily be overrided.
  *
  * Precision Semantics
- * -------------------
+ * ___________________
  *
  * Unlike MPFloat, ExactFloat does not allow a maximum precision to be
  * specified (it is always unbounded).  Therefore it does not have any of the
@@ -284,7 +284,7 @@ public:
 
   /**
    * Return the exponent of this ExactFloat given that the mantissa is in the
-   * range [0.5, 1).  It is an error to call this method if the value is zero,
+   * range \[0.5, 1\).  It is an error to call this method if the value is zero,
    * infinity, or NaN.
    */
   int exp() const nothrow @nogc pure
@@ -1237,7 +1237,7 @@ ExactFloat copysign(in ExactFloat a, in ExactFloat b) nothrow @nogc pure {
 }
 
 /**
- * Convert "a" to a normalized fraction in the range [0.5, 1) times a power
+ * Convert "a" to a normalized fraction in the range \[0.5, 1\) times a power
  * of two.  Return the fraction and set "exp" to the exponent.  If "a" is
  * zero, infinity, or NaN then return "a" and set "exp" to zero.
  */
@@ -1282,7 +1282,7 @@ ExactFloat scalbln(in ExactFloat a, long exp) nothrow {
 }
 
 /**
- * Convert "a" to a normalized fraction in the range [1,2) times a power of
+ * Convert "a" to a normalized fraction in the range \[1,2\) times a power of
  * two, and return the exponent value as an integer.  This is equivalent to
  * lrint(floor(log2(fabs(a)))) but it is computed more efficiently.  Returns
  * the constants documented in the man page for zero, infinity, or NaN.
@@ -1296,7 +1296,7 @@ int ilogb(in ExactFloat a) nothrow {
 }
 
 /**
- * Convert "a" to a normalized fraction in the range [1,2) times a power of
+ * Convert "a" to a normalized fraction in the range \[1,2\) times a power of
  * two, and return the exponent value as an ExactFloat.  This is equivalent to
  * floor(log2(fabs(a))) but it is computed more efficiently.
  */

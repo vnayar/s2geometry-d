@@ -209,6 +209,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>The default constructor creates an empty polygon.  It can be made
  non-empty by calling Init(), Decode(), etc.
@@ -219,6 +220,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(loops, s2debugOverride)</span>
 						</td>
 						<td>Convenience constructor that calls InitNested() with the given loops.
 </td>
@@ -228,6 +230,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>Convenience constructor that creates a polygon with a single loop
  corresponding to the given cell.
@@ -238,6 +241,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.this.html" class="public">
 								<code>this</code>
 							</a>
+							<span class="tableEntryAnnotation">(loop, s2debugOverride)</span>
 						</td>
 						<td>Convenience constructor that calls Init(S2Loop*).  Note that this method
  automatically converts the special empty loop (see S2Loop) into an empty
@@ -258,6 +262,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.approxContains.html" class="public">
 								<code>approxContains</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, tolerance)</span>
 						</td>
 						<td>Returns true if this polgyon (A) approximately contains the given other
  polygon (B). This is true if it is possible to move the vertices of B
@@ -269,6 +274,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.approxContains.html" class="public">
 								<code>approxContains</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, tolerance)</span>
 						</td>
 						<td>Returns true if this polgyon approximately contains the given polyline
  This is true if it is possible to move the polyline vertices no further
@@ -280,6 +286,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.approxDisjoint.html" class="public">
 								<code>approxDisjoint</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, tolerance)</span>
 						</td>
 						<td>Returns true if this polgyon (A) and the given polygon (B) are
  approximately disjoint.  This is true if it is possible to ensure that A
@@ -293,6 +300,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.approxDisjoint.html" class="public">
 								<code>approxDisjoint</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, tolerance)</span>
 						</td>
 						<td>Returns true if this polgyon is approximately disjoint from the given
  polyline.  This is true if it is possible to avoid intersection by moving
@@ -304,6 +312,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.approxEquals.html" class="public">
 								<code>approxEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, tolerance)</span>
 						</td>
 						<td>Return true if two polygons are approximately equal to within the given
  tolerance.  This is true if it is possible to move the vertices of the
@@ -315,6 +324,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.approxIntersectWithPolyline.html" class="public">
 								<code>approxIntersectWithPolyline</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, snap_radius)</span>
 						</td>
 						<td>Similar to IntersectWithPolyline(), except that vertices will be
  dropped as necessary to ensure that all adjacent vertices in the
@@ -328,6 +338,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.approxSubtractFromPolyline.html" class="public">
 								<code>approxSubtractFromPolyline</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, snap_radius)</span>
 						</td>
 						<td>Same as ApproxIntersectWithPolyline, but subtracts this polygon
  from the given polyline.
@@ -338,6 +349,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.boundaryApproxEquals.html" class="public">
 								<code>boundaryApproxEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, max_error)</span>
 						</td>
 						<td>Return true if two polygons have the same boundary except for vertex
  perturbations.  Both polygons must have loops with the same cyclic vertex
@@ -350,6 +362,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.boundaryEquals.html" class="public">
 								<code>boundaryEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Returns true if two polygons have the same boundary.  More precisely,
  this method requires that both polygons have loops with the same cyclic
@@ -364,6 +377,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.boundaryNear.html" class="public">
 								<code>boundaryNear</code>
 							</a>
+							<span class="tableEntryAnnotation">(b, max_error)</span>
 						</td>
 						<td>Return true if two polygons have boundaries that are within "max_error"
  of each other along their entire lengths.  More precisely, there must be
@@ -376,6 +390,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.clone.html" class="public">
 								<code>clone</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>GetRectBound() returns essentially tight results, while GetCapBound()
  might have a lot of extra padding.  Both bounds are conservative in that
@@ -387,6 +402,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Return true if this polygon contains the given other polygon, i.e.
  if polygon A contains all points contained by polygon B.
@@ -397,6 +413,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Return true if this polygon contains the given polyline.  This method
  returns an exact result, according to the following model:
@@ -407,6 +424,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.contains.html" class="public">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(p)</span>
 						</td>
 						<td>The point 'p' does not need to be normalized.
 </td>
@@ -416,6 +434,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.decode.html" class="public">
 								<code>decode</code>
 							</a>
+							<span class="tableEntryAnnotation">(decoder)</span>
 						</td>
 						<td>Decodes a polygon encoded with Encode().  Returns true on success.
 </td>
@@ -425,6 +444,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.destructiveUnion.html" class="public">
 								<code>destructiveUnion</code>
 							</a>
+							<span class="tableEntryAnnotation">(polygons)</span>
 						</td>
 						<td>Return a polygon which is the union of the given polygons.
 </td>
@@ -434,6 +454,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.encode.html" class="public">
 								<code>encode</code>
 							</a>
+							<span class="tableEntryAnnotation">(encoder)</span>
 						</td>
 						<td>Appends a serialized representation of the S2Polygon to "encoder".
 </td>
@@ -443,6 +464,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.findValidationError.html" class="public">
 								<code>findValidationError</code>
 							</a>
+							<span class="tableEntryAnnotation">(error)</span>
 						</td>
 						<td>Returns true if this is *not* a valid polygon and sets "error"
  appropriately.  Otherwise returns false and leaves "error" unchanged.
@@ -453,6 +475,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getArea.html" class="public">
 								<code>getArea</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return the area of the polygon interior, i.e. the region on the left side
  of an odd number of loops.  The return value is between 0 and 4*Pi.
@@ -463,6 +486,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getCapBound.html" class="public">
 								<code>getCapBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Cap surrounding rect bound.
 </td>
@@ -472,6 +496,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getCentroid.html" class="public">
 								<code>getCentroid</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return the true centroid of the polygon multiplied by the area of the
  polygon (see s2centroids.h for details on centroids).  The result is not
@@ -484,6 +509,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getDistance.html" class="public">
 								<code>getDistance</code>
 							</a>
+							<span class="tableEntryAnnotation">(x)</span>
 						</td>
 						<td>Return the distance from the given point to the polygon interior.  If the
  polygon is empty, return S1Angle::Infinity().  "x" should be unit length.
@@ -494,6 +520,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getDistanceToBoundary.html" class="public">
 								<code>getDistanceToBoundary</code>
 							</a>
+							<span class="tableEntryAnnotation">(x)</span>
 						</td>
 						<td>Return the distance from the given point to the polygon boundary.  If the
  polygon is empty or full, return S1Angle::Infinity() (since the polygon
@@ -505,6 +532,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getLastDescendant.html" class="public">
 								<code>getLastDescendant</code>
 							</a>
+							<span class="tableEntryAnnotation">(k)</span>
 						</td>
 						<td>Return the index of the last loop that is contained within loop k.
  Returns num_loops() - 1 if k &lt; 0.  Note that loops are indexed according
@@ -519,6 +547,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getOverlapFractions.html" class="public">
 								<code>getOverlapFractions</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, b)</span>
 						</td>
 						<td>Return the overlap fractions between two polygons, i.e. the ratios of the
  area of intersection to the area of each polygon.
@@ -529,6 +558,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getParent.html" class="public">
 								<code>getParent</code>
 							</a>
+							<span class="tableEntryAnnotation">(k)</span>
 						</td>
 						<td>Return the index of the parent of loop k, or -1 if it has no parent.
 </td>
@@ -538,6 +568,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.getSnapLevel.html" class="public">
 								<code>getSnapLevel</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>If all of the polygon's vertices happen to be the centers of S2Cells at
  some level, then return that level, otherwise return -1.  See also
@@ -550,6 +581,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.index.html" class="public">
 								<code>index</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the built-in S2ShapeIndex associated with every S2Polygon.  This
  can be used in conjunction with the various S2ShapeIndex query classes
@@ -562,6 +594,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initialize.html" class="public">
 								<code>initialize</code>
 							</a>
+							<span class="tableEntryAnnotation">(loop)</span>
 						</td>
 						<td>Initialize a polygon from a single loop.  Note that this method
  automatically converts the special empty loop (see S2Loop) into an empty
@@ -574,6 +607,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeNested.html" class="public">
 								<code>initializeNested</code>
 							</a>
+							<span class="tableEntryAnnotation">(loops)</span>
 						</td>
 						<td>Create a polygon from a set of hierarchically nested loops.  The polygon
  interior consists of the points contained by an odd number of loops.
@@ -585,6 +619,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeOriented.html" class="public">
 								<code>initializeOriented</code>
 							</a>
+							<span class="tableEntryAnnotation">(loops)</span>
 						</td>
 						<td>Like InitNested(), but expects loops to be oriented such that the polygon
  interior is on the left-hand side of all loops.  This implies that shells
@@ -598,6 +633,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeToCellUnionBorder.html" class="public">
 								<code>initializeToCellUnionBorder</code>
 							</a>
+							<span class="tableEntryAnnotation">(cells)</span>
 						</td>
 						<td>Initialize this polygon to the outline of the given cell union.
  In principle this polygon should exactly contain the cell union and
@@ -610,6 +646,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeToComplement.html" class="public">
 								<code>initializeToComplement</code>
 							</a>
+							<span class="tableEntryAnnotation">(a)</span>
 						</td>
 						<td>Initialize this polygon to the complement of the given polygon.
 </td>
@@ -619,6 +656,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeToIntersection.html" class="public">
 								<code>initializeToIntersection</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, b)</span>
 						</td>
 						<td>Initialize this polygon to the intersection, union, difference (A - B),
  or symmetric difference (XOR) of the given two polygons.
@@ -629,6 +667,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeToSimplified.html" class="public">
 								<code>initializeToSimplified</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, snap_function)</span>
 						</td>
 						<td>Snaps the input polygon according to the given "snap_function" and
  reduces the number of vertices if possible, while ensuring that no vertex
@@ -640,6 +679,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeToSimplifiedInCell.html" class="public">
 								<code>initializeToSimplifiedInCell</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, cell, snap_radius, boundary_tolerance)</span>
 						</td>
 						<td>Like InitToSimplified, except that any vertices or edges on the boundary
  of the given S2Cell are preserved if possible.  This method requires that
@@ -653,6 +693,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeToSnapped.html" class="public">
 								<code>initializeToSnapped</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, snap_function)</span>
 						</td>
 						<td>Snaps the vertices of the given polygon using the given SnapFunction
  (e.g., s2builderutil::IntLatLngSnapFunction(6) snaps to E6 coordinates).
@@ -667,6 +708,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.initializeToSnapped.html" class="public">
 								<code>initializeToSnapped</code>
 							</a>
+							<span class="tableEntryAnnotation">(a, snap_level)</span>
 						</td>
 						<td>Convenience function that snaps the vertices to S2CellId centers at the
  given level (default level 30, which has S2CellId centers spaced about 1
@@ -679,6 +721,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.intersects.html" class="public">
 								<code>intersects</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Return true if this polygon intersects the given other polygon, i.e.
  if there is a point that is contained by both polygons.
@@ -689,6 +732,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.intersects.html" class="public">
 								<code>intersects</code>
 							</a>
+							<span class="tableEntryAnnotation">(b)</span>
 						</td>
 						<td>Return true if this polygon intersects the given polyline.  This method
  returns an exact result; see Contains(S2Polyline) for details.
@@ -699,6 +743,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.intersectWithPolyline.html" class="public">
 								<code>intersectWithPolyline</code>
 							</a>
+							<span class="tableEntryAnnotation">(a)</span>
 						</td>
 						<td>Intersect this polygon with the polyline "in" and return the resulting
  zero or more polylines.  The polylines are returned in the order they
@@ -712,6 +757,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.invert.html" class="public">
 								<code>invert</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Invert the polygon (replace it by its complement).
 </td>
@@ -721,6 +767,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.isEmpty.html" class="public">
 								<code>isEmpty</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return true if this is the empty polygon (consisting of no loops).
 </td>
@@ -730,6 +777,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.isFull.html" class="public">
 								<code>isFull</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return true if this is the full polygon (consisting of a single loop that
  encompasses the entire sphere).
@@ -740,6 +788,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.isNormalized.html" class="public">
 								<code>isNormalized</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return true if every loop of this polygon shares at most one vertex with
  its parent loop.  Every polygon has a unique normalized form.  A polygon
@@ -752,6 +801,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.isValid.html" class="public">
 								<code>isValid</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns true if this is a valid polygon (including checking whether all
  the loops are themselves valid).  Note that validity is checked
@@ -764,6 +814,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.numLoops.html" class="public">
 								<code>numLoops</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Return the number of loops in this polygon.
 </td>
@@ -773,6 +824,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.numVertices.html" class="public">
 								<code>numVertices</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Total number of vertices in all loops.
 </td>
@@ -782,6 +834,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.opEquals.html" class="public">
 								<code>opEquals</code>
 							</a>
+							<span class="tableEntryAnnotation">(o)</span>
 						</td>
 						<td>Return true if two polygons have exactly the same loops.  The loops must
  appear in the same order, and corresponding loops must have the same
@@ -793,6 +846,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.project.html" class="public">
 								<code>project</code>
 							</a>
+							<span class="tableEntryAnnotation">(x)</span>
 						</td>
 						<td>If the given point is contained by the polygon, return it.  Otherwise
  return the closest point on the polygon boundary.  If the polygon is
@@ -805,6 +859,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.projectToBoundary.html" class="public">
 								<code>projectToBoundary</code>
 							</a>
+							<span class="tableEntryAnnotation">(x)</span>
 						</td>
 						<td>Return the closest point on the polygon boundary to the given point.  If
  the polygon is empty or full, return the input argument (since the
@@ -816,6 +871,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.release.html" class="public">
 								<code>release</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Releases ownership of and returns the loops of this polygon, and resets
  the polygon to be empty.
@@ -826,6 +882,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.setS2debugOverride.html" class="public">
 								<code>setS2debugOverride</code>
 							</a>
+							<span class="tableEntryAnnotation">(s2debugOverride)</span>
 						</td>
 						<td>Destroys the polygon and frees its loops.
 </td>
@@ -835,6 +892,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.spaceUsed.html" class="public">
 								<code>spaceUsed</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns the total number of bytes used by the polygon.
 </td>
@@ -844,6 +902,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2polygon/S2Polygon.subtractFromPolyline.html" class="public">
 								<code>subtractFromPolyline</code>
 							</a>
+							<span class="tableEntryAnnotation">(a)</span>
 						</td>
 						<td>Same as IntersectWithPolyline, but subtracts this polygon from
  the given polyline.
@@ -854,6 +913,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region/S2Region.clone.html" class="public inherited">
 								<code>clone</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a deep copy of the region.
 </td>
@@ -863,6 +923,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region/S2Region.contains.html" class="public inherited">
 								<code>contains</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>Returns true if the region completely contains the given cell, otherwise
  returns false.
@@ -873,6 +934,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region/S2Region.getCapBound.html" class="public inherited">
 								<code>getCapBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a bounding spherical cap that contains the region.  The bound may
  not be tight.
@@ -883,6 +945,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region/S2Region.getCellUnionBound.html" class="public inherited">
 								<code>getCellUnionBound</code>
 							</a>
+							<span class="tableEntryAnnotation">(cellIds)</span>
 						</td>
 						<td>Returns a small collection of S2CellIds whose union covers the region.
  The cells are not sorted, may have redundancies (such as cells that
@@ -894,6 +957,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region/S2Region.getRectBound.html" class="public inherited">
 								<code>getRectBound</code>
 							</a>
+							<span class="tableEntryAnnotation">()</span>
 						</td>
 						<td>Returns a bounding latitude-longitude rectangle that contains the region.
  The bound may not be tight.
@@ -904,6 +968,7 @@ $('#symbolSearchPane').show();</script>
 							<a href="../../s2/s2region/S2Region.mayIntersect.html" class="public inherited">
 								<code>mayIntersect</code>
 							</a>
+							<span class="tableEntryAnnotation">(cell)</span>
 						</td>
 						<td>If this method returns false, the region does not intersect the given
  cell.  Otherwise, either region intersects the cell, or the intersection
