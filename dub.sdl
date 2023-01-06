@@ -4,7 +4,6 @@ description "Google's S2 Geometric Library implemented in D."
 copyright "Copyright © 2018-2019, Vijay Nayar"
 license "Apache-2.0"
 dependency "fluent-asserts" version="~>0.12.3"
-dflags "-preview=markdown"
 configuration "library" {
   name "library"
   targetType "library"
